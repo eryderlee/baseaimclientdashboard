@@ -1,0 +1,230 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  CLIENT
+}
+
+enum DocumentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum MilestoneStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  BLOCKED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String
+  role          UserRole  @default(CLIENT)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  clientProfile Client?
+  messages      Message[]
+  notifications Notification[]
+  activities    Activity[]
+
+  @@map("users")
+}
+
+model Client {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  companyName     String
+  industry        String?
+  website         String?
+  phone           String?
+  address         String?
+  onboardingStep  Int       @default(0)
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documents       Document[]
+  milestones      Milestone[]
+  invoices        Invoice[]
+  subscriptions   Subscription[]
+
+  @@map("clients")
+}
+
+model Document {
+  id          String         @id @default(cuid())
+  clientId    String
+  title       String
+  description String?
+  fileUrl     String
+  fileName    String
+  fileSize    Int
+  fileType    String
+  status      DocumentStatus @default(PENDING)
+  uploadedBy  String
+  folderId    String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  // Relations
+  client      Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  folder      Folder?        @relation(fields: [folderId], references: [id])
+
+  @@map("documents")
+  @@index([clientId])
+  @@index([folderId])
+}
+
+model Folder {
+  id          String     @id @default(cuid())
+  name        String
+  parentId    String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relations
+  parent      Folder?    @relation("FolderHierarchy", fields: [parentId], references: [id])
+  children    Folder[]   @relation("FolderHierarchy")
+  documents   Document[]
+
+  @@map("folders")
+}
+
+model Message {
+  id          String    @id @default(cuid())
+  content     String
+  senderId    String
+  receiverId  String?
+  isRead      Boolean   @default(false)
+  attachments String[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  sender      User      @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+  @@index([senderId])
+  @@index([receiverId])
+}
+
+model Notification {
+  id          String    @id @default(cuid())
+  userId      String
+  title       String
+  message     String
+  type        String
+  isRead      Boolean   @default(false)
+  link        String?
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+  @@index([userId])
+}
+
+model Milestone {
+  id          String          @id @default(cuid())
+  clientId    String
+  title       String
+  description String?
+  status      MilestoneStatus @default(NOT_STARTED)
+  startDate   DateTime?
+  dueDate     DateTime?
+  completedAt DateTime?
+  progress    Int             @default(0)
+  order       Int             @default(0)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  // Relations
+  client      Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("milestones")
+  @@index([clientId])
+}
+
+model Invoice {
+  id          String        @id @default(cuid())
+  clientId    String
+  invoiceNumber String      @unique
+  amount      Float
+  currency    String        @default("usd")
+  status      InvoiceStatus @default(DRAFT)
+  dueDate     DateTime
+  paidAt      DateTime?
+  description String?
+  items       Json
+  stripeInvoiceId String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  client      Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("invoices")
+  @@index([clientId])
+}
+
+model Subscription {
+  id                String    @id @default(cuid())
+  clientId          String
+  stripeCustomerId  String?   @unique
+  stripePriceId     String?
+  stripeSubscriptionId String? @unique
+  status            String    @default("inactive")
+  currentPeriodEnd  DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  client            Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+  @@index([clientId])
+}
+
+model Activity {
+  id          String    @id @default(cuid())
+  userId      String
+  action      String
+  entity      String
+  entityId    String?
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("activities")
+  @@index([userId])
+  @@index([entityId])
+}
