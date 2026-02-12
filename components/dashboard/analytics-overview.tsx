@@ -133,7 +133,7 @@ export function AnalyticsOverview({
   return (
     <div className={cn(
       "transition-all duration-300",
-      isExpanded ? "lg:col-span-2" : "lg:col-span-1"
+      isExpanded ? "lg:col-span-3" : "lg:col-span-2"
     )}>
       <Card className="w-full h-full">
         <CardHeader className="flex flex-row items-center justify-between">

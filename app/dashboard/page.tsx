@@ -166,10 +166,10 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      {/* Stats Overview and Analytics - 2 Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left Section: Stats Cards (1/2 width on desktop, stacked vertically) */}
-        <div className="flex flex-col gap-4">
+      {/* Stats Overview and Analytics - 3 Column Layout (1:2 ratio) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Section: Stats Cards (1/3 width on desktop, stacked vertically) */}
+        <div className="lg:col-span-1 flex flex-col gap-4">
           <Card className="hover:shadow-lg transition-shadow flex-1">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Documents</CardTitle>
