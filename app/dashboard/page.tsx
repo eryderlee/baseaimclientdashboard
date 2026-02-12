@@ -178,8 +178,8 @@ export default async function DashboardPage() {
         />
 
         {/* Stats Cards (1/3 width on desktop, moves below chart when expanded) */}
-        <div className="lg:col-span-1 flex flex-col gap-4">
-          <Card className="hover:shadow-lg transition-shadow flex-1">
+        <div className="lg:col-span-1 grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-4 gap-4">
+          <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Documents</CardTitle>
               <FileText className="h-4 w-4 text-blue-500" />
@@ -194,7 +194,7 @@ export default async function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow flex-1">
+          <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Unread Messages</CardTitle>
               <MessageSquare className="h-4 w-4 text-green-500" />
@@ -209,7 +209,7 @@ export default async function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow flex-1">
+          <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Overall Progress</CardTitle>
               <TrendingUp className="h-4 w-4 text-purple-500" />
@@ -220,7 +220,7 @@ export default async function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow flex-1">
+          <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pending Payments</CardTitle>
               <CreditCard className="h-4 w-4 text-orange-500" />
