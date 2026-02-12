@@ -166,74 +166,79 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      {/* Analytics Overview */}
-      <AnalyticsOverview
-        impressionsData={analytics.impressions}
-        clicksData={analytics.clicks}
-        leadsData={analytics.leads}
-        bookedCallsData={analytics.bookedCalls}
-        totalAdSpend={analytics.totalAdSpend}
-      />
+      {/* Stats Overview and Analytics - 3 Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Section: Stats Cards (2/3 width on desktop) */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Documents</CardTitle>
+                <FileText className="h-4 w-4 text-blue-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalDocuments}</div>
+                <Link href="/dashboard/documents">
+                  <Button variant="link" className="px-0 text-xs">
+                    View all documents <ArrowUpRight className="h-3 w-3 ml-1" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
 
-      {/* Stats Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Documents</CardTitle>
-            <FileText className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalDocuments}</div>
-            <Link href="/dashboard/documents">
-              <Button variant="link" className="px-0 text-xs">
-                View all documents <ArrowUpRight className="h-3 w-3 ml-1" />
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Unread Messages</CardTitle>
+                <MessageSquare className="h-4 w-4 text-green-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.unreadMessages}</div>
+                <Link href="/dashboard/chat">
+                  <Button variant="link" className="px-0 text-xs">
+                    Open chat <ArrowUpRight className="h-3 w-3 ml-1" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
 
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Unread Messages</CardTitle>
-            <MessageSquare className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.unreadMessages}</div>
-            <Link href="/dashboard/chat">
-              <Button variant="link" className="px-0 text-xs">
-                Open chat <ArrowUpRight className="h-3 w-3 ml-1" />
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Overall Progress</CardTitle>
+                <TrendingUp className="h-4 w-4 text-purple-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.overallProgress}%</div>
+                <Progress value={stats.overallProgress} className="mt-2" />
+              </CardContent>
+            </Card>
 
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Overall Progress</CardTitle>
-            <TrendingUp className="h-4 w-4 text-purple-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.overallProgress}%</div>
-            <Progress value={stats.overallProgress} className="mt-2" />
-          </CardContent>
-        </Card>
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Pending Payments</CardTitle>
+                <CreditCard className="h-4 w-4 text-orange-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  ${stats.pendingPayments.toFixed(2)}
+                </div>
+                <Link href="/dashboard/billing">
+                  <Button variant="link" className="px-0 text-xs">
+                    View invoices <ArrowUpRight className="h-3 w-3 ml-1" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
 
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Payments</CardTitle>
-            <CreditCard className="h-4 w-4 text-orange-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${stats.pendingPayments.toFixed(2)}
-            </div>
-            <Link href="/dashboard/billing">
-              <Button variant="link" className="px-0 text-xs">
-                View invoices <ArrowUpRight className="h-3 w-3 ml-1" />
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+        {/* Right Section: Analytics Chart (1/3 width on desktop, expandable) */}
+        <AnalyticsOverview
+          impressionsData={analytics.impressions}
+          clicksData={analytics.clicks}
+          leadsData={analytics.leads}
+          bookedCallsData={analytics.bookedCalls}
+          totalAdSpend={analytics.totalAdSpend}
+        />
       </div>
 
       {/* Quick Actions */}
