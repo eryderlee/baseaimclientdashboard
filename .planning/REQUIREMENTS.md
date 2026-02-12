@@ -9,10 +9,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Dashboard Layout
 
-- [ ] **DASH-01**: Dashboard overview shows 4 stat cards on the left side
-- [ ] **DASH-02**: Dashboard overview shows analytics chart on the right, smaller than current size
-- [ ] **DASH-03**: Analytics chart can be expanded to full-width (current size) via toggle/button
-- [ ] **DASH-04**: Dashboard layout is responsive (stacks on mobile)
+- [x] **DASH-01**: Dashboard overview shows 4 stat cards on the left side
+- [x] **DASH-02**: Dashboard overview shows analytics chart on the right, smaller than current size
+- [x] **DASH-03**: Analytics chart can be expanded to full-width (current size) via toggle/button
+- [x] **DASH-04**: Dashboard layout is responsive (stacks on mobile)
 
 ### Progress Tracking
 
@@ -81,10 +81,10 @@ Deferred to future release. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DASH-01 | Phase 1 | Pending |
-| DASH-02 | Phase 1 | Pending |
-| DASH-03 | Phase 1 | Pending |
-| DASH-04 | Phase 1 | Pending |
+| DASH-01 | Phase 1 | Complete |
+| DASH-02 | Phase 1 | Complete |
+| DASH-03 | Phase 1 | Complete |
+| DASH-04 | Phase 1 | Complete |
 | PROG-01 | Phase 2 | Pending |
 | PROG-02 | Phase 2 | Pending |
 | PROG-03 | Phase 2 | Pending |
@@ -111,4 +111,4 @@ Deferred to future release. Tracked but not in current roadmap.
 
 ---
 *Requirements defined: 2026-02-11*
-*Last updated: 2026-02-11 after roadmap creation*
+*Last updated: 2026-02-12 after Phase 1 completion*
