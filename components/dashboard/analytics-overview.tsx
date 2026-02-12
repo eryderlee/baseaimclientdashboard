@@ -20,7 +20,11 @@ import {
   TrendingUp,
   TrendingDown,
   DollarSign,
+  Maximize2,
+  Minimize2,
 } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 
 interface DailyMetric {
   date: string
@@ -57,6 +61,7 @@ export function AnalyticsOverview({
   totalAdSpend,
 }: AnalyticsOverviewProps) {
   const [activeTab, setActiveTab] = useState("impressions")
+  const [isExpanded, setIsExpanded] = useState(false)
 
   // Calculate totals
   const totalImpressions = impressionsData.reduce((sum, d) => sum + d.value, 0)
@@ -126,13 +131,29 @@ export function AnalyticsOverview({
   const Icon = currentMetric.icon
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="text-2xl">Campaign Performance</CardTitle>
-        <CardDescription>
-          Track your advertising metrics and conversion rates over the last 30 days
-        </CardDescription>
-      </CardHeader>
+    <div className={cn(
+      "transition-all duration-300",
+      isExpanded ? "lg:col-span-3" : "lg:col-span-1"
+    )}>
+      <Card className="w-full">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-2xl">Campaign Performance</CardTitle>
+            <CardDescription>
+              Track your advertising metrics and conversion rates over the last 30 days
+            </CardDescription>
+          </div>
+          <Button
+            onClick={() => setIsExpanded(!isExpanded)}
+            aria-expanded={isExpanded}
+            aria-label={isExpanded ? "Collapse chart to normal size" : "Expand chart to full width"}
+            variant="outline"
+            size="icon"
+            className="hidden lg:flex"
+          >
+            {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+          </Button>
+        </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-4 mb-6">
@@ -275,5 +296,6 @@ export function AnalyticsOverview({
         </Tabs>
       </CardContent>
     </Card>
+    </div>
   )
 }
