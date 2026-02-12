@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { Milestone } from "@/lib/types/milestone"
 import { MilestoneChecklist } from "@/components/dashboard/milestone-checklist"
 
 export default async function ProgressPage() {
@@ -22,7 +21,10 @@ export default async function ProgressPage() {
     orderBy: {
       order: 'asc'
     }
-  }) as Milestone[]
+  }).then(items => items.map(item => ({
+    ...item,
+    notes: Array.isArray(item.notes) ? item.notes : []
+  })))
 
   return (
     <div className="space-y-8">
