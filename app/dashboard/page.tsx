@@ -168,7 +168,16 @@ export default async function DashboardPage() {
 
       {/* Stats Overview and Analytics - 3 Column Layout (1:2 ratio) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Section: Stats Cards (1/3 width on desktop, stacked vertically) */}
+        {/* Analytics Chart (2/3 width on desktop, expandable to full width) */}
+        <AnalyticsOverview
+          impressionsData={analytics.impressions}
+          clicksData={analytics.clicks}
+          leadsData={analytics.leads}
+          bookedCallsData={analytics.bookedCalls}
+          totalAdSpend={analytics.totalAdSpend}
+        />
+
+        {/* Stats Cards (1/3 width on desktop, moves below chart when expanded) */}
         <div className="lg:col-span-1 flex flex-col gap-4">
           <Card className="hover:shadow-lg transition-shadow flex-1">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -228,15 +237,6 @@ export default async function DashboardPage() {
             </CardContent>
           </Card>
         </div>
-
-        {/* Right Section: Analytics Chart (1/2 width on desktop, expandable) */}
-        <AnalyticsOverview
-          impressionsData={analytics.impressions}
-          clicksData={analytics.clicks}
-          leadsData={analytics.leads}
-          bookedCallsData={analytics.bookedCalls}
-          totalAdSpend={analytics.totalAdSpend}
-        />
       </div>
 
       {/* Quick Actions */}
