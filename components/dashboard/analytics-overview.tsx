@@ -51,6 +51,8 @@ interface AnalyticsOverviewProps {
   leadsData: DailyMetric[]
   bookedCallsData: DailyMetric[]
   totalAdSpend: number
+  isExpanded: boolean
+  setIsExpanded: (expanded: boolean) => void
 }
 
 export function AnalyticsOverview({
@@ -59,9 +61,10 @@ export function AnalyticsOverview({
   leadsData,
   bookedCallsData,
   totalAdSpend,
+  isExpanded,
+  setIsExpanded,
 }: AnalyticsOverviewProps) {
   const [activeTab, setActiveTab] = useState("impressions")
-  const [isExpanded, setIsExpanded] = useState(false)
 
   // Calculate totals
   const totalImpressions = impressionsData.reduce((sum, d) => sum + d.value, 0)

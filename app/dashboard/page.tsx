@@ -1,3 +1,6 @@
+"use client"
+
+import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -149,7 +152,8 @@ const mockData = {
   ],
 }
 
-export default async function DashboardPage() {
+export default function DashboardPage() {
+  const [isChartExpanded, setIsChartExpanded] = useState(false)
   const { analytics, stats, milestones, documents, notifications, activities } = mockData
   const completedMilestones = milestones.filter(m => m.status === "COMPLETED").length
   const totalMilestones = milestones.length
@@ -175,10 +179,12 @@ export default async function DashboardPage() {
           leadsData={analytics.leads}
           bookedCallsData={analytics.bookedCalls}
           totalAdSpend={analytics.totalAdSpend}
+          isExpanded={isChartExpanded}
+          setIsExpanded={setIsChartExpanded}
         />
 
         {/* Stats Cards (1/3 width on desktop, moves below chart when expanded) */}
-        <div className="lg:col-span-1 grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-4 gap-4">
+        <div className={isChartExpanded ? "lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" : "lg:col-span-1 grid grid-cols-2 lg:grid-cols-1 gap-4"}>
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Documents</CardTitle>
