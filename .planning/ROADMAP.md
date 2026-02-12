@@ -29,10 +29,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. User sees analytics chart on right side smaller than current full-width size
   3. User can expand analytics chart to full-width with single click
   4. Dashboard layout stacks correctly on mobile devices without horizontal scroll
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 01-01: TBD
+- [ ] 01-01-PLAN.md - Restructure layout with stat cards left, expandable analytics right
 
 ### Phase 2: Core Progress Tracking
 **Goal**: Clients see their project progress through a clear milestone checklist
@@ -93,11 +93,11 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Dashboard Layout | 0/TBD | Not started | - |
+| 1. Dashboard Layout | 0/1 | Planned | - |
 | 2. Core Progress Tracking | 0/TBD | Not started | - |
 | 3. Client Data Isolation | 0/TBD | Not started | - |
 | 4. Google Sheets Sync Foundation | 0/TBD | Not started | - |
