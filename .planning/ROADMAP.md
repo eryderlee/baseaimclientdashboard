@@ -44,10 +44,12 @@ Plans:
   3. Dashboard shows overall progress percentage calculated from milestone completion
   4. Currently active milestone is visually highlighted and easy to identify
   5. Each milestone includes description and expected due date
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 02-01: TBD
+- [ ] 02-01-PLAN.md - Add notes field to schema and create standard milestone template
+- [ ] 02-02-PLAN.md - Build milestone UI components with accessibility and highlighting
+- [ ] 02-03-PLAN.md - Wire up progress page to real data and integrate components
 
 ### Phase 3: Client Data Isolation
 **Goal**: Each client sees only their own data when logged in
@@ -98,7 +100,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Dashboard Layout | 1/1 | ✓ Complete | 2026-02-12 |
-| 2. Core Progress Tracking | 0/TBD | Not started | - |
+| 2. Core Progress Tracking | 0/3 | Not started | - |
 | 3. Client Data Isolation | 0/TBD | Not started | - |
 | 4. Google Sheets Sync Foundation | 0/TBD | Not started | - |
 | 5. Production Sync | 0/TBD | Not started | - |
