@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 3 of 5 (Client Data Isolation)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-02-13 — Completed 03-01-PLAN.md (Authentication infrastructure)
+Last activity: 2026-02-13 — Completed 03-02-PLAN.md (Login UI & Test Data)
 
-Progress: [█████░░░░░] 50%
+Progress: [██████░░░░] 60%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
+- Total plans completed: 6
 - Average duration: 9 min
-- Total execution time: 0.71 hours
+- Total execution time: 0.91 hours
 
 **By Phase:**
 
@@ -29,11 +29,11 @@ Progress: [█████░░░░░] 50%
 |-------|-------|-------|----------|
 | 01-dashboard-layout | 1 | 20 min | 20 min |
 | 02-core-progress-tracking | 3 | 19 min | 6 min |
-| 03-client-data-isolation | 1 | 4 min | 4 min |
+| 03-client-data-isolation | 2 | 16 min | 8 min |
 
 **Recent Trend:**
-- Last 5 plans: 2 min, 2 min, 15 min, 4 min
-- Trend: Schema/foundation plans quick (2-4min), integration plans moderate (15min)
+- Last 5 plans: 2 min, 15 min, 4 min, 12 min
+- Trend: Foundation plans quick (2-4min), UI/data plans moderate (12-15min)
 
 *Updated after each plan completion*
 
@@ -76,17 +76,25 @@ Recent decisions affecting current work:
 - Middleware as optimistic protection — Provides early redirect for UX, DAL verifySession() is true security boundary
 - NextAuth type augmentation — Session includes user id and role for type-safe access in DAL functions
 
+**From Phase 03-02:**
+- Prisma 5.22.0 as stable version — Downgraded from Prisma 7.3.0 due to engine compatibility issues with Next.js 16
+- Client-side auth with redirect: false — Login page uses signIn with redirect: false for client-side error handling
+- Idempotent seed with upsert pattern — Seed script can run multiple times safely using upsert for all entities
+- Test data with varied progress states — Client 1 has milestone progress (completed, in-progress), Client 2 has fresh milestones for contrast
+
 ### Pending Todos
 
 None yet.
 
 ### Blockers/Concerns
 
-None yet.
+**From Phase 03-02:**
+- Database setup required — PostgreSQL database needs to be created and schema pushed before seed script can run
+- .env file with placeholders — Created .env with placeholder values, production deployment will need real credentials
 
 ## Session Continuity
 
-Last session: 2026-02-13T07:20:28Z
-Stopped at: Completed 03-01-PLAN.md — Authentication infrastructure
+Last session: 2026-02-13T19:28:06Z
+Stopped at: Completed 03-02-PLAN.md — Login UI & Test Data
 Resume file: None
-Next: Continue Phase 3 (plans 03-02 and 03-03)
+Next: Continue Phase 3 (plan 03-03 - Client middleware and data isolation)
