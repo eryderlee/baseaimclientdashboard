@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { signOut } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -22,6 +23,7 @@ import {
   Settings,
   Bell,
   TrendingUp,
+  LogOut,
 } from "lucide-react"
 
 interface DashboardNavProps {
@@ -47,14 +49,30 @@ export function DashboardNav({ user }: DashboardNavProps) {
   const pathname = usePathname()
 
   return (
-    <nav className="border-b bg-white dark:bg-neutral-900 sticky top-0 z-50">
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
-          <div className="flex items-center gap-8">
-            <Link href="/dashboard" className="font-bold text-xl">
-              Client Dashboard
-            </Link>
-            <div className="hidden md:flex items-center gap-1">
+    <nav className="sticky top-0 z-50 border-b border-white/70 bg-white/80 shadow-[0_10px_60px_rgba(37,99,235,0.15)] backdrop-blur-2xl dark:border-slate-800 dark:bg-slate-900/80">
+      <div className="flex h-20 w-full items-center justify-between px-4 lg:px-8">
+        <div className="flex items-center gap-8">
+          <Link href="/dashboard" className="flex items-center gap-3">
+            <img
+              src="/BASEAIM BLACK.png"
+              alt="Baseaim logo"
+              width={52}
+              height={52}
+              className="h-12 w-auto object-contain drop-shadow-[0_12px_30px_rgba(15,23,42,0.25)]"
+            />
+            <div className="text-sm leading-tight text-slate-600">
+              <p className="font-heading text-lg text-slate-900 dark:text-white">
+                Baseaim Client Hub
+              </p>
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
+                Engagement Workspace
+              </p>
+            </div>
+          </Link>
+        </div>
+
+        <div className="flex flex-1 items-center justify-end gap-6">
+          <div className="hidden md:flex items-center gap-1 rounded-full border border-white/60 bg-white/70 p-1 shadow-inner shadow-sky-100 dark:border-slate-800 dark:bg-slate-900/70">
               {navItems.map((item) => {
                 const Icon = item.icon
                 const isActive = pathname === item.href
@@ -62,10 +80,10 @@ export function DashboardNav({ user }: DashboardNavProps) {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    className={`flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-medium transition-all ${
                       isActive
-                        ? "bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
-                        : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                        ? "bg-gradient-to-r from-primary to-cyan-400 text-white shadow-md shadow-sky-200"
+                        : "text-slate-500 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
                     }`}
                   >
                     <Icon className="h-4 w-4" />
@@ -74,22 +92,25 @@ export function DashboardNav({ user }: DashboardNavProps) {
                 )
               })}
             </div>
-          </div>
 
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative rounded-full border border-white/70 bg-white/70 text-slate-600 shadow-sm shadow-sky-100 hover:bg-white/90 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
+            >
               <Bell className="h-5 w-5" />
-              <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
+              <Badge className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-r from-[#e11d48] via-[#f97316] to-[#eab308] p-0 text-[10px] text-white shadow-sm">
                 3
               </Badge>
             </Button>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                <Button variant="ghost" className="relative h-12 w-12 rounded-full border border-white/70 bg-white/90 p-0 shadow-sm shadow-sky-100 dark:border-slate-700 dark:bg-slate-900/80">
                   <Avatar>
                     <AvatarImage src={user.image || ""} alt={user.name || ""} />
-                    <AvatarFallback>
+                    <AvatarFallback className="bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-200">
                       {user.name
                         ?.split(" ")
                         .map((n) => n[0])
@@ -118,8 +139,22 @@ export function DashboardNav({ user }: DashboardNavProps) {
                     Settings
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => signOut({ callbackUrl: "/login" })}
+                  className="cursor-pointer text-red-600 focus:text-red-600"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Log out
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            <Button
+              asChild
+              className="hidden md:inline-flex rounded-full border-0 bg-gradient-to-r from-primary via-sky-400 to-cyan-400 px-5 py-2 font-semibold text-white shadow-lg shadow-sky-200 hover:opacity-90"
+            >
+              <Link href="/dashboard/chat">Open Chat</Link>
+            </Button>
           </div>
         </div>
       </div>
