@@ -2,7 +2,7 @@
 
 ## Overview
 
-This roadmap transforms the BaseAim client dashboard from mock-data displays into a production-ready progress tracking system. We start by restructuring the dashboard layout for clarity, add milestone-based progress tracking that clients can actually use, ensure client data isolation for security, then integrate Google Sheets as the admin backend for updating client progress. The journey delivers transparency for clients and simplicity for the BaseAim team.
+This roadmap transforms the BaseAim client dashboard from mock-data displays into a production-ready progress tracking system. We start by restructuring the dashboard layout for clarity, add milestone-based progress tracking that clients can actually use, ensure client data isolation for security, then build a custom admin CRM for BaseAim team to manage client progress directly. The journey delivers transparency for clients and powerful management tools for the BaseAim team.
 
 ## Phases
 
@@ -15,8 +15,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Dashboard Layout** - Restructure dashboard for improved information hierarchy
 - [x] **Phase 2: Core Progress Tracking** - Milestone checklist system with status indicators
 - [x] **Phase 3: Client Data Isolation** - Per-client authentication and data access
-- [ ] **Phase 4: Google Sheets Sync Foundation** - Build sync infrastructure for admin updates
-- [ ] **Phase 5: Production Sync** - Automated polling and error handling
+- [ ] **Phase 4: Admin Milestone Editing** - Custom admin interface for updating client milestones
+- [ ] **Phase 5: Client Onboarding & Management** - Admin tools for adding/managing clients and users
+- [ ] **Phase 6: Admin Analytics** - Overview dashboard for admin to track all clients
 
 ## Phase Details
 
@@ -66,43 +67,61 @@ Plans:
 - [x] 03-02-PLAN.md - Login page and database seed with test users
 - [x] 03-03-PLAN.md - Wire dashboard and progress pages to real session and DAL data
 
-### Phase 4: Google Sheets Sync Foundation
-**Goal**: Admin can update client progress via Google Sheets with reliable sync to database
+### Phase 4: Admin Milestone Editing
+**Goal**: Admin can update client milestone status, due dates, and notes through custom admin interface
 **Depends on**: Phase 3
-**Requirements**: SHEET-01, SHEET-02, SHEET-04, SHEET-05
+**Requirements**: ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04
 **Success Criteria** (what must be TRUE):
-  1. Admin can update client milestone status in standardized Google Sheet template
-  2. Sheet template includes required columns (Client ID, Milestone, Status, Progress %, Due Date, Notes)
-  3. Sync service authenticates with service account (no manual OAuth flow)
-  4. Data from Google Sheet writes successfully to PostgreSQL database
-**Plans**: TBD
+  1. Admin can log in and access admin-only interface (/admin or similar route)
+  2. Admin sees list of all clients and can select a client to manage
+  3. Admin can edit milestone status (Not Started/In Progress/Completed), due dates, and notes in table/spreadsheet interface
+  4. Progress percentage auto-calculates (Not Started=0%, In Progress=time-based, Completed=100%)
+  5. Changes save to database and client sees updated milestones immediately in their dashboard
+**Plans:** 2 plans
 
 Plans:
-- [ ] 04-01: TBD
+- [ ] 04-01-PLAN.md — Backend: DAL admin functions, progress utility, Server Action with Zod validation
+- [ ] 04-02-PLAN.md — UI: Admin client list with links, milestone edit table with inline editing and batch save
 
-### Phase 5: Production Sync
-**Goal**: Sync runs automatically with production-grade error handling
+### Phase 5: Client Onboarding & Management
+**Goal**: Admin can add new clients, create user accounts, and manage client details
 **Depends on**: Phase 4
-**Requirements**: SHEET-03, SHEET-06
+**Requirements**: ADMIN-05, ADMIN-06, ADMIN-07
 **Success Criteria** (what must be TRUE):
-  1. Dashboard syncs from Google Sheet automatically every 15-60 minutes
-  2. Sync handles errors gracefully (malformed data, missing columns, API rate limits) without crashing
-  3. Clients continue seeing last known good data when sync fails
-  4. Admin can see sync status and errors via dashboard or logs
+  1. Admin can add new client with company name, project details, and contact info
+  2. Admin can create client user account (email/password) for dashboard access
+  3. Admin can edit client details and project information
+  4. Admin can deactivate/reactivate client accounts
+  5. New clients automatically get standard 6-milestone template initialized
 **Plans**: TBD
 
 Plans:
 - [ ] 05-01: TBD
 
+### Phase 6: Admin Analytics
+**Goal**: Admin has overview dashboard showing all client progress and project health
+**Depends on**: Phase 5
+**Requirements**: ADMIN-08, ADMIN-09
+**Success Criteria** (what must be TRUE):
+  1. Admin sees dashboard with all clients and their overall progress percentages
+  2. Admin can identify at-risk projects (overdue milestones, stalled progress)
+  3. Admin can filter/sort clients by progress status, due dates, or other criteria
+  4. Admin sees summary metrics (total clients, average progress, upcoming due dates)
+**Plans**: TBD
+
+Plans:
+- [ ] 06-01: TBD
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Dashboard Layout | 1/1 | ✓ Complete | 2026-02-12 |
 | 2. Core Progress Tracking | 3/3 | ✓ Complete | 2026-02-12 |
 | 3. Client Data Isolation | 3/3 | ✓ Complete | 2026-02-13 |
-| 4. Google Sheets Sync Foundation | 0/TBD | Not started | - |
-| 5. Production Sync | 0/TBD | Not started | - |
+| 4. Admin Milestone Editing | 0/2 | In progress | - |
+| 5. Client Onboarding & Management | 0/TBD | Not started | - |
+| 6. Admin Analytics | 0/TBD | Not started | - |
