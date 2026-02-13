@@ -59,10 +59,12 @@ Plans:
   1. Each client can log in with individual email/password credentials
   2. Client sees only their own progress data and cannot access other clients' data
   3. Admin users can view all clients' data when logged in with admin role
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 03-01: TBD
+- [ ] 03-01-PLAN.md - Auth infrastructure: DAL, middleware, NextAuth types
+- [ ] 03-02-PLAN.md - Login page and database seed with test users
+- [ ] 03-03-PLAN.md - Wire dashboard and progress pages to real session and DAL data
 
 ### Phase 4: Google Sheets Sync Foundation
 **Goal**: Admin can update client progress via Google Sheets with reliable sync to database
@@ -100,7 +102,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Dashboard Layout | 1/1 | ✓ Complete | 2026-02-12 |
-| 2. Core Progress Tracking | 0/3 | Not started | - |
-| 3. Client Data Isolation | 0/TBD | Not started | - |
+| 2. Core Progress Tracking | 3/3 | ✓ Complete | 2026-02-12 |
+| 3. Client Data Isolation | 0/3 | Not started | - |
 | 4. Google Sheets Sync Foundation | 0/TBD | Not started | - |
 | 5. Production Sync | 0/TBD | Not started | - |
