@@ -13,7 +13,7 @@ This roadmap transforms the BaseAim client dashboard from mock-data displays int
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Dashboard Layout** - Restructure dashboard for improved information hierarchy
-- [ ] **Phase 2: Core Progress Tracking** - Milestone checklist system with status indicators
+- [x] **Phase 2: Core Progress Tracking** - Milestone checklist system with status indicators
 - [ ] **Phase 3: Client Data Isolation** - Per-client authentication and data access
 - [ ] **Phase 4: Google Sheets Sync Foundation** - Build sync infrastructure for admin updates
 - [ ] **Phase 5: Production Sync** - Automated polling and error handling
@@ -47,9 +47,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 02-01-PLAN.md - Add notes field to schema and create standard milestone template
-- [ ] 02-02-PLAN.md - Build milestone UI components with accessibility and highlighting
-- [ ] 02-03-PLAN.md - Wire up progress page to real data and integrate components
+- [x] 02-01-PLAN.md - Add notes field to schema and create standard milestone template
+- [x] 02-02-PLAN.md - Build milestone UI components with accessibility and highlighting
+- [x] 02-03-PLAN.md - Wire up progress page to real data and integrate components
 
 ### Phase 3: Client Data Isolation
 **Goal**: Each client sees only their own data when logged in

@@ -16,15 +16,15 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Progress Tracking
 
-- [ ] **PROG-01**: Client sees a linear milestone checklist showing all project steps in order
-- [ ] **PROG-02**: Each milestone shows status indicator (Not Started / In Progress / Completed) with color coding
-- [ ] **PROG-03**: Dashboard shows overall progress percentage calculated from milestone completion
-- [ ] **PROG-04**: Currently active milestone is visually highlighted/distinguished from others
-- [ ] **PROG-05**: Each milestone has a 1-2 sentence description explaining what it means
-- [ ] **PROG-06**: Each milestone shows expected due date (week-level precision)
-- [ ] **PROG-07**: Completed milestones show completion date
-- [ ] **PROG-08**: All clients share the same standard milestone template (onboarding → ad account → landing page → campaign → launch → optimization)
-- [ ] **PROG-09**: Each milestone can have progress notes (mini-changelog entries like "Landing page approved, moving to dev")
+- [x] **PROG-01**: Client sees a linear milestone checklist showing all project steps in order
+- [x] **PROG-02**: Each milestone shows status indicator (Not Started / In Progress / Completed) with color coding
+- [x] **PROG-03**: Dashboard shows overall progress percentage calculated from milestone completion
+- [x] **PROG-04**: Currently active milestone is visually highlighted/distinguished from others
+- [x] **PROG-05**: Each milestone has a 1-2 sentence description explaining what it means
+- [x] **PROG-06**: Each milestone shows expected due date (week-level precision)
+- [x] **PROG-07**: Completed milestones show completion date
+- [x] **PROG-08**: All clients share the same standard milestone template (onboarding → ad account → landing page → campaign → launch → optimization)
+- [x] **PROG-09**: Each milestone can have progress notes (mini-changelog entries like "Landing page approved, moving to dev")
 
 ### Google Sheets Integration
 
@@ -85,15 +85,15 @@ Deferred to future release. Tracked but not in current roadmap.
 | DASH-02 | Phase 1 | Complete |
 | DASH-03 | Phase 1 | Complete |
 | DASH-04 | Phase 1 | Complete |
-| PROG-01 | Phase 2 | Pending |
-| PROG-02 | Phase 2 | Pending |
-| PROG-03 | Phase 2 | Pending |
-| PROG-04 | Phase 2 | Pending |
-| PROG-05 | Phase 2 | Pending |
-| PROG-06 | Phase 2 | Pending |
-| PROG-07 | Phase 2 | Pending |
-| PROG-08 | Phase 2 | Pending |
-| PROG-09 | Phase 2 | Pending |
+| PROG-01 | Phase 2 | Complete |
+| PROG-02 | Phase 2 | Complete |
+| PROG-03 | Phase 2 | Complete |
+| PROG-04 | Phase 2 | Complete |
+| PROG-05 | Phase 2 | Complete |
+| PROG-06 | Phase 2 | Complete |
+| PROG-07 | Phase 2 | Complete |
+| PROG-08 | Phase 2 | Complete |
+| PROG-09 | Phase 2 | Complete |
 | AUTH-01 | Phase 3 | Pending |
 | AUTH-02 | Phase 3 | Pending |
 | AUTH-03 | Phase 3 | Pending |
@@ -111,4 +111,4 @@ Deferred to future release. Tracked but not in current roadmap.
 
 ---
 *Requirements defined: 2026-02-11*
-*Last updated: 2026-02-12 after Phase 1 completion*
+*Last updated: 2026-02-12 after Phase 2 completion*
