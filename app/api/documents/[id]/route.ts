@@ -5,7 +5,7 @@ import { del } from "@vercel/blob"
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -13,8 +13,9 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { id } = await params
     const document = await prisma.document.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         client: {
           include: {
@@ -44,7 +45,7 @@ export async function DELETE(
 
     // Delete from database
     await prisma.document.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
     // Create activity log
@@ -53,7 +54,7 @@ export async function DELETE(
         userId: session.user.id,
         action: "deleted a document",
         entity: "document",
-        entityId: params.id,
+        entityId: id,
         metadata: {
           documentTitle: document.title,
         },

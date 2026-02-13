@@ -128,7 +128,7 @@ export function AnalyticsCharts({
                   cx="50%"
                   cy="50%"
                   outerRadius={100}
-                  label={(entry) => `${entry.status}: ${entry.count}`}
+                  label={(entry: any) => `${entry.status}: ${entry.count}`}
                 >
                   {milestoneStatusData.map((entry, index) => (
                     <Cell
