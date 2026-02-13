@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 3 of 5 (Client Data Isolation)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-02-13 — Completed 03-02-PLAN.md (Login UI & Test Data)
+Plan: 3 of 3 in current phase
+Status: Phase complete
+Last activity: 2026-02-13 — Completed 03-03-PLAN.md (Dashboard data integration)
 
 Progress: [██████░░░░] 60%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: 9 min
-- Total execution time: 0.91 hours
+- Total plans completed: 7
+- Average duration: 16 min
+- Total execution time: 1.85 hours
 
 **By Phase:**
 
@@ -29,11 +29,11 @@ Progress: [██████░░░░] 60%
 |-------|-------|-------|----------|
 | 01-dashboard-layout | 1 | 20 min | 20 min |
 | 02-core-progress-tracking | 3 | 19 min | 6 min |
-| 03-client-data-isolation | 2 | 16 min | 8 min |
+| 03-client-data-isolation | 3 | 71 min | 24 min |
 
 **Recent Trend:**
-- Last 5 plans: 2 min, 15 min, 4 min, 12 min
-- Trend: Foundation plans quick (2-4min), UI/data plans moderate (12-15min)
+- Last 5 plans: 2 min, 2 min, 15 min, 4 min, 12 min, 45 min
+- Trend: Auth/infrastructure plans longer (includes database setup and verification)
 
 *Updated after each plan completion*
 
@@ -81,6 +81,13 @@ Recent decisions affecting current work:
 - Client-side auth with redirect: false — Login page uses signIn with redirect: false for client-side error handling
 - Idempotent seed with upsert pattern — Seed script can run multiple times safely using upsert for all entities
 - Test data with varied progress states — Client 1 has milestone progress (completed, in-progress), Client 2 has fresh milestones for contrast
+- Self-hosted Supabase with custom schema — Connected to Supabase at 149.28.176.48:5433, uses `client_dashboard` schema to isolate from existing data
+
+**From Phase 03-03:**
+- Server + client component architecture — Pages are async server components that fetch via DAL, UI is client components receiving serialized props
+- Date serialization for Next.js — Date objects converted to ISO strings for server→client transport, parsed back on client
+- Logout functionality in dropdown — Added signOut() to user menu, critical for testing multiple accounts
+- globalThis for Prisma singleton — Changed from global to globalThis for Next.js 16/Turbopack compatibility
 
 ### Pending Todos
 
@@ -88,13 +95,11 @@ None yet.
 
 ### Blockers/Concerns
 
-**From Phase 03-02:**
-- Database setup required — PostgreSQL database needs to be created and schema pushed before seed script can run
-- .env file with placeholders — Created .env with placeholder values, production deployment will need real credentials
+None. Database configured and seeded successfully.
 
 ## Session Continuity
 
-Last session: 2026-02-13T19:28:06Z
-Stopped at: Completed 03-02-PLAN.md — Login UI & Test Data
+Last session: 2026-02-13T20:00:00Z
+Stopped at: Completed 03-03-PLAN.md — Phase 3 complete, verified
 Resume file: None
-Next: Continue Phase 3 (plan 03-03 - Client middleware and data isolation)
+Next: Phase 4 planning (Google Sheets Sync Foundation)

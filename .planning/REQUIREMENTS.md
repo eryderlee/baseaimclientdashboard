@@ -37,9 +37,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Client Data Isolation
 
-- [ ] **AUTH-01**: Each client logs in with individual email/password credentials
-- [ ] **AUTH-02**: Client only sees their own project progress and data
-- [ ] **AUTH-03**: Admin can see all clients' data
+- [x] **AUTH-01**: Each client logs in with individual email/password credentials
+- [x] **AUTH-02**: Client only sees their own project progress and data
+- [x] **AUTH-03**: Admin can see all clients' data
 
 ## v2 Requirements
 
@@ -94,9 +94,9 @@ Deferred to future release. Tracked but not in current roadmap.
 | PROG-07 | Phase 2 | Complete |
 | PROG-08 | Phase 2 | Complete |
 | PROG-09 | Phase 2 | Complete |
-| AUTH-01 | Phase 3 | Pending |
-| AUTH-02 | Phase 3 | Pending |
-| AUTH-03 | Phase 3 | Pending |
+| AUTH-01 | Phase 3 | Complete |
+| AUTH-02 | Phase 3 | Complete |
+| AUTH-03 | Phase 3 | Complete |
 | SHEET-01 | Phase 4 | Pending |
 | SHEET-02 | Phase 4 | Pending |
 | SHEET-04 | Phase 4 | Pending |
