@@ -91,7 +91,9 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-None yet.
+1 todo pending. See `.planning/todos/pending/` or run `/gsd:check-todos`
+
+- **Add floating chat widget** (ui) — Bottom-right button with popup chat window for quick access from any page
 
 ### Blockers/Concerns
 
