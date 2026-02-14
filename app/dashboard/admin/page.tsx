@@ -1,8 +1,8 @@
-import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
+import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   Table,
   TableBody,
@@ -12,42 +12,24 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Users, FileText, MessageSquare, DollarSign } from "lucide-react"
+import { verifySession, getAllClientsWithMilestones } from "@/lib/dal"
+import { prisma } from "@/lib/prisma"
+import { calculateOverallProgress } from "@/lib/utils/progress"
 
 async function getAdminData() {
-  const clients = await prisma.client.findMany({
-    include: {
-      user: {
-        select: {
-          name: true,
-          email: true,
-          createdAt: true,
-        },
-      },
-      documents: true,
-      milestones: true,
-      invoices: true,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  })
+  const clients = await getAllClientsWithMilestones()
 
   const totalClients = clients.length
   const activeClients = clients.filter((c) => c.isActive).length
-  const totalDocuments = clients.reduce((sum, c) => sum + c.documents.length, 0)
-  const totalRevenue = clients.reduce(
-    (sum, c) =>
-      sum +
-      c.invoices
-        .filter((inv) => inv.status === "PAID")
-        .reduce((s, inv) => s + inv.amount, 0),
-    0
-  )
+  const totalDocuments = await prisma.document.count()
 
-  const messages = await prisma.message.findMany({
-    take: 100,
-    orderBy: { createdAt: "desc" },
+  const invoices = await prisma.invoice.findMany({
+    where: { status: "PAID" },
+    select: { amount: true },
   })
+  const totalRevenue = invoices.reduce((sum, inv) => sum + inv.amount, 0)
+
+  const totalMessages = await prisma.message.count()
 
   return {
     clients,
@@ -55,15 +37,15 @@ async function getAdminData() {
     activeClients,
     totalDocuments,
     totalRevenue,
-    totalMessages: messages.length,
+    totalMessages,
   }
 }
 
 export default async function AdminPage() {
-  const session = await auth()
+  const { userRole } = await verifySession()
 
   // Check if user is admin
-  if (session?.user?.role !== "ADMIN") {
+  if (userRole !== "ADMIN") {
     redirect("/dashboard")
   }
 
@@ -151,19 +133,19 @@ export default async function AdminPage() {
                 <TableHead>Contact</TableHead>
                 <TableHead>Documents</TableHead>
                 <TableHead>Milestones</TableHead>
+                <TableHead>Overall Progress</TableHead>
                 <TableHead>Revenue</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Joined</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {adminData.clients.map((client) => {
-                const paidRevenue = client.invoices
-                  .filter((inv) => inv.status === "PAID")
-                  .reduce((sum, inv) => sum + inv.amount, 0)
                 const completedMilestones = client.milestones.filter(
                   (m) => m.status === "COMPLETED"
                 ).length
+                const overallProgress = calculateOverallProgress(client.milestones)
 
                 return (
                   <TableRow key={client.id}>
@@ -178,18 +160,36 @@ export default async function AdminPage() {
                         </p>
                       </div>
                     </TableCell>
-                    <TableCell>{client.documents.length}</TableCell>
+                    <TableCell>{adminData.totalDocuments}</TableCell>
                     <TableCell>
                       {completedMilestones}/{client.milestones.length}
                     </TableCell>
-                    <TableCell>${paidRevenue.toFixed(2)}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="h-2 w-16 rounded-full bg-neutral-200">
+                          <div
+                            className="h-2 rounded-full bg-primary"
+                            style={{ width: `${overallProgress}%` }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium">{overallProgress}%</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>${adminData.totalRevenue.toFixed(2)}</TableCell>
                     <TableCell>
                       <Badge variant={client.isActive ? "default" : "secondary"}>
                         {client.isActive ? "Active" : "Inactive"}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {new Date(client.user.createdAt).toLocaleDateString()}
+                      {new Date(client.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/dashboard/admin/clients/${client.id}`}>
+                          Edit Milestones
+                        </Link>
+                      </Button>
                     </TableCell>
                   </TableRow>
                 )
