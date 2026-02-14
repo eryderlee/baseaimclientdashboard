@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
 import {
   calculateOverallProgress,
   formatWeekLevel,
@@ -26,6 +27,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts"
+import type { TooltipProps } from "recharts"
 
 interface SerializedMilestone {
   id: string
@@ -51,12 +53,6 @@ const timelineDateFormatter = new Intl.DateTimeFormat("en-US", {
   month: "short",
   day: "numeric",
 })
-const noteDateFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-  hour: "numeric",
-  minute: "numeric",
-})
 
 export function ProgressView({ milestones: serializedMilestones }: ProgressViewProps) {
   // Convert serialized milestones back to Milestone type with Date objects
@@ -75,7 +71,7 @@ export function ProgressView({ milestones: serializedMilestones }: ProgressViewP
   if (milestones.length === 0) {
     return (
       <div className="space-y-8">
-        <Card className="overflow-hidden border-none bg-slate-950 text-white shadow-xl">
+        <Card className="overflow-hidden border-none bg-gradient-to-br from-slate-900 via-slate-900/95 to-slate-900/85 text-white shadow-xl">
           <CardHeader className="space-y-4">
             <div className="flex flex-col gap-6">
               <div className="space-y-3">
@@ -98,20 +94,18 @@ export function ProgressView({ milestones: serializedMilestones }: ProgressViewP
   const completedMilestones = milestones.filter(
     (milestone) => milestone.status === MilestoneStatus.COMPLETED
   )
+  const inProgressCount = milestones.filter(
+    (milestone) => milestone.status === MilestoneStatus.IN_PROGRESS
+  ).length
+  const blockedCount = milestones.filter(
+    (milestone) => milestone.status === MilestoneStatus.BLOCKED
+  ).length
+  const queuedCount = milestones.filter(
+    (milestone) => milestone.status === MilestoneStatus.NOT_STARTED
+  ).length
   const nextMilestone = milestones.find(
     (milestone) => milestone.status === MilestoneStatus.NOT_STARTED
   )
-  const milestoneNotes = milestones
-    .flatMap((milestone) =>
-      milestone.notes.map((note) => ({
-        milestoneTitle: milestone.title,
-        ...note,
-      }))
-    )
-    .sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )
   const totalMilestones = milestones.length
   let cumulativeActualUnits = 0
   const timelineData = milestones.map((milestone, index) => {
@@ -145,7 +139,6 @@ export function ProgressView({ milestones: serializedMilestones }: ProgressViewP
       status: milestone.status,
     }
   })
-
   const TimelineTooltipContent = ({
     active,
     payload,
@@ -213,7 +206,7 @@ export function ProgressView({ milestones: serializedMilestones }: ProgressViewP
 
   return (
     <div className="space-y-8">
-      <Card className="overflow-hidden border-none bg-slate-950 text-white shadow-xl">
+      <Card className="overflow-hidden border-none bg-gradient-to-br from-slate-900 via-slate-900/95 to-slate-900/80 text-white shadow-xl">
         <CardHeader className="space-y-4">
           <Badge
             variant="outline"
@@ -246,8 +239,24 @@ export function ProgressView({ milestones: serializedMilestones }: ProgressViewP
               <p className="text-sm text-emerald-200">On pace with plan</p>
             </div>
           </div>
-        </CardHeader>
-      </Card>
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-white/80">
+                <span>
+                  {completedMilestones.length} of {milestones.length} phases approved
+                </span>
+                <span className="font-semibold text-white">
+                  {overallProgress}%
+                </span>
+              </div>
+              <Progress value={overallProgress} className="mt-3 h-2 bg-white/20" />
+              <p className="mt-2 text-xs uppercase tracking-wide text-white/60">
+                {activeMilestone
+                  ? `Building ${activeMilestone.title}`
+                  : "Awaiting kickoff"}
+              </p>
+            </div>
+          </CardHeader>
+        </Card>
 
       <div className="grid gap-4 md:grid-cols-3">
         {stats.map((stat) => {
@@ -275,101 +284,107 @@ export function ProgressView({ milestones: serializedMilestones }: ProgressViewP
         })}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,0.9fr)]">
-        <Card>
-          <CardHeader>
-            <CardTitle>Progress Timeline</CardTitle>
-            <CardDescription>
-              Planned vs actual completion across milestones
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="h-[360px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart
-                data={timelineData}
-                margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis
-                  dataKey="phase"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-                />
-                <YAxis
-                  domain={[0, 100]}
-                  tickFormatter={(value) => `${value}%`}
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-                  axisLine={false}
-                />
-                <Tooltip content={<TimelineTooltipContent />} />
-                <defs>
-                  <linearGradient id="timelineActual" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0.05} />
-                  </linearGradient>
-                </defs>
-                <Area
-                  type="monotone"
-                  dataKey="actual"
-                  stroke="#0ea5e9"
-                  strokeWidth={3}
-                  fill="url(#timelineActual)"
-                  name="Actual progress"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="planned"
-                  stroke="#cbd5f5"
-                  strokeDasharray="6 4"
-                  strokeWidth={2}
-                  dot={{ stroke: "#cbd5f5", strokeWidth: 2 }}
-                  activeDot={{ r: 6 }}
-                  name="Planned pace"
-                />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(280px,1fr)]">
+        <MilestoneChecklist
+          milestones={milestones}
+          showSummary={false}
+          className="order-2 lg:order-1"
+        />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Progress Log</CardTitle>
-            <CardDescription>
-              Latest milestone notes synced from the delivery team
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {milestoneNotes.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No milestone notes yet. Updates will appear here automatically.
-              </p>
-            ) : (
-              milestoneNotes.slice(0, 4).map((note) => (
-                <div
-                  key={note.id}
-                  className="rounded-xl border bg-muted/30 p-4"
+        <div className="order-1 space-y-6 lg:order-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Progress Timeline</CardTitle>
+              <CardDescription>
+                Planned vs actual completion across milestones
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="h-[360px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart
+                  data={timelineData}
+                  margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
                 >
-                  <p className="text-sm font-medium text-foreground">
-                    {note.content}
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-x-2 text-xs text-muted-foreground">
-                    <span>{note.milestoneTitle}</span>
-                    <span aria-hidden="true">•</span>
-                    <span>{note.createdBy}</span>
-                    <span aria-hidden="true">•</span>
-                    <span>
-                      {noteDateFormatter.format(new Date(note.createdAt))}
-                    </span>
-                  </div>
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis
+                    dataKey="phase"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                  />
+                  <YAxis
+                    domain={[0, 100]}
+                    tickFormatter={(value) => `${value}%`}
+                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                    axisLine={false}
+                  />
+                  <Tooltip content={<TimelineTooltipContent />} />
+                  <defs>
+                    <linearGradient id="timelineActual" x1="0" x2="0" y1="0" y2="1">
+                      <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0.05} />
+                    </linearGradient>
+                  </defs>
+                  <Area
+                    type="monotone"
+                    dataKey="actual"
+                    stroke="#0ea5e9"
+                    strokeWidth={3}
+                    fill="url(#timelineActual)"
+                    name="Actual progress"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="planned"
+                    stroke="#cbd5f5"
+                    strokeDasharray="6 4"
+                    strokeWidth={2}
+                    dot={{ stroke: "#cbd5f5", strokeWidth: 2 }}
+                    activeDot={{ r: 6 }}
+                    name="Planned pace"
+                  />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
 
-      <MilestoneChecklist milestones={milestones} />
+          <Card>
+            <CardHeader>
+              <CardTitle>Delivery Snapshot</CardTitle>
+              <CardDescription>Where each phase sits right now</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {[
+                { label: "Completed", value: completedMilestones.length },
+                { label: "In progress", value: inProgressCount },
+                { label: "Queued", value: queuedCount },
+                { label: "Blocked", value: blockedCount },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="flex items-center justify-between rounded-lg border border-dashed px-3 py-2"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      {item.label}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {item.value > 0
+                        ? `${item.value} milestone${
+                            item.value === 1 ? "" : "s"
+                          }`
+                        : "None right now"}
+                    </p>
+                  </div>
+                  <span className="text-lg font-semibold text-foreground">
+                    {item.value}
+                  </span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   )
 }
