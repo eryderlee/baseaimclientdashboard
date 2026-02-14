@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 
 ## Current Position
 
-Phase: 3 of 5 (Client Data Isolation)
-Plan: 3 of 3 in current phase
-Status: Phase complete
-Last activity: 2026-02-13 — Completed 03-03-PLAN.md (Dashboard data integration)
+Phase: 4 of 6 (Admin Milestone Editing)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-02-14 — Completed 04-01-PLAN.md (Admin Backend Foundation)
 
-Progress: [██████░░░░] 60%
+Progress: [█████░░░░░] 53%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
-- Average duration: 16 min
-- Total execution time: 1.85 hours
+- Total plans completed: 8
+- Average duration: 14 min
+- Total execution time: 1.92 hours
 
 **By Phase:**
 
@@ -30,10 +30,11 @@ Progress: [██████░░░░] 60%
 | 01-dashboard-layout | 1 | 20 min | 20 min |
 | 02-core-progress-tracking | 3 | 19 min | 6 min |
 | 03-client-data-isolation | 3 | 71 min | 24 min |
+| 04-admin-milestone-editing | 1 | 4 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 2 min, 2 min, 15 min, 4 min, 12 min, 45 min
-- Trend: Auth/infrastructure plans longer (includes database setup and verification)
+- Last 5 plans: 2 min, 15 min, 4 min, 12 min, 45 min, 4 min
+- Trend: Backend-only plans fast (4 min), auth/infrastructure slower (45+ min)
 
 *Updated after each plan completion*
 
@@ -44,7 +45,7 @@ Progress: [██████░░░░] 60%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- Google Sheets as admin backend — Team already uses Sheets, no need for custom admin UI for 1-5 clients
+- Custom admin CRM instead of Google Sheets — Leverages existing admin auth from Phase 3, provides direct database control with better UX than spreadsheet editing
 - Standard milestones for all clients — Same service process for every client, simplifies both admin and client experience
 - Individual client logins — Each client gets their own credentials to see their own data
 - Checklist-style progress (not timeline) — Simple, clear, easy to understand at a glance
@@ -89,6 +90,12 @@ Recent decisions affecting current work:
 - Logout functionality in dropdown — Added signOut() to user menu, critical for testing multiple accounts
 - globalThis for Prisma singleton — Changed from global to globalThis for Next.js 16/Turbopack compatibility
 
+**From Phase 04-01:**
+- Time-based progress for IN_PROGRESS milestones — Calculated from elapsed days between start and due dates, clamped to 0-99 (never 100 until marked COMPLETED)
+- Notes as append-only JSON array — New notes appended to existing array preserving full history for audit trail
+- Auto-date transitions in Server Actions — startDate set on transition TO IN_PROGRESS, completedAt set on transition TO COMPLETED, both cleared on transition TO NOT_STARTED
+- Progress stored in database — Server Action recalculates and stores progress percentage on each update for consistency
+
 ### Pending Todos
 
 2 todos pending. See `.planning/todos/pending/` or run `/gsd:check-todos`
@@ -102,7 +109,7 @@ None. Database configured and seeded successfully.
 
 ## Session Continuity
 
-Last session: 2026-02-13T20:00:00Z
-Stopped at: Completed 03-03-PLAN.md — Phase 3 complete, verified
+Last session: 2026-02-14T17:49:21Z
+Stopped at: Completed 04-01-PLAN.md (Admin Backend Foundation)
 Resume file: None
-Next: Phase 4 planning (Google Sheets Sync Foundation)
+Next: Phase 4 Plan 02 (Admin UI implementation)
