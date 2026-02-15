@@ -80,8 +80,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Backend: DAL admin functions, progress utility, Server Action with Zod validation
-- [ ] 04-02-PLAN.md — UI: Admin client list with links, milestone edit table with inline editing and batch save
+- [x] 04-01-PLAN.md — Backend: DAL admin functions, progress utility, Server Action with Zod validation
+- [x] 04-02-PLAN.md — UI: Admin client list with links, milestone edit table with inline editing and batch save
 
 ### Phase 5: Client Onboarding & Management
 **Goal**: Admin can add new clients, create user accounts, and manage client details
@@ -122,6 +122,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 1. Dashboard Layout | 1/1 | ✓ Complete | 2026-02-12 |
 | 2. Core Progress Tracking | 3/3 | ✓ Complete | 2026-02-12 |
 | 3. Client Data Isolation | 3/3 | ✓ Complete | 2026-02-13 |
-| 4. Admin Milestone Editing | 0/2 | In progress | - |
+| 4. Admin Milestone Editing | 2/2 | ✓ Complete | 2026-02-15 |
 | 5. Client Onboarding & Management | 0/TBD | Not started | - |
 | 6. Admin Analytics | 0/TBD | Not started | - |
