@@ -20,11 +20,11 @@ Requirements for v1.0 Production Launch milestone. Each maps to roadmap phases.
 
 ### Chat Integration
 
-- [ ] **CHAT-01**: Client dashboard displays WhatsApp click-to-chat button
-- [ ] **CHAT-02**: WhatsApp chat opens with pre-filled message including client context
-- [ ] **CHAT-03**: Client dashboard displays Telegram click-to-chat button
-- [ ] **CHAT-04**: Telegram chat opens with pre-filled message including client context
-- [ ] **CHAT-05**: Admin can configure WhatsApp number and Telegram username in settings
+- [x] **CHAT-01**: Client dashboard displays WhatsApp click-to-chat button
+- [x] **CHAT-02**: WhatsApp chat opens with pre-filled message including client context
+- [x] **CHAT-03**: Client dashboard displays Telegram click-to-chat button
+- [x] **CHAT-04**: Telegram chat opens with pre-filled message including client context
+- [x] **CHAT-05**: Admin can configure WhatsApp number and Telegram username in settings
 
 ### Document Storage (Google Drive)
 
@@ -195,11 +195,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CHAT-01 | Phase 7 | Pending |
-| CHAT-02 | Phase 7 | Pending |
-| CHAT-03 | Phase 7 | Pending |
-| CHAT-04 | Phase 7 | Pending |
-| CHAT-05 | Phase 7 | Pending |
+| CHAT-01 | Phase 7 | Complete |
+| CHAT-02 | Phase 7 | Complete |
+| CHAT-03 | Phase 7 | Complete |
+| CHAT-04 | Phase 7 | Complete |
+| CHAT-05 | Phase 7 | Complete |
 | EMAIL-01 | Phase 8 | Pending |
 | EMAIL-02 | Phase 8 | Pending |
 | EMAIL-03 | Phase 8 | Pending |

@@ -129,8 +129,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans:** 2 plans
 
 Plans:
-- [ ] 07-01-PLAN.md — Backend: Settings model, DAL, Server Action, Zod schema, chat URL utilities, admin settings page
-- [ ] 07-02-PLAN.md — Client: ChatButtons component, dashboard integration, chat page replacement
+- [x] 07-01-PLAN.md — Backend: Settings model, DAL, Server Action, Zod schema, chat URL utilities, admin settings page
+- [x] 07-02-PLAN.md — Client: ChatButtons component, dashboard integration, chat page replacement
 
 #### Phase 8: Email Infrastructure
 **Goal**: Dashboard sends professional transactional emails for key client actions
@@ -271,7 +271,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 7. Chat Integration | 0/2 | Not started | - |
+| 7. Chat Integration | 2/2 | ✓ Complete | 2026-02-16 |
 | 8. Email Infrastructure | 0/TBD | Not started | - |
 | 9. Document Storage Migration | 0/TBD | Not started | - |
 | 10. Payment Processing | 0/TBD | Not started | - |
