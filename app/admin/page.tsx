@@ -11,10 +11,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Users, FileText, MessageSquare, DollarSign, UserPlus } from "lucide-react"
+import { Users, FileText, MessageSquare, DollarSign, UserPlus, Pencil, ListChecks } from "lucide-react"
 import { verifySession, getAllClientsWithMilestones } from "@/lib/dal"
 import { prisma } from "@/lib/prisma"
 import { calculateOverallProgress } from "@/lib/utils/progress"
+import { StatusToggleButton } from "@/components/admin/status-toggle-button"
 
 async function getAdminData() {
   const clients = await getAllClientsWithMilestones()
@@ -193,11 +194,21 @@ export default async function AdminPage() {
                       {new Date(client.createdAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/admin/clients/${client.id}`}>
-                          Edit Milestones
-                        </Link>
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button variant="outline" size="sm" asChild>
+                          <Link href={`/admin/clients/${client.id}/edit`}>
+                            <Pencil className="h-3 w-3 mr-1" />
+                            Edit
+                          </Link>
+                        </Button>
+                        <Button variant="outline" size="sm" asChild>
+                          <Link href={`/admin/clients/${client.id}`}>
+                            <ListChecks className="h-3 w-3 mr-1" />
+                            Milestones
+                          </Link>
+                        </Button>
+                        <StatusToggleButton clientId={client.id} isActive={client.isActive} />
+                      </div>
                     </TableCell>
                   </TableRow>
                 )
