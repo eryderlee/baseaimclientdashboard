@@ -186,7 +186,7 @@ export default async function AdminPage() {
                     </TableCell>
                     <TableCell>
                       <Button variant="outline" size="sm" asChild>
-                        <Link href={`/dashboard/admin/clients/${client.id}`}>
+                        <Link href={`/admin/clients/${client.id}`}>
                           Edit Milestones
                         </Link>
                       </Button>

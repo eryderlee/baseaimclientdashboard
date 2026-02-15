@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { updateMilestones } from "@/app/dashboard/admin/clients/[clientId]/actions"
+import { updateMilestones } from "@/app/admin/clients/[clientId]/actions"
 import { calculateMilestoneProgress } from "@/lib/utils/progress"
 import { MilestoneStatus } from "@prisma/client"
 

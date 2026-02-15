@@ -110,7 +110,7 @@ export async function updateMilestones(clientId: string, rawData: unknown) {
 
     // 7. Revalidate paths
     revalidatePath('/dashboard/progress')
-    revalidatePath(`/dashboard/admin/clients/${clientId}`)
+    revalidatePath(`/admin/clients/${clientId}`)
 
     // 8. Return success
     return { success: true }
