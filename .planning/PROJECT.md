@@ -8,6 +8,16 @@ A client-facing dashboard for BaseAim, a paid ads and funnel agency serving loca
 
 Clients can see exactly where their project stands — what's been done, what's in progress, and what's next — without having to ask.
 
+## Current Milestone: v1.0 Production Launch
+
+**Goal:** Transform the dashboard from development MVP into a production-ready platform with real Facebook campaign data, polished UX, and enterprise-grade reliability.
+
+**Target features:**
+- UI polish: chat widget, notification panel, responsive refinement, loading states
+- Production hardening: error handling, monitoring, performance optimization, security
+- Facebook Ads integration: campaign metrics API, export/reporting, real data testing
+- Deployment readiness: full production configuration and launch preparation
+
 ## Requirements
 
 ### Validated
@@ -65,4 +75,4 @@ Clients can see exactly where their project stands — what's been done, what's 
 | Checklist-style progress (not timeline) | Simple, clear, easy to understand at a glance | — Pending |
 
 ---
-*Last updated: 2026-02-11 after initialization*
+*Last updated: 2026-02-15 after milestone v1.0 initialization*
