@@ -1,8 +1,18 @@
-import { getMilestones } from "@/lib/dal"
+import { getMilestones, getChatSettings } from "@/lib/dal"
+import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
 import { DashboardOverview } from "@/components/dashboard/dashboard-overview"
 
 export default async function DashboardPage() {
   const milestones = await getMilestones()
+  const chatSettings = await getChatSettings()
+  const session = await auth()
+
+  // Fetch client profile for company name
+  const client = await prisma.client.findUnique({
+    where: { userId: session!.user!.id },
+    select: { companyName: true }
+  })
 
   // Serialize dates for client component (JSON serialization)
   const serializedMilestones = milestones.map(m => ({
@@ -22,5 +32,15 @@ export default async function DashboardPage() {
       : [],
   }))
 
-  return <DashboardOverview milestones={serializedMilestones} />
+  return (
+    <DashboardOverview
+      milestones={serializedMilestones}
+      chatSettings={{
+        whatsappNumber: chatSettings?.whatsappNumber,
+        telegramUsername: chatSettings?.telegramUsername
+      }}
+      clientName={session?.user?.name || 'Client'}
+      companyName={client?.companyName || 'Company'}
+    />
+  )
 }

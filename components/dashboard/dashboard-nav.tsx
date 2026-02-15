@@ -149,12 +149,6 @@ export function DashboardNav({ user }: DashboardNavProps) {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button
-              asChild
-              className="hidden md:inline-flex rounded-full border-0 bg-gradient-to-r from-primary via-sky-400 to-cyan-400 px-5 py-2 font-semibold text-white shadow-lg shadow-sky-200 hover:opacity-90"
-            >
-              <Link href="/dashboard/chat">Open Chat</Link>
-            </Button>
           </div>
         </div>
       </div>

@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress"
 import { Milestone } from "@/lib/types/milestone"
 import { calculateOverallProgress } from "@/lib/milestone-utils"
+import { ChatButtons } from "@/components/client/chat-buttons"
 import {
   ArrowUpRight,
   CheckCircle2,
@@ -137,9 +138,20 @@ interface SerializedMilestone {
 
 interface DashboardOverviewProps {
   milestones: SerializedMilestone[]
+  chatSettings?: {
+    whatsappNumber?: string | null
+    telegramUsername?: string | null
+  }
+  clientName?: string
+  companyName?: string
 }
 
-export function DashboardOverview({ milestones: serializedMilestones }: DashboardOverviewProps) {
+export function DashboardOverview({
+  milestones: serializedMilestones,
+  chatSettings,
+  clientName = 'Client',
+  companyName = 'Company'
+}: DashboardOverviewProps) {
   const [isChartExpanded, setIsChartExpanded] = useState(false)
   const { analytics, stats, documents, notifications, activities } = mockData
 
@@ -239,12 +251,12 @@ export function DashboardOverview({ milestones: serializedMilestones }: Dashboar
       action: "Review files",
     },
     {
-      title: "Unread Messages",
+      title: "Contact Team",
       value: stats.unreadMessages,
-      description: "Threads awaiting your reply",
+      description: "Chat via WhatsApp or Telegram",
       icon: MessageSquare,
       href: "/dashboard/chat",
-      action: "Open chat",
+      action: "Contact us",
     },
     {
       title: "Client Acquisition System",
@@ -316,16 +328,27 @@ export function DashboardOverview({ milestones: serializedMilestones }: Dashboar
                   <Upload className="h-4 w-4" />
                 </Link>
               </Button>
-              <Button
-                asChild
-                variant="ghost"
-                className="rounded-full border border-white/70 bg-white/70 px-6 py-2 text-slate-700 shadow-sm shadow-sky-100 hover:bg-white/90 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100"
-              >
-                <Link href="/dashboard/chat" className="inline-flex items-center gap-2">
-                  Message Project Manager
-                  <Send className="h-4 w-4" />
-                </Link>
-              </Button>
+              {chatSettings?.whatsappNumber || chatSettings?.telegramUsername ? (
+                <div className="flex gap-4">
+                  <ChatButtons
+                    whatsappNumber={chatSettings?.whatsappNumber}
+                    telegramUsername={chatSettings?.telegramUsername}
+                    clientName={clientName}
+                    companyName={companyName}
+                  />
+                </div>
+              ) : (
+                <Button
+                  asChild
+                  variant="ghost"
+                  className="rounded-full border border-white/70 bg-white/70 px-6 py-2 text-slate-700 shadow-sm shadow-sky-100 hover:bg-white/90 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100"
+                >
+                  <Link href="/dashboard/chat" className="inline-flex items-center gap-2">
+                    Message Project Manager
+                    <Send className="h-4 w-4" />
+                  </Link>
+                </Button>
+              )}
             </div>
           </div>
 
