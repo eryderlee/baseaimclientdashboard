@@ -212,3 +212,46 @@ export async function toggleClientStatus(clientId: string) {
     return { error: 'Failed to toggle client status. Please try again.' }
   }
 }
+
+/**
+ * Reset a client's password
+ * Hashes password with bcrypt before updating user record
+ */
+export async function resetClientPassword(clientId: string, newPassword: string) {
+  // Verify admin role
+  const { userRole } = await verifySession()
+  if (userRole !== 'ADMIN') {
+    return { error: 'Unauthorized' }
+  }
+
+  // Validate password
+  if (!newPassword || newPassword.length < 8) {
+    return { error: 'Password must be at least 8 characters' }
+  }
+
+  try {
+    // Get client to find associated user
+    const client = await prisma.client.findUnique({
+      where: { id: clientId },
+      select: { userId: true },
+    })
+
+    if (!client) {
+      return { error: 'Client not found' }
+    }
+
+    // Hash password BEFORE updating (avoid slow CPU-bound ops in transaction)
+    const hashedPassword = await bcrypt.hash(newPassword, 10)
+
+    // Update user password
+    await prisma.user.update({
+      where: { id: client.userId },
+      data: { password: hashedPassword },
+    })
+
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to reset password:', error)
+    return { error: 'Failed to reset password. Please try again.' }
+  }
+}

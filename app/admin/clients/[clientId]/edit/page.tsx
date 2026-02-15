@@ -3,6 +3,7 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { verifySession, getClientForEdit } from "@/lib/dal"
 import { ClientForm } from "@/components/admin/client-form"
+import { PasswordResetSection } from "@/components/admin/password-reset-section"
 import { Button } from "@/components/ui/button"
 
 export default async function ClientEditPage({
@@ -54,6 +55,8 @@ export default async function ClientEditPage({
           address: client.address || undefined,
         }}
       />
+
+      <PasswordResetSection clientId={clientId} />
     </div>
   )
 }
