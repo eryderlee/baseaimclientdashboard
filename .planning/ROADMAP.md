@@ -109,10 +109,11 @@ Plans:
   2. Admin can identify at-risk projects (overdue milestones, stalled progress)
   3. Admin can filter/sort clients by progress status, due dates, or other criteria
   4. Admin sees summary metrics (total clients, average progress, upcoming due dates)
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 06-01: TBD
+- [ ] 06-01-PLAN.md — Backend: Risk detection utility, DAL analytics function, summary cards and risk badge components
+- [ ] 06-02-PLAN.md — UI: Client filters, analytics table with sorting/filtering, admin page integration
 
 ## Progress
 
@@ -126,4 +127,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. Client Data Isolation | 3/3 | ✓ Complete | 2026-02-13 |
 | 4. Admin Milestone Editing | 2/2 | ✓ Complete | 2026-02-15 |
 | 5. Client Onboarding & Management | 3/3 | ✓ Complete | 2026-02-15 |
-| 6. Admin Analytics | 0/TBD | Not started | - |
+| 6. Admin Analytics | 0/2 | Not started | - |
