@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Client Data Isolation** - Per-client authentication and data access
 - [x] **Phase 4: Admin Milestone Editing** - Custom admin interface for updating client milestones
 - [x] **Phase 5: Client Onboarding & Management** - Admin tools for adding/managing clients and users
-- [ ] **Phase 6: Admin Analytics** - Overview dashboard for admin to track all clients
+- [x] **Phase 6: Admin Analytics** - Overview dashboard for admin to track all clients
 
 ## Phase Details
 
@@ -112,8 +112,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — Backend: Risk detection utility, DAL analytics function, summary cards and risk badge components
-- [ ] 06-02-PLAN.md — UI: Client filters, analytics table with sorting/filtering, admin page integration
+- [x] 06-01-PLAN.md — Backend: Risk detection utility, DAL analytics function, summary cards and risk badge components
+- [x] 06-02-PLAN.md — UI: Client filters, analytics table with sorting/filtering, admin page integration
 
 ## Progress
 
@@ -127,4 +127,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. Client Data Isolation | 3/3 | ✓ Complete | 2026-02-13 |
 | 4. Admin Milestone Editing | 2/2 | ✓ Complete | 2026-02-15 |
 | 5. Client Onboarding & Management | 3/3 | ✓ Complete | 2026-02-15 |
-| 6. Admin Analytics | 0/2 | Not started | - |
+| 6. Admin Analytics | 2/2 | ✓ Complete | 2026-02-15 |
