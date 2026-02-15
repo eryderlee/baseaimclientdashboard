@@ -1,227 +1,430 @@
-# Feature Landscape: Agency Client Portal - Progress Tracking
+# Feature Research: v1.0 Integrations
 
-**Domain:** Agency client portal for service delivery tracking
-**Researched:** 2026-02-11
-**Confidence:** MEDIUM (based on training knowledge of agency portal patterns, SaaS client dashboards, and project management tools)
+**Domain:** Agency Client Dashboard Integrations (Facebook Ads, Google Drive, Stripe, Email, Chat)
+**Researched:** 2026-02-15
+**Confidence:** MEDIUM-HIGH
 
-## Executive Summary
+**Context:** BaseAim is a paid ads agency serving accounting firms (1-5 clients initially). Non-technical audience expects transparency without complexity. This research covers the NEW integration features being added to an existing dashboard with progress tracking already built.
 
-Agency client portals for service delivery (particularly for marketing/ads agencies) have a clear hierarchy of features. The core value proposition is **transparency without overhead** — clients want to see project status instantly, without needing to schedule calls or send emails asking "where are we?"
+---
 
-For BaseAim's use case (paid ads/funnel agency, 1-5 accounting firm clients), the feature set should prioritize:
-1. **Dead-simple progress visibility** (checklist-style, not complex project management)
-2. **Admin-friendly updates** (Google Sheets integration, not another UI to learn)
-3. **Client confidence building** (clear next steps, realistic timelines)
+## Integration 1: Facebook Ads Campaign Metrics
 
-## Table Stakes
-
-Features clients expect. Missing these = portal feels incomplete or unprofessional.
+### Table Stakes (Users Expect These)
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| **Linear milestone checklist** | Clients need to know "what's done, what's next" at a glance | Low | Simple sequential list with checkmarks. Not Gantt charts, not dependencies. Just: Step 1 ✓, Step 2 (in progress), Step 3 (upcoming) |
-| **Overall progress percentage** | Quick visual of "how far along are we?" | Low | Single number (e.g., "60% complete"). Calculated from milestone completion. Must be prominent on dashboard. |
-| **Status indicators** | Clients need confidence that work is happening | Low | Not Started / In Progress / Completed / Blocked. Color coding (gray/blue/green/red). Icons help (circle/clock/checkmark/alert). |
-| **Current milestone highlight** | "What are you working on right now?" | Low | Visually distinguish active milestone from upcoming ones. Clients want to know where attention is focused. |
-| **Milestone descriptions** | Clients often don't know what "Landing Page Setup" means | Low | 1-2 sentence explanation per milestone. "Building the landing page where your leads will submit their info." |
-| **Expected timeline (dates)** | Clients want to know when things will be done | Low | Due dates for milestones. Doesn't need to be real-time accurate — set realistic buffers. Week-level precision is fine ("Due: Feb 15"). |
-| **Completion markers** | Celebration/confidence when milestones finish | Low | Clear "Completed ✓" badge with completion date. "Completed on Feb 8, 2026." Small dopamine hits build trust. |
-| **Phase grouping (optional but common)** | Helps clients understand project structure | Medium | Group milestones into phases (Onboarding, Setup, Launch, Optimization). Makes long lists less overwhelming. |
+| Campaign spend overview | Core transparency metric — clients need to know what was spent | LOW | Total spend for current month/all time |
+| Key performance metrics (impressions, clicks, CTR) | Industry standard — every ads dashboard shows these | MEDIUM | Pull from Meta Marketing API insights endpoint |
+| Cost metrics (CPC, CPM) | Clients need to understand cost efficiency | LOW | Available in same API call as performance metrics |
+| ROAS (Return on Ad Spend) | Critical for ROI-focused businesses like accounting firms | MEDIUM | Requires conversion tracking to be configured in Meta |
+| Date range filtering | Users expect to view "last 30 days" vs "all time" | MEDIUM | API supports date filtering; need UI controls |
+| Campaign-level breakdown | Clients want to see which campaigns perform better | MEDIUM | Meta API provides campaign hierarchy (account → campaign → ad set → ad) |
 
-### Why These Are Table Stakes
-
-**From client perspective:**
-- Clients paying $3K-10K/month want to see progress without having to ask
-- Accounting firm owners are busy — dashboard must answer "where are we?" in <10 seconds
-- Lack of visibility = "are they even working on my project?" anxiety
-- Simple checklist format = universally understood (no training needed)
-
-**From agency perspective:**
-- Reduces "status update" calls/emails by 60-80%
-- Sets clear expectations about what's coming next
-- Builds confidence through visible progress
-
-## Differentiators
-
-Features that set the portal apart. Not expected, but create competitive advantage.
+### Differentiators (Competitive Advantage)
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| **Admin update via Google Sheets** | Admin updates progress in Sheets, dashboard auto-syncs | Medium-High | **BaseAim-specific differentiator**. No need for admin to log into portal. Sheet = source of truth. Sync via API/cron. Technical lift but huge DX win for small teams. |
-| **Standardized milestones (template-based)** | All clients see same process, builds trust through consistency | Low | Every accounting firm client goes through identical 6-step process. No custom milestone creation needed. Simplifies admin UX and sets clear expectations. |
-| **Milestone dependencies visualization** | Shows why something is blocked ("waiting on X") | Medium | Not critical for linear process like BaseAim's, but helpful if milestone B needs A completed. Dotted lines or "Waiting for: Client to provide access" note. |
-| **Milestone-specific instructions/next steps** | Tells client what they need to do | Low | "Next step: Grant access to Google Ads account. [Instructions]". Reduces back-and-forth. Clients know if the ball is in their court. |
-| **Progress notes/updates** | Mini-changelog per milestone | Medium | "Updated 2 hours ago: Landing page design approved, moving to development." Gives clients real-time confidence. Could pull from Sheets "Notes" column. |
-| **Expected vs actual timeline** | Shows slippage or ahead-of-schedule progress | Medium | "Expected: Feb 15, Actual: Feb 12 ✓" or "Expected: Feb 15, Revised: Feb 18 (waiting on client access)". Transparency builds trust even when delayed. |
-| **Client action items** | Dashboard shows what client needs to do | Medium | "🔔 Action needed: Approve landing page design." Turns dashboard from passive viewer into task list. Reduces "waiting on client" delays. |
-| **Automated status email digests** | Weekly email with progress summary | Medium | "Your BaseAim Project: Week of Feb 5. Completed: Ad account setup ✓. In progress: Landing page build. Next: Campaign strategy." Keeps portal top-of-mind. |
-| **Celebratory milestones** | Mark major wins (e.g., "Launch!") | Low | Special styling for big milestones. Confetti animation on launch day. Small touch, big emotional impact. |
-| **Estimated launch date** | Dynamic "your campaign goes live on ~Feb 20" | Medium | Based on current progress rate + remaining milestones. Updates automatically. Clients want to know "when will I start getting leads?" |
+| Non-technical explanations | Accounting firm owners aren't marketers — explain metrics in business terms | LOW | Static tooltips/info icons explaining what CPM means for their business |
+| Benchmark indicators | Show if metrics are "good" or "need improvement" vs industry standards | LOW | Hard-coded thresholds (e.g., CTR > 1% = good for local services) |
+| Monthly trend visualization | Small chart showing if performance is improving over time | MEDIUM | Recharts already in stack; query last 3-6 months |
+| Spend vs budget tracking | Agency sets expected budget, dashboard shows if on track | LOW | Store budget in database, compare to actual spend |
+| Lead cost projection | For accounting firms: "At this CPC and conversion rate, expect leads at $X each" | HIGH | Requires conversion tracking + calculation logic |
 
-### Why These Differentiate
+### Anti-Features (Commonly Requested, Often Problematic)
 
-**Google Sheets integration:**
-- Most agencies use Sheets for client tracking already
-- Eliminates "admin UI learning curve" — update where you already work
-- Reduces admin time from 10min/client to 2min (just update Sheet)
-- Rare in client portals (most require logging into portal to update)
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Real-time updates every minute | "I want live data!" | API rate limits, unnecessary server load, data doesn't change that fast | Refresh every 4-6 hours; show "last updated" timestamp |
+| All 40+ Meta metrics | "More data = better insights" | Overwhelms non-technical users; creates analysis paralysis | Show 6-8 core metrics; "View full report" link to Meta Ads Manager |
+| Campaign editing from dashboard | "Can I pause campaigns here?" | Adds huge complexity; liability if client breaks something | Read-only display; "Contact your account manager" CTA for changes |
+| Competitor ad spend comparison | "What are competitors spending?" | Not available via API; Meta doesn't share this data | Focus on own performance trends instead |
+| Attribution window customization | "Show me 7-day click vs 1-day view" | Meta removed 7d/28d view-through windows Jan 2026; confuses non-technical users | Use default 1-day click attribution; keep it simple |
 
-**Standardized process:**
-- Communicates "we've done this before, this is our proven system"
-- Reduces client anxiety ("is my project on track?" — yes, same track as all clients)
-- Simplifies admin (no custom milestone creation per client)
+---
 
-**Client action visibility:**
-- Shifts accountability from "are they working?" to "did I do my part?"
-- Reduces project delays from client bottlenecks
-- Makes client feel involved (not passive observer)
+## Integration 2: Google Drive Document Management
 
-## Anti-Features
+### Table Stakes (Users Expect These)
 
-Features to explicitly NOT build. Common mistakes in this domain.
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| View shared files/folders | Core functionality — clients need to access deliverables | MEDIUM | Google Drive API list files with shared-with-me scope |
+| File preview (PDFs, images, docs) | Users expect to see documents without downloading | MEDIUM | Use Google Drive preview URLs or embed viewer |
+| Download files | Standard document management feature | LOW | Generate download links via API |
+| Folder organization | Clients expect logical structure (e.g., "Ad Creatives", "Reports") | LOW | Create per-client folders in agency Drive; share specific folders |
+| Upload timestamps | Show when files were added (e.g., "Latest campaign report added 2 days ago") | LOW | File metadata includes created/modified dates |
 
-| Anti-Feature | Why Avoid | What to Do Instead |
-|--------------|-----------|-------------------|
-| **Complex Gantt charts** | Overkill for linear service process. Looks impressive, confuses clients. | Simple vertical checklist with progress bars. One milestone at a time. |
-| **Kanban boards** | Too granular. Clients don't care about "User Story #47 moved to In Review". | High-level milestones only. Hide internal task management. |
-| **Time tracking/hours logged** | Creates wrong incentive. Clients care about outcomes, not hours. "You logged 40 hours but campaign isn't live?" | Outcome-based milestones. "Campaign is live ✓" not "spent 40 hours on campaign." |
-| **Dependency graphs** | Overcomplicated for linear process. Looks like project management theater. | Simple sequential order. "Step 1 must finish before Step 2" is obvious from list order. |
-| **Custom milestone editing (for clients)** | Clients should not define milestones — that's the agency's expertise. | Agency defines standard process. Clients view progress, don't edit structure. |
-| **Real-time progress updates** | False precision. "65.3% complete" is noise. Progress is lumpy, not linear. | Update progress when milestones change status. Weekly/bi-weekly is sufficient frequency. |
-| **Individual task breakdowns** | "Landing Page: Header design (done), Hero section (in progress), Form (not started)". Too much detail, creates noise. | One milestone = one line item. Keep internal task breakdown in agency's PM tool. |
-| **Milestone commenting/discussions** | Turns dashboard into chat tool. Comments become stale, forgotten. | Use dedicated chat/email for discussions. Dashboard is read-only progress view. |
-| **Client-controlled status updates** | "Mark as complete" button for clients invites premature marking. | Admin (agency) controls status. Clients request changes via chat, not by editing dashboard. |
-| **Comparative analytics** | "Your project is progressing 15% slower than average." Demoralizing and context-free. | Show absolute progress only. No cross-client comparisons. |
-| **Bloated dashboard widgets** | Weather widget, RSS feed, "motivational quote of the day". Distracts from core value. | Dashboard shows: Progress. Stats (when campaigns are live). Nothing else until explicitly needed. |
+### Differentiators (Competitive Advantage)
 
-### Why These Are Anti-Features
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Automatic client folder provisioning | New client = auto-create Drive folder structure, no manual setup | MEDIUM | Drive API create folders + set permissions; trigger on client creation |
+| Document categorization by milestone | Link documents to progress milestones (e.g., "Landing Page Design" shows in relevant milestone) | MEDIUM | Tag files with metadata or organize by folder naming convention |
+| Notification on new documents | Client gets notified when agency uploads new deliverables | LOW | Email notification when new file appears in client's folder |
+| View-only by default | Prevents clients from accidentally deleting/moving agency files | LOW | Set Drive permissions to "viewer" not "editor" |
+| Direct links to specific files | Deep link from dashboard (e.g., "View your campaign report") vs generic folder | LOW | Store specific file IDs in database for quick access |
 
-**Complexity anti-features:**
-- BaseAim's clients are busy accounting firm owners, not project managers
-- Gantt charts, Kanban, dependencies = PM theater that obscures simple question: "are we on track?"
-- Every UI element that isn't answering "where are we?" is noise
+### Anti-Features (Commonly Requested, Often Problematic)
 
-**Over-transparency:**
-- Clients don't need to see every internal task or hour logged
-- Too much detail creates "why did task X take so long?" anxiety
-- Milestone-level visibility is the right abstraction layer
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Client file uploads to agency Drive | "Let me send you files here" | Permission management complexity; potential for inappropriate files; storage costs | Provide dedicated upload endpoint with size/type restrictions OR use existing document upload (already built with Vercel Blob) |
+| Full Drive feature parity (comments, sharing) | "Why can't I comment on files?" | Massive scope creep; duplicates Drive functionality | Link to "Open in Google Drive" for advanced features |
+| Version history display | "Show me all previous versions" | Complex UI; rarely needed for agency deliverables | Rely on Drive's native version history (accessible via "Open in Drive") |
+| Search across all documents | "Find all files with 'campaign' in name" | Complex implementation; Google Drive already does this | Limit to current folder OR link to Drive search |
 
-**Wrong incentives:**
-- Time tracking = "I'm paying for hours not results"
-- Client-editable milestones = scope creep, unrealistic expectations
-- Real-time updates = clients checking dashboard every hour (unhealthy)
+---
+
+## Integration 3: Stripe Billing & Payments
+
+### Table Stakes (Users Expect These)
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| View invoices | Clients need to see what they owe and payment history | LOW | Stripe API list invoices for customer |
+| Invoice details (line items, amounts, due dates) | Standard billing transparency | LOW | Invoice object contains all details |
+| Payment method management | Update credit card without contacting support | MEDIUM | Stripe Customer Portal (pre-built) OR custom form with Payment Method API |
+| Payment status (paid, pending, overdue) | Clear indication of account standing | LOW | Invoice status field from Stripe |
+| Download invoice PDFs | For accounting records | LOW | Stripe provides hosted invoice PDF URLs |
+| Automatic payment retry | Failed payment shouldn't require manual intervention | MEDIUM | Stripe Smart Retries (built-in) + dunning emails |
+
+### Differentiators (Competitive Advantage)
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Service-based line items | Invoice clearly shows "Ad Spend: $X" + "Management Fee: $Y" | LOW | Create invoices with itemized line items via API |
+| Upcoming charge preview | "Your next invoice on March 1st will be approximately $X" | MEDIUM | Calculate based on current ad spend + fixed fees |
+| Payment plan options | For larger invoices, allow installments | MEDIUM | Stripe supports payment plans; configure in invoice creation |
+| Automated billing on campaign launch | When campaign goes live, billing automatically starts | MEDIUM | Webhook trigger on milestone completion → create Stripe subscription |
+| Transparent ad spend passthrough | Show client they're paying Meta directly for ads (if applicable) OR exact ad spend + markup | LOW | Invoice line items with clear descriptions |
+
+### Anti-Features (Commonly Requested, Often Problematic)
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Custom payment schedules per client | "Can I pay on the 15th instead of 1st?" | Billing logic complexity; hard to track; creates inconsistency | Standard billing date for all clients (e.g., 1st of month); grandfather exceptions manually |
+| Cryptocurrency payments | "Can I pay in Bitcoin?" | Volatility, accounting complexity, limited value for accounting firm audience | Credit card + ACH only; Stripe handles both |
+| Manual invoice editing by client | "This charge looks wrong, let me change it" | Opens disputes; creates financial discrepancies | Contact admin flow with dispute submission form |
+| Multi-currency support | "I'm in Canada, bill me in CAD" | Adds complexity; BaseAim serves local US firms initially | USD only for v1; add currency if international expansion happens |
+| Subscription pause/cancel self-service | "Let me pause my subscription" | Retention risk; should involve account manager conversation | Require admin approval for cancellations |
+
+---
+
+## Integration 4: Transactional Email (Onboarding & Notifications)
+
+### Table Stakes (Users Expect These)
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Welcome email on account creation | Standard onboarding practice | LOW | Trigger email on user signup with login instructions |
+| Password reset emails | Core authentication feature | LOW | Already required for NextAuth; use transactional service |
+| Invoice notifications | "Your invoice is ready" email with link | LOW | Webhook from Stripe → send email with invoice details |
+| Payment confirmation | "Payment received" email for peace of mind | LOW | Stripe webhook `invoice.paid` → confirmation email |
+| New document notifications | "BaseAim uploaded new files to your dashboard" | LOW | Trigger on Drive file creation → email with link |
+
+### Differentiators (Competitive Advantage)
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Milestone progress updates | "Your landing page is now complete!" email when admin marks milestone done | MEDIUM | Database trigger on milestone status change → personalized email |
+| Weekly progress digest | Every Monday: "Here's what we accomplished last week" | MEDIUM | Scheduled job queries recent milestone changes + sends summary |
+| Onboarding sequence | Day 1: Welcome, Day 3: How to use dashboard, Day 7: What to expect | MEDIUM | Time-based email sequence triggered on signup date |
+| Plain-text + HTML versions | Better deliverability; accessible for screen readers | LOW | Most email services auto-generate plain-text from HTML |
+| Personalization with client data | Use client name, company name, specific milestones in emails | LOW | Template variables filled from database |
+
+### Anti-Features (Commonly Requested, Often Problematic)
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Email customization by client | "Let me choose which emails I get" | Notification fatigue vs missing critical updates; complex preference management | Essential emails (invoices, password reset) are mandatory; optional preferences limited to "weekly digest" only |
+| Reply-to email creates dashboard messages | "Just reply to this email to message your account manager" | Requires email parsing, spam handling, complex routing | Emails come from noreply@; include "Log in to message us" link |
+| SMS notifications | "Text me when invoices are due" | Adds cost per message; most accounting firms check email regularly | Email-only for v1; consider SMS for payment failures only in v2 |
+| Rich email analytics | "Track if client opened email, clicked links" | Privacy concerns; overkill for transactional emails | Focus on delivery success; skip open/click tracking |
+| Slack/Teams integration | "Send notifications to my Slack" | Adds integration complexity; limited audience | Email is universal; avoid platform lock-in |
+
+---
+
+## Integration 5: External Chat Linking (Telegram/WhatsApp)
+
+### Table Stakes (Users Expect These)
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Click-to-chat links | One-click to open conversation in Telegram/WhatsApp | LOW | Static `https://wa.me/` and `https://t.me/` links |
+| Clear availability expectations | "We respond within 24 hours" messaging | LOW | Static text on chat page |
+| Mobile-friendly | Chat apps are primarily mobile; links must work on phones | LOW | Native app deep links work automatically on mobile |
+
+### Differentiators (Competitive Advantage)
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Context-aware links | Link includes client name/ID so agency knows who's messaging | LOW | WhatsApp supports pre-filled message: `wa.me/1234?text=Hi, I'm [ClientName]` |
+| Multiple contact options | Show both Telegram AND WhatsApp; client chooses preferred platform | LOW | Display both links with icons |
+| Business hours indicator | Show if team is currently available or will respond later | LOW | Client-side time check: if 9am-5pm EST, show "Team is online" |
+| Direct links in milestone cards | "Need help with landing page approval? Message us →" context-specific | LOW | Render chat link in relevant dashboard sections |
+
+### Anti-Features (Commonly Requested, Often Problematic)
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| In-dashboard chat widget | "I want to message without leaving the site" | Requires real-time infrastructure, message storage, notification system — massive scope | External chat links are simpler, mobile-friendly, and clients already use these apps |
+| Chat history in dashboard | "Show my past messages here" | Requires message sync API from Telegram/WhatsApp (complex/limited); privacy concerns | Conversation history lives in chat app; dashboard is read-only portal |
+| Automated chatbot responses | "Answer common questions automatically" | AI/NLP complexity; high error rate; clients want human responses | Quick response times from human team; FAQ page for common questions |
+| Multi-platform unified inbox | "See Telegram and WhatsApp in one place" | Complex aggregation; requires business API access; ongoing maintenance | Agency team uses separate apps OR third-party tool (Wazzup, etc.) NOT built into dashboard |
+| Message read receipts | "Did my account manager see my message?" | Platform limitations; creates pressure to respond immediately | Set clear SLA: "We respond within 24 hours" — manage expectations not tracking |
+
+---
 
 ## Feature Dependencies
 
 ```
-Foundation layer (MVP):
-├── Milestone data model (exists in Prisma schema ✓)
-├── Status enum (NOT_STARTED, IN_PROGRESS, COMPLETED, BLOCKED) ✓
-├── Progress percentage calculation
-└── Dashboard display (checklist UI)
+[Facebook Ads Integration]
+    └──requires──> [Meta Marketing API Access]
+                       └──requires──> [Facebook Business Account]
+    └──requires──> [Database schema for metrics cache]
 
-Admin workflow:
-├── Google Sheets as source of truth
-├── Sheets → Prisma sync (API endpoint + cron job)
-├── Client-milestone association (one Client → many Milestones)
-└── Milestone ordering/sequencing
+[Google Drive Integration]
+    └──requires──> [Google Cloud Project + OAuth]
+    └──requires──> [Per-client folder structure]
+    └──requires──> [Document notification system]
+                       └──requires──> [Transactional Email]
 
-Client-side enhancements:
-├── Overall progress card (percentage + visual)
-├── Current milestone highlight
-├── Completion celebration (when milestone completes)
-└── Phase grouping (optional)
+[Stripe Integration]
+    └──requires──> [Stripe Account + API keys]
+    └──requires──> [Customer creation flow]
+    └──requires──> [Webhook endpoint for events]
+                       └──requires──> [Transactional Email for notifications]
 
-Advanced features (post-MVP):
-├── Client action items (depends on: milestone notes/flags)
-├── Email digests (depends on: milestone data + email service)
-├── Estimated launch date (depends on: progress rate calculation)
-└── Progress notes timeline (depends on: milestone update history)
+[Transactional Email]
+    └──requires──> [Email service provider (Resend/Postmark/SendGrid)]
+    └──requires──> [Email templates]
+    └──enhances──> [All other integrations via notifications]
+
+[Chat Links]
+    └──requires──> [Agency Telegram/WhatsApp business accounts]
+    └──no technical dependencies──> [Simplest integration]
 ```
 
-**Dependency notes:**
-- Google Sheets sync is critical path for admin workflow
-- Dashboard UI can launch with hardcoded milestones initially, Sheets sync added after
-- Client action items require adding "blockedReason" or "clientAction" field to Milestone model
-- Email digests are nice-to-have, not blocking for MVP
+### Dependency Notes
 
-## MVP Recommendation
+- **Transactional Email enhances all integrations:** Every integration benefits from email notifications (new docs, invoices, campaign updates). Implement email first to support others.
+- **Stripe webhooks require email:** Invoice/payment events should trigger emails; these are coupled.
+- **Facebook Ads requires caching:** Meta API has rate limits; cache metrics in database to avoid repeated calls.
+- **Google Drive requires OAuth:** Clients don't authenticate; agency service account shares folders. But admin setup requires OAuth flow.
+- **Chat Links are independent:** No technical dependencies; can implement anytime.
 
-For BaseAim's initial launch (1-5 accounting firm clients, pre-launch agency):
+---
 
-### Phase 1: Core Progress Tracking (MVP)
-**Build first:**
-1. **Milestone checklist display** — Simple vertical list, status icons, progress bars
-2. **Overall progress card** — "60% complete, 3 of 5 milestones done"
-3. **Status indicators** — Color-coded Not Started / In Progress / Completed
-4. **Milestone descriptions** — 1-2 sentences explaining what each milestone means
-5. **Due dates** — Expected completion dates (week-level precision)
+## MVP Definition (v1.0 Launch)
 
-**Why this is MVP:**
-- Answers core question: "Where is my project?"
-- No external dependencies (works with Prisma database)
-- Can be populated manually via Prisma Studio initially (5 clients = manageable)
+### Launch With (v1.0)
 
-### Phase 2: Admin Workflow (After MVP validated)
-**Build next:**
-1. **Google Sheets integration** — API endpoint to sync Sheet data to Prisma
-2. **Automated sync** — Cron job (every 15min or hourly) to update milestone progress
-3. **Sheet template** — Standardized format for admin to fill out (Client ID, Milestone, Status, Progress %, Due Date, Notes)
+**Core principle:** Read-only integrations with essential transparency. No client editing, no real-time updates, no advanced features.
 
-**Why this is Phase 2:**
-- Requires external integration work (Google Sheets API)
-- MVP can work without it (manual updates for 1-5 clients)
-- Once validated, Sheets sync pays off (scales to 10+ clients)
+**Facebook Ads:**
+- [ ] Display 6-8 core metrics (spend, impressions, clicks, CTR, CPC, CPM) — Essential for transparency
+- [ ] 30-day and all-time date ranges — Users expect recent + historical views
+- [ ] Last updated timestamp — Manage expectations on data freshness
+- [ ] Cached data (refresh every 6 hours) — Avoid rate limits
+- [ ] Campaign-level breakdown — Show which campaigns exist
 
-### Defer to post-MVP:
-- **Progress notes/changelog** — Nice-to-have, not critical for initial trust-building
-- **Client action items** — Can be handled via chat/email initially
-- **Email digests** — Portal must be valuable first, then drive engagement via email
-- **Estimated launch date** — Requires progress rate tracking, complex calculation
-- **Milestone dependencies** — Linear process doesn't need explicit dependency visualization
+**Google Drive:**
+- [ ] List files in client's shared folder — Core deliverable access
+- [ ] File preview for PDFs/images — Avoid unnecessary downloads
+- [ ] Download links — Users need offline access
+- [ ] Folder organization by type — Basic structure (Reports, Creatives, Documents)
+- [ ] View-only permissions — Prevent accidental deletions
 
-## Complexity Estimates
+**Stripe:**
+- [ ] Invoice list with status indicators — Essential billing transparency
+- [ ] Invoice detail view (line items, amounts, dates) — Expected financial detail
+- [ ] Download invoice PDFs — Required for accounting records
+- [ ] Payment method management via Customer Portal — Stripe pre-built solution (LOW effort)
+- [ ] Payment status badges (paid/pending/overdue) — Clear account standing
 
-Based on existing Next.js + Prisma + shadcn/ui stack:
+**Transactional Email:**
+- [ ] Welcome email on signup — Standard onboarding
+- [ ] Password reset email — Required for auth
+- [ ] Invoice ready notification — Critical billing alert
+- [ ] Payment confirmation — Peace of mind
+- [ ] New document notification — Deliverable alerts
 
-| Feature | Complexity | Estimated Effort | Rationale |
-|---------|------------|------------------|-----------|
-| Milestone checklist UI | Low | 4-6 hours | Component work with existing Card, Badge, Progress components. Similar to existing progress page. |
-| Overall progress calculation | Low | 2-3 hours | Simple SQL query + percentage calc. |
-| Status indicators | Low | 1-2 hours | Already have icons (CheckCircle2, Clock, etc.) and Badge component. |
-| Milestone descriptions | Low | 1 hour | Add description field to display (already in schema). |
-| Dashboard layout rework | Low | 3-4 hours | Move analytics chart to right, add stat cards. CSS Grid work. |
-| Google Sheets sync (read) | Medium | 8-12 hours | Google Sheets API setup, auth, parsing Sheet data, mapping to Prisma models. |
-| Automated sync (cron) | Medium | 3-4 hours | Vercel cron job or external service (GitHub Actions). Error handling. |
-| Sheet template creation | Low | 2 hours | Define columns, create template, document for admin. |
-| Client action items | Medium | 4-6 hours | Add "clientAction" flag to Milestone, UI treatment, notification. |
-| Progress notes timeline | Medium | 6-8 hours | Milestone update history (new model or JSON field), timeline UI component. |
-| Email digests | Medium-High | 10-15 hours | Email service integration (Resend/SendGrid), template design, scheduling, unsubscribe. |
-| Estimated launch date | High | 8-12 hours | Progress rate calculation, prediction algorithm, edge case handling. |
+**Chat Links:**
+- [ ] WhatsApp click-to-chat link — Primary channel (most clients use WhatsApp)
+- [ ] Telegram click-to-chat link — Secondary option
+- [ ] Pre-filled message with client name — Context for agency team
+- [ ] Business hours indicator — Manage response expectations
 
-**Total for MVP (Phase 1):** ~15-20 hours
-**Total for Phase 2 (Sheets sync):** ~15-20 hours
-**Total for all differentiators:** ~60-80 hours
+### Add After Validation (v1.1 - v1.3)
+
+**Add these once v1.0 is live and validated with first 1-2 clients:**
+
+- [ ] Milestone-linked document display — Trigger: Clients ask "Where's my landing page design?" (connect docs to milestones)
+- [ ] Weekly progress digest email — Trigger: Clients check dashboard infrequently (proactive updates)
+- [ ] Benchmark indicators for ad metrics — Trigger: Clients ask "Is my CTR good?" (educate users)
+- [ ] Spend vs budget tracking — Trigger: Budget overages occur (proactive cost management)
+- [ ] Onboarding email sequence — Trigger: New clients don't understand dashboard (guided education)
+- [ ] Automatic folder provisioning — Trigger: Manual folder creation becomes tedious at 3+ clients (automation)
+
+### Future Consideration (v2+)
+
+**Defer until product-market fit is established and scale demands:**
+
+- [ ] Multi-month trend visualization for ads — Why defer: Complex querying; v1 focuses on current state
+- [ ] Payment plan options for large invoices — Why defer: Unlikely need for small agency; adds billing complexity
+- [ ] Lead cost projection calculator — Why defer: Requires conversion tracking setup; nice-to-have vs essential
+- [ ] Google Drive search functionality — Why defer: Low value when folder structure is organized
+- [ ] Client-customizable email preferences — Why defer: Adds complexity; keep notifications simple initially
+- [ ] SMS notifications for payment failures — Why defer: Email sufficient for target audience; SMS adds cost
+
+---
+
+## Feature Prioritization Matrix
+
+| Feature | User Value | Implementation Cost | Priority | Integration |
+|---------|------------|---------------------|----------|-------------|
+| Invoice list & details | HIGH | LOW | P1 | Stripe |
+| Basic ad metrics display | HIGH | MEDIUM | P1 | Facebook Ads |
+| File list & preview | HIGH | MEDIUM | P1 | Google Drive |
+| Welcome & password reset emails | HIGH | LOW | P1 | Email |
+| Invoice notification email | HIGH | LOW | P1 | Email |
+| WhatsApp chat link | MEDIUM | LOW | P1 | Chat |
+| Payment confirmation email | MEDIUM | LOW | P1 | Email |
+| Document upload notification | MEDIUM | LOW | P1 | Email |
+| Campaign-level breakdown | MEDIUM | MEDIUM | P1 | Facebook Ads |
+| Payment method management | HIGH | LOW | P1 | Stripe (Customer Portal) |
+| Telegram chat link | LOW | LOW | P1 | Chat |
+| Download invoice PDFs | HIGH | LOW | P1 | Stripe |
+| Date range filtering (ads) | MEDIUM | MEDIUM | P1 | Facebook Ads |
+| Benchmark indicators | MEDIUM | LOW | P2 | Facebook Ads |
+| Milestone progress email | MEDIUM | MEDIUM | P2 | Email |
+| Weekly digest email | MEDIUM | MEDIUM | P2 | Email |
+| Auto folder provisioning | LOW | MEDIUM | P2 | Google Drive |
+| Spend vs budget tracker | MEDIUM | LOW | P2 | Facebook Ads |
+| Onboarding email sequence | MEDIUM | MEDIUM | P2 | Email |
+| Document-to-milestone linking | MEDIUM | MEDIUM | P2 | Google Drive |
+| Lead cost projection | LOW | HIGH | P3 | Facebook Ads |
+| Trend visualization | MEDIUM | HIGH | P3 | Facebook Ads |
+| Payment plans | LOW | MEDIUM | P3 | Stripe |
+| Drive search | LOW | MEDIUM | P3 | Google Drive |
+
+**Priority key:**
+- **P1 (Must have for v1.0 launch):** Essential for core value prop — transparency without manual work
+- **P2 (Should have, add in v1.1-v1.3):** Improves experience but not blocking launch
+- **P3 (Nice to have, future consideration):** Low value-to-effort ratio; defer to v2+
+
+---
+
+## Competitor Feature Analysis
+
+### Agency Dashboard Competitors
+
+| Feature | AgencyAnalytics | DashThis | Our Approach |
+|---------|-----------------|----------|--------------|
+| **Ad metrics display** | 40+ metrics, overwhelming | Customizable widgets, flexible | 6-8 core metrics, fixed for simplicity |
+| **White-label branding** | Full rebrand capability | Custom domains, logo | Not needed (BaseAim-branded only) |
+| **Real-time data** | Every 15 min updates | Hourly updates | 6-hour refresh (sufficient for accounting firms) |
+| **Client reporting** | Automated PDF reports | Scheduled email reports | Live dashboard + email notifications (no PDFs initially) |
+| **Multi-client management** | Unlimited clients, seat-based pricing | Per-client pricing | 1-5 clients, simpler UI |
+| **Integrations** | 80+ platform integrations | 30+ integrations | 5 focused integrations (ads, docs, billing, email, chat) |
+| **Custom metrics** | Create calculated fields | Template library | No customization (reduces complexity for non-technical users) |
+| **Mobile app** | Native iOS/Android apps | Responsive web only | Responsive web only (defer mobile app) |
+
+### Key Differentiation
+
+**Competitors are built for agencies managing 10-100 clients with white-label needs.**
+
+**BaseAim dashboard is built for:**
+- Single agency (BaseAim) serving 1-5 clients initially
+- Non-technical accounting firm owners (simplicity over flexibility)
+- Transparency focus (where is my project + how are campaigns performing)
+- Tight integration with existing progress tracking (milestone-centric vs report-centric)
+
+**Strategic differences:**
+1. **Fewer metrics, better explanations** — Competitors show all data; we show essential data with context
+2. **Milestone integration** — Competitors separate reporting from project management; we unify them
+3. **No customization burden** — Competitors let clients customize everything; we provide opinionated defaults
+4. **Accounting firm specific** — Competitors are industry-agnostic; we tailor language/metrics to accounting
+
+---
+
+## Cross-Integration Feature Synergies
+
+### Milestone + Documents + Email
+**Synergy:** When admin marks "Landing Page Design" milestone complete → automatically email client → link directly to design files in Google Drive folder.
+
+**Value:** Proactive communication reduces "what's the status?" messages.
+
+**Implementation:** Webhook on milestone update → query Drive for new files → send email with file links.
+
+### Ads + Billing + Email
+**Synergy:** When ad spend crosses budget threshold → create invoice line item → email client with spend update and upcoming invoice preview.
+
+**Value:** No surprise bills; transparent cost management.
+
+**Implementation:** Daily cron job checks Meta spend vs client budget → triggers invoice creation + notification email.
+
+### Chat + Milestones
+**Synergy:** Each milestone card shows context-specific chat link (e.g., "Questions about your landing page? Message us →" with pre-filled WhatsApp text).
+
+**Value:** Reduces friction for client questions; provides context to agency team.
+
+**Implementation:** Chat link component accepts `context` prop → generates pre-filled message.
+
+### Documents + Notifications
+**Synergy:** New document in Drive → notification email → links to specific file in dashboard → shows in relevant milestone section.
+
+**Value:** Clients see deliverables immediately without hunting.
+
+**Implementation:** Drive webhook → database record → email notification → dashboard query.
+
+---
 
 ## Sources
 
-**Confidence note:** This research is based on training knowledge of:
-- Agency client portal patterns (HubSpot Client Portal, Teamwork Client Portal, Monday.com client-facing boards)
-- SaaS onboarding/progress tracking UX (Stripe Dashboard, Vercel project status, Linear project views)
-- Project management tool patterns (Asana, Trello, ClickUp milestone tracking)
-- Agency service delivery best practices (client communication, status transparency)
+**Facebook Ads Metrics & Reporting:**
+- [Automated Facebook Ads Reporting: A Complete Guide for 2026](https://improvado.io/blog/best-facebook-ads-reports-templates)
+- [13 Essential Facebook Ads Metrics to Track - AgencyAnalytics](https://agencyanalytics.com/blog/facebook-ads-metrics)
+- [Facebook Ads Metrics That Matter: Essential KPIs, Reporting Dashboards, and Client-Ready Reports](https://adspyder.io/blog/facebook-ad-campaigns-essential-metrics/)
+- [Facebook Ads: New historical limitations, attribution window and metric removals - January 12, 2026](https://docs.supermetrics.com/docs/facebook-ads-new-historical-limitations-attribution-window-and-metric-removals-january-12-2026)
+- [Facebook Marketing Connector | Airbyte Documentation](https://docs.airbyte.com/integrations/sources/facebook-marketing)
 
-**No live verification via WebSearch or Context7 available.** Findings represent common patterns observed in:
-- Marketing agency client portals (2023-2025)
-- SaaS customer dashboards (2023-2025)
-- Service business progress tracking (2023-2025)
+**Google Drive Integration:**
+- [Best Document Management & Workflow Tools For Google Drive](https://zenphi.com/best-document-management-and-workflow-tools-for-google-drive-this-year/)
+- [Should you use Google Drive as a Document Management System?](https://www.cognidox.com/blog/why-not-just-use-google-drive-as-a-document-management-system)
+- [Zoho CRM Integration with Google Drive | Powerful Guide 2026](https://boostedcrm.com/zoho-crm-integration-with-google-drive/)
 
-**Marked as MEDIUM confidence** because:
-- Patterns are well-established and consistent across agency portal category
-- No access to current (2026) competitive landscape via web search
-- Recommendations based on proven UX patterns, not speculative
+**Stripe Billing & Invoicing:**
+- [Stripe Billing Official Documentation](https://docs.stripe.com/billing) — MEDIUM confidence
+- [Stripe Invoicing Official Documentation](https://docs.stripe.com/invoicing) — MEDIUM confidence
+- [Stripe Billing Review 2026: Pricing, Features, Pros & Cons](https://research.com/software/reviews/stripe-billing)
 
-**Recommendation for validation:**
-- Review 2-3 competitor agency portals (if accessible) to confirm table stakes
-- Survey target clients (accounting firms) on "what progress info do you want to see?"
-- A/B test simplified (checklist) vs complex (Gantt) layouts
+**Transactional Email:**
+- [Email Marketing for SaaS: Complete Lifecycle Guide for 2026](https://mailsoftly.com/blog/email-marketing-for-saas/)
+- [SaaS Onboarding Email Best Practices in 2026](https://mailsoftly.com/blog/user-onboarding-email-best-practices/)
+- [11 Best Transactional Email Services Reviewed for 2026](https://www.sender.net/blog/transactional-email-services/)
+- [5 Best Email APIs: Flexibility Comparison [2026]](https://mailtrap.io/blog/email-api-flexibility/)
+- [Postmark vs SendGrid: Which Email Service Is Better? [2026]](https://moosend.com/blog/postmark-vs-sendgrid/)
+
+**Chat Integration:**
+- [WhatsApp API 2026: Complete Integration Guide and Use Cases - Unipile](https://www.unipile.com/whatsapp-api-a-complete-guide-to-integration/)
+- [Create a two-way WhatsApp + Telegram integration for 10k+ customer support chats](https://n8n.io/workflows/8350-create-a-two-way-whatsapp-telegram-integration-for-10k-customer-support-chats/)
+- [Cross-Platform Strategies: Integrating WhatsApp with Telegram and Beyond](https://www.chatarchitect.com/news/cross-platform-strategies-integrating-whatsapp-with-telegram-and-beyond)
+
+**Agency Dashboard & Scope Management:**
+- [What Is Scope Creep? Meaning, Real Examples & How Agencies Avoid It](https://www.teamcamp.app/blogs/scope-creep-meaning-examples-how-agencies-avoid-it)
+- [Feature Creep: Why 'Just One More Feature' Is Killing Your SaaS](https://wearepresta.com/why-just-one-more-feature-is-killing-your-product-roadmap/)
+- [White Label Reports & Dashboards for Marketing Agencies - AgencyAnalytics](https://agencyanalytics.com/features/white-label)
+- [Our Vetted List of 15 White Label Marketing Tools for Agencies (2026)](https://whatagraph.com/blog/articles/white-label-marketing-tools)
+
+**Accounting Firm Technology Adoption:**
+- [The three trends shaping accounting technology in 2026 | Accounting Today](https://www.accountingtoday.com/news/the-three-trends-shaping-accounting-technology-in-2026)
+- [The future of the accounting industry: 7 important trends in 2026](https://karbonhq.com/resources/future-of-accounting/)
+- [6 Accounting Technology Trends and How They Help CPA Firms](https://karbonhq.com/resources/accounting-technology/)
+
+---
+
+*Feature research for: BaseAim Client Dashboard v1.0 Integrations*
+*Researched: 2026-02-15*
+*Confidence: MEDIUM-HIGH (web search findings verified with official documentation where available)*

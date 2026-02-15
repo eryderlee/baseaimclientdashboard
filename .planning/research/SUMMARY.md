@@ -1,306 +1,378 @@
 # Project Research Summary
 
-**Project:** BaseAim Client Dashboard - Progress Tracking Milestone
-**Domain:** Agency client portal with Google Sheets integration
-**Researched:** 2026-02-11
-**Confidence:** MEDIUM-HIGH
+**Project:** BaseAim Client Dashboard - v1.0 Production Launch Integrations
+**Domain:** Next.js 16 Agency Dashboard with External Service Integrations
+**Researched:** 2026-02-15
+**Confidence:** HIGH
 
 ## Executive Summary
 
-This project adds milestone-based progress tracking to an existing Next.js 16 client dashboard for a paid ads agency serving 1-5 accounting firm clients. The research reveals a clear, proven architectural pattern: **Google Sheets as admin UI, PostgreSQL as source of truth, poll-based sync via cron job**. This is a well-established approach with minimal new dependencies needed.
+The v1.0 Production Launch milestone integrates five external services into an existing Next.js 16 App Router dashboard: Facebook Ads API (campaign metrics), Google Drive (document storage), Stripe (payments), Resend (transactional email), and chat links (Telegram/WhatsApp). This research validates that all integrations leverage Next.js 16's Server Components and Server Actions architecture, keeping API secrets server-side and maintaining the existing Data Access Layer (DAL) pattern.
 
-The recommended implementation leverages the existing stack (Next.js 16, Prisma 7, shadcn/ui, PostgreSQL) and adds only Google's official `googleapis` library for Sheets integration. The architecture follows a unidirectional sync pattern where admins update progress in Google Sheets, a scheduled cron job syncs changes to PostgreSQL, and clients view data from the database. This prevents the critical pitfall of treating Sheets as a real-time database, which causes rate limit errors and poor performance.
+The recommended approach follows a dependency-driven build order: start with simple chat links (pure data storage), implement email infrastructure early (enables onboarding notifications across other integrations), migrate from Vercel Blob to Google Drive, add Stripe payment processing (depends on email for receipts), and finish with Facebook Ads analytics (requires client ad accounts). All recommended libraries are current as of February 2026 and explicitly support Next.js 16 App Router patterns. Total integration implementation time is estimated at 21-33 hours across five integrations.
 
-Key risks center around three areas: (1) rate limiting if querying Sheets on every page load instead of syncing to DB, (2) schema validation failures when admins edit Sheet structure, and (3) authentication issues if using OAuth instead of service accounts. All three are preventable through proper architecture choices made in Phase 1. The feature set is intentionally simple—linear checklist-style progress tracking, not complex project management—which aligns perfectly with the target audience of busy accounting firm owners who need transparency without overhead.
+The critical risks center on production deployment mistakes: Stripe webhook signature verification failures (caused by body parsing middleware), Facebook Advanced Access delays (2-6 week approval process that blocks launch if not started early), and OAuth token refresh race conditions in serverless environments. Mitigation requires architectural patterns established in Phase 1 (proper webhook routing, database-level locking) and proactive third-party approvals started immediately (Facebook Business Verification and Advanced Access applications).
 
 ## Key Findings
 
 ### Recommended Stack
 
-The existing Next.js stack handles 90% of requirements. Only two new dependencies needed for Google Sheets integration:
+Five new integrations extend the existing validated stack (Next.js 16, React 19, Prisma, PostgreSQL, NextAuth v5, Tailwind, shadcn/ui) without replacements. All integration libraries are production-ready, actively maintained, and specifically built for modern React/Next.js patterns.
 
-**Core technologies:**
-- **googleapis** (^152.0.0): Official Google Sheets API v4 client — provides full TypeScript support, handles auth and API calls, more transparent than wrapper libraries for production use
-- **google-auth-library** (^9.0.0): Service account authentication — required peer dependency, enables server-to-server auth without OAuth flow complexity
-- **Existing stack reuse**: Prisma 7.3.0 for DB sync, shadcn/ui Checkbox + Card for checklist UI, Lucide React icons for progress states, Next.js Server Actions for sync logic, Vercel Cron for scheduled polling
+**Core integration technologies:**
+- **facebook-nodejs-business-sdk 24.0.1+** — Official Meta Marketing API client supporting v22.0+ API, handles campaign metrics, pagination, and versioning automatically
+- **googleapis 145.0.0+** — Official Google APIs Node.js client for Drive API v3, supports OAuth 2.0 and service accounts, updated February 13, 2026
+- **stripe 20.3.1+ (already installed)** — Official Stripe Node.js library with excellent Next.js App Router integration, no new dependencies needed
+- **resend 4.0.1+ & react-email 3.0.1+** — Modern transactional email built for Next.js with type-safe React templates, simpler DX than SendGrid/Nodemailer
+- **No SDK required for chat** — Telegram/WhatsApp use simple URL generation patterns (wa.me/phone, t.me/username)
 
-**Critical decision:** Use Service Account authentication (not OAuth) to avoid token expiration issues. Service accounts provide stable, long-lived credentials suitable for server-to-server integration without user interaction.
+**Authentication patterns by service:**
+- Facebook: System User Token (long-lived, 60-day refresh cycle, stored in environment variables)
+- Google Drive: Service Account with JSON key file (drive.file scope, shared folder access)
+- Stripe: API keys server-side only + webhook signature verification with raw body parsing
+- Resend: API key server-side only (fire-and-forget pattern, no OAuth needed)
 
-**Sync strategy:** Poll Google Sheets every 15 minutes via Vercel Cron (free tier). This is well within API quota limits for 1-5 clients (96 requests/day vs 300,000/day limit) and provides acceptable data freshness.
+**Critical version requirements:**
+- Next.js 16.x fully supported by all integrations
+- Node.js 18+ required for most packages
+- React 19 compatible (react-email supports React 18+, backwards compatible)
 
 ### Expected Features
 
-**Must have (table stakes):**
-- Linear milestone checklist — sequential list with checkmarks showing what's done, what's in progress, what's upcoming
-- Overall progress percentage — single prominent number calculated from milestone completion ("60% complete")
-- Status indicators — NOT_STARTED / IN_PROGRESS / COMPLETED / BLOCKED with color coding and icons
-- Current milestone highlight — visual distinction showing where agency's attention is focused
-- Milestone descriptions — 1-2 sentence explanations so clients understand what each step means
-- Expected timeline — due dates for milestones (week-level precision with realistic buffers)
-- Completion markers — clear "Completed ✓" badges with completion dates for trust-building
+Research identifies clear MVP boundaries for v1.0 launch vs post-launch iterations based on agency dashboard patterns for small-scale deployments (1-5 clients).
 
-**Should have (competitive):**
-- **Admin update via Google Sheets** — THE key differentiator; admin updates progress in Sheets where they already work, dashboard auto-syncs
-- Standardized milestones — all clients see same proven process, no custom milestone creation per client
-- Client action items — dashboard shows when ball is in client's court ("Action needed: Approve landing page design")
-- Progress notes/updates — mini-changelog per milestone ("Updated 2 hours ago: Design approved, moving to development")
-- Automated status email digests — weekly summary keeping portal top-of-mind
+**Must have (table stakes for v1.0 launch):**
+- Facebook Ads: 6-8 core metrics (spend, impressions, clicks, CTR, CPC, CPM), 30-day and all-time date ranges, cached data (6-hour refresh)
+- Google Drive: List files in shared folder, PDF/image preview, download links, view-only permissions, folder organization by type
+- Stripe: Invoice list with status, invoice details (line items, amounts, dates), download PDF, payment method management via Customer Portal, payment status badges
+- Transactional Email: Welcome on signup, password reset, invoice ready notification, payment confirmation, new document notification
+- Chat Links: WhatsApp click-to-chat, Telegram click-to-chat, pre-filled message with client context, business hours indicator
 
-**Defer (v2+):**
-- Gantt charts / Kanban boards — overkill for linear service process, confuses clients
-- Time tracking / hours logged — creates wrong incentive, clients care about outcomes not hours
-- Real-time updates — polling every 15 minutes is sufficient, real-time adds complexity
-- Client-editable milestones — admin controls structure, clients view-only
-- Comparative analytics — no cross-client comparisons, focus on absolute progress only
+**Should have (add in v1.1-v1.3 after validation):**
+- Milestone-linked document display (connects docs to progress tracking)
+- Weekly progress digest email (proactive client updates)
+- Benchmark indicators for ad metrics (educate users on "good" vs "needs improvement")
+- Spend vs budget tracking (proactive cost management)
+- Onboarding email sequence (Day 1, 3, 7 drip campaign)
+- Automatic folder provisioning (reduces manual Google Drive setup)
+
+**Defer to v2+ (low value-to-effort ratio):**
+- Multi-month trend visualization for ads (complex querying, current state focus for v1)
+- Payment plan options (unlikely need for small agency)
+- Lead cost projection calculator (requires conversion tracking setup)
+- Google Drive search functionality (organized folders sufficient initially)
+- Client-customizable email preferences (adds complexity, keep notifications simple)
+- SMS notifications (email sufficient for target audience, SMS adds costs)
+
+**Anti-features identified (commonly requested but problematic):**
+- Real-time Facebook Ads updates (API rate limits, data doesn't change that fast — 4-6 hour refresh sufficient)
+- Campaign editing from dashboard (huge liability, keep read-only)
+- In-dashboard chat widget (requires real-time infrastructure — external chat apps are simpler)
+- Full Drive feature parity (scope creep — link to "Open in Google Drive" for advanced features)
 
 ### Architecture Approach
 
-**Core pattern:** Unidirectional sync with Google Sheets as source of truth for admin updates, PostgreSQL as source of truth for client views. Admin workflow is Sheets-based, client experience is database-backed.
+All integrations follow Next.js 16 App Router best practices: Server Components for data fetching, Server Actions for mutations, Route Handlers only for external webhooks. This leverages automatic request deduplication, keeps secrets server-side, and avoids unnecessary API routes. The existing DAL pattern (verifySession, getCurrentClientId, React cache wrappers) extends to integration service layer without changes.
 
 **Major components:**
+1. **Integration Service Layer** (`/lib/integrations/[service]/client.ts`) — External API communication, token management, stateless client classes or singletons depending on statefulness
+2. **Server Components** (dashboard pages) — Direct fetching from integration services using DAL for session verification, rendering without intermediate API routes
+3. **Server Actions** (co-located in `/app` routes) — Mutation operations (uploads, payments, CRUD), revalidation with revalidatePath(), form submissions
+4. **Route Handlers** (`/app/api/webhooks/[service]/route.ts`) — External webhook endpoints requiring signature verification (Stripe only for this project)
+5. **Email Templates** (`/lib/integrations/resend/templates/`) — React Email components for transactional emails, type-safe template variables
 
-1. **Google Sheets Client** (`/lib/google-sheets/client.ts`) — Infrastructure layer handling API authentication, data fetching, rate limiting, error handling. Uses service account credentials from env vars.
+**Data flow example (Document Upload):**
+```
+Client Component → Server Action (uploadDocument) → verifySession() (DAL)
+→ GoogleDriveClient.uploadFile() → Prisma.document.create()
+→ revalidatePath('/dashboard/documents') → Return success
+```
 
-2. **Milestone Sync Service** (`/lib/sync/milestone-sync-service.ts`) — Business logic orchestrating sync process: fetch from Sheets, compare with DB, detect changes via timestamp comparison, apply updates using Prisma upsert, log results.
-
-3. **Sync API Routes** (`/app/api/sync/`) — Interface layer exposing sync operations as HTTP endpoints, handling admin authentication, triggering sync operations, returning status. Protected by NextAuth middleware.
-
-4. **Database Extensions** — New `SyncLog` table tracking sync history (status, rows processed, errors, duration), existing `Milestone` table unchanged, `Client` table extended with `spreadsheetId`, `sheetName`, `syncEnabled` fields.
-
-5. **Presentation Layer** — Client dashboard unchanged (reads from DB as before), new admin dashboard for manual sync triggers and status monitoring.
-
-**Data flow:** Admin updates Google Sheets → Vercel Cron triggers every 15 min → API route calls Sync Service → Sync Service fetches via googleapis client → Change detection compares Sheets vs DB → Prisma upserts changed records → PostgreSQL updated → Client dashboard reads from DB.
-
-**Critical patterns to follow:**
-- Service account authentication (no OAuth token expiration)
-- Idempotent sync operations (safe to retry, use upsert not delete+insert)
-- Change detection with timestamps (efficient, only update what changed)
-- Exponential backoff retry logic (handle transient API failures)
-- Configuration per client in database (enable/disable sync, store Sheet IDs)
+**Critical architectural patterns:**
+- **Pattern 1:** Server Component Direct Fetching — No API routes for read operations, secrets stay server-side, automatic cache deduplication
+- **Pattern 2:** Server Actions for Mutations — CSRF protection, type-safe, progressive enhancement, easy cache revalidation
+- **Pattern 3:** Route Handlers for Webhooks — Signature verification, raw body parsing (await req.text()), idempotent event processing
+- **Pattern 4:** Service Client Singleton — Stateless clients (Stripe, Resend) use singleton pattern, stateful clients get fresh instances
+- **Pattern 5:** Caching with 'use cache' — Next.js 16 directive for expensive external API calls (Facebook metrics cached 15 min)
 
 ### Critical Pitfalls
 
-1. **Treating Sheets as a real-time database** — Querying Sheets API on every page load causes rate limit errors (60 req/min/user), 2-5 second page loads, quota exhaustion. **Prevention:** Establish sync-to-DB pattern from Phase 1, serve all user requests from PostgreSQL, never query Sheets directly in client-facing routes.
+Research identified six critical pitfalls that cause complete integration failures, security breaches, or production launch delays.
 
-2. **No schema validation on Sheets data** — Admins accidentally break app by renaming columns, deleting headers, changing data formats. App crashes or silently corrupts data. **Prevention:** Protect header rows in Sheets, validate expected columns before sync, fail gracefully with admin alerts if validation fails, keep serving old data until fixed.
+1. **Stripe Webhook Signature Verification Failure** — Next.js body parser corrupts raw request body before signature verification. Prevention: Use `await req.text()` for RAW body, verify signature BEFORE any JSON parsing, return 400 on invalid signature. This breaks 100% of webhooks if wrong.
 
-3. **OAuth token expiration not handled** — Using user OAuth instead of service account causes sync to stop working after 1-7 days when tokens expire. No one notices until clients complain about stale data. **Prevention:** Use service account from start, share Sheets with service account email, monitor for 401/403 errors.
+2. **Wrong Stripe Webhook Secret in Production** — Using test mode secret in production environment causes 100% verification failure. Prevention: Separate .env.production with live-mode secret (whsec_live_...), verify environment variables at startup, test webhooks in staging first.
 
-4. **Race conditions in concurrent syncs** — Multiple sync jobs running simultaneously cause duplicate records, partial updates, database integrity violations. **Prevention:** Implement distributed lock (PostgreSQL advisory locks), use idempotent upsert patterns, track in-progress syncs in database.
+3. **Missing Idempotency in Stripe Webhook Handlers** — Stripe retries webhooks for 3 days, without idempotency duplicate events create duplicate records. Prevention: Track processed event IDs in database with unique constraint on stripeEventId, use upsert operations, wrap in database transactions.
 
-5. **Cell reference hell** — Using A1 notation (`A1:D10`) makes code brittle, breaks when admin inserts columns. **Prevention:** Use named ranges in Sheets ("MilestoneData") or header-based lookup, document what each range contains.
+4. **Facebook Ads API Advanced Access Trap** — Standard Access is "demo mode" with severe rate limits, can't access client ad accounts. Advanced Access requires Business Verification (2-4 weeks) + App Review (2-7 days per permission). Prevention: Apply for Advanced Access in Phase 1, not when feature is ready. Blocks launch by 1-2 months if delayed.
+
+5. **Exposed API Keys in Client-Side Code** — Storing secrets in NEXT_PUBLIC_* environment variables embeds them in browser bundle. Prevention: Never prefix secrets with NEXT_PUBLIC_, use Server Components/Actions for all external API calls, only expose publishable keys (Stripe pk_...).
+
+6. **OAuth Token Refresh Race Conditions** — Multiple serverless instances refresh same expired token simultaneously, first succeeds and invalidates old token, others fail with "invalid_grant". Prevention: Database-level locking with SELECT FOR UPDATE in transactions, check if token refreshed while waiting for lock, or use Redis distributed locks for multi-instance coordination.
+
+**Additional high-severity pitfalls:**
+- Email Authentication Missing (SPF/DKIM/DMARC) — Gmail/Yahoo reject emails in 2026 without proper DNS records, 50-80% deliverability loss
+- Google Drive API Rate Limits Not Handled — 12,000 queries/60 seconds per user, needs exponential backoff and retry logic
+- Google Drive File Permissions Not Managed — Files default to private (service account only), users see "You need access" errors
+- Mixing Test and Production Stripe Modes — Database corruption with mixed test_/live_ IDs, accidental real charges in development
 
 ## Implications for Roadmap
 
-Based on research, suggested phase structure:
+Based on research, suggested 5-phase structure follows dependency order and avoids critical pitfalls:
 
-### Phase 1: Core Progress Tracking (MVP)
-**Rationale:** Establish foundational UI and data model before adding external integration complexity. Validates value proposition with manual data updates for 1-5 clients (totally manageable scale).
-
-**Delivers:**
-- Milestone checklist display component with status icons and progress bars
-- Overall progress card showing completion percentage
-- Status indicators (NOT_STARTED/IN_PROGRESS/COMPLETED/BLOCKED) with color coding
-- Milestone descriptions and due dates
-- Dashboard layout improvements (analytics chart moved, stat cards added)
-
-**Addresses:** All table stakes features from FEATURES.md except Sheets integration
-
-**Uses:** Existing stack only (Prisma, shadcn/ui, Lucide React, Tailwind)
-
-**Avoids:** No external dependencies means no rate limiting, auth, or sync issues yet
-
-**Implementation notes:** Can populate milestones manually via Prisma Studio initially. For 5 clients, this is faster than building Sheets integration upfront.
-
-**Estimated effort:** 15-20 hours based on complexity analysis
-
-### Phase 2: Google Sheets Sync (Automation)
-**Rationale:** Once MVP proven valuable with manual updates, automate admin workflow via Sheets integration. This is the key differentiator that scales beyond 5 clients.
+### Phase 1: Foundation - Chat Links & Email Infrastructure
+**Rationale:** Chat links require zero external dependencies (pure data storage + URL generation). Email infrastructure enables onboarding notifications across all other integrations, so implement early to support subsequent phases.
 
 **Delivers:**
-- Google Sheets client with service account authentication
-- Milestone sync service with change detection and upsert logic
-- Sync API routes with admin authentication
-- Database schema extensions (SyncLog table, Client sync fields)
-- Manual sync trigger for testing
+- WhatsApp/Telegram click-to-chat links with pre-filled messages
+- Resend transactional email service with React Email templates
+- Welcome email on client signup
+- Password reset email (if not already implemented)
+- Email sending utilities for other integrations
 
-**Addresses:** "Admin update via Google Sheets" differentiator from FEATURES.md
+**Addresses (from FEATURES.md):**
+- Chat: WhatsApp link, Telegram link, business hours indicator
+- Email: Welcome email, password reset
 
-**Uses:** googleapis (^152.0.0), google-auth-library (^9.0.0) from STACK.md
+**Avoids (from PITFALLS.md):**
+- Email Authentication Missing — Configure SPF/DKIM/DMARC before sending production emails
+- Exposed API Keys — Establish Resend server-side pattern from start
 
-**Implements:** GoogleSheetsClient, MilestoneSyncService, Sync API Routes from ARCHITECTURE.md
+**Stack elements:** resend 4.0.1+, react-email 3.0.1+, @react-email/components 0.0.27+
 
-**Avoids:**
-- Pitfall #3 (use service account, not OAuth)
-- Pitfall #2 (schema validation from start)
-- Pitfall #5 (use named ranges or header lookup)
+**Estimated time:** 3-6 hours (chat: 1 hour, email: 2-4 hours, templates: 1 hour)
 
-**Implementation notes:** Build with manual trigger first, validate sync works correctly before adding cron automation.
-
-**Estimated effort:** 15-20 hours
-
-### Phase 3: Automated Sync (Production-Ready)
-**Rationale:** Once manual sync proven reliable, add scheduled automation and admin tooling for production use.
+### Phase 2: Document Storage - Google Drive Migration
+**Rationale:** Google Drive replaces Vercel Blob for document storage, core functionality needed before production. Requires migration of existing files, so best to tackle early before more documents accumulate.
 
 **Delivers:**
-- Vercel Cron job configuration (every 15 minutes)
-- Distributed lock mechanism (PostgreSQL advisory locks)
-- Admin sync dashboard (status display, log viewer, manual trigger)
-- Client configuration UI (set spreadsheet ID per client)
-- Error notifications and monitoring
+- Google Drive API integration with service account auth
+- File upload/download/delete Server Actions
+- Document list and preview (PDF/images)
+- Migration script from Vercel Blob to Google Drive
+- Per-client folder structure with proper permissions
+- New document notification emails (uses Phase 1 email infrastructure)
 
-**Addresses:** Automation gap between Sheets updates and dashboard visibility
+**Addresses (from FEATURES.md):**
+- Google Drive: File list, preview, download, folder organization, view-only permissions
+- Email: New document notification
 
-**Uses:** Vercel Cron (free tier) from STACK.md
+**Avoids (from PITFALLS.md):**
+- Google Drive File Permissions Not Managed — Set explicit permissions on upload (viewer role for clients)
+- Google Drive API Rate Limits Not Handled — Implement exponential backoff from start
+- OAuth Token Refresh Race Conditions — Use service account (not OAuth) to avoid token issues
 
-**Avoids:**
-- Pitfall #4 (race conditions via distributed lock)
-- Pitfall #10 (sync observability via logging and admin dashboard)
-- Pitfall #1 (polling frequency well within rate limits)
+**Stack elements:** googleapis 145.0.0+, @google-cloud/local-auth 3.0.1+ (dev only)
 
-**Implementation notes:** Test cron authentication with Vercel secret before enabling for all clients. Start with 15-minute polling, can adjust based on admin feedback.
+**Schema changes:** Add driveFileId, driveFolderId to Document model
 
-**Estimated effort:** 10-15 hours
+**Estimated time:** 8-12 hours (client setup: 3 hours, Server Actions: 3 hours, migration: 2-4 hours, permissions: 1-2 hours)
 
-### Phase 4: Enhanced Features (Post-MVP)
-**Rationale:** After core sync working reliably, add polish features that improve UX but aren't critical for launch.
+### Phase 3: Payment Processing - Stripe Integration
+**Rationale:** Stripe integration is complex with webhooks and requires email infrastructure (invoice notifications, payment confirmations). Build after email and document storage are stable.
 
 **Delivers:**
-- Client action items ("Action needed: Approve design")
-- Progress notes timeline (milestone update history)
-- Email digests (weekly progress summary)
-- Enhanced error handling and partial sync recovery
+- Stripe checkout session creation (Server Actions)
+- Invoice list and detail views
+- Payment method management via Stripe Customer Portal
+- Webhook handler for subscription/invoice events (app/api/webhooks/stripe/route.ts)
+- Invoice sent and payment confirmation emails (uses Phase 1 email)
+- Idempotent webhook event processing with database tracking
 
-**Addresses:** "Should have" differentiators from FEATURES.md
+**Addresses (from FEATURES.md):**
+- Stripe: Invoice list, invoice details, payment method management, download PDF, payment status
+- Email: Invoice notification, payment confirmation
 
-**Uses:** Email service integration (Resend/SendGrid), milestone update tracking
+**Avoids (from PITFALLS.md):**
+- Stripe Webhook Signature Verification Failure — Use await req.text() for raw body, verify BEFORE parsing
+- Wrong Stripe Webhook Secret in Production — Environment-specific validation, test staging webhooks
+- Missing Idempotency in Webhook Handlers — Track stripeEventId with unique constraint
+- Mixing Test and Production Stripe Modes — Startup validation rejects test keys in production
 
-**Avoids:** Pitfall #6 (diff detection already in Phase 2, just expose in UI)
+**Stack elements:** stripe 20.3.1+ (already installed), @stripe/stripe-js 8.7.0+ (already installed)
 
-**Implementation notes:** Can be tackled incrementally, each feature is independent.
+**Schema changes:** Add stripeCustomerId to Client model, possibly WebhookEvent model for idempotency tracking
 
-**Estimated effort:** 20-30 hours total
+**Estimated time:** 6-10 hours (checkout: 2 hours, webhooks: 3-4 hours, invoice UI: 2 hours, testing: 2-3 hours)
+
+### Phase 4: Campaign Analytics - Facebook Ads API
+**Rationale:** Facebook Ads requires client ad accounts (not available initially) and Advanced Access approval (2-6 weeks). Build last so approval process can run in parallel with earlier phases. Metrics are nice-to-have, not blocking for launch.
+
+**Delivers:**
+- Facebook Ads API client with System User Token
+- Campaign metrics display (6-8 core metrics)
+- Date range filtering (30-day, all-time)
+- Cached metrics (15-minute revalidation with 'use cache')
+- Campaign-level breakdown
+- Last updated timestamp
+
+**Addresses (from FEATURES.md):**
+- Facebook Ads: Core metrics (spend, impressions, clicks, CTR, CPC, CPM), date ranges, campaign breakdown
+
+**Avoids (from PITFALLS.md):**
+- Facebook Ads API Advanced Access Trap — Apply for Advanced Access in Phase 1 (2-6 week approval)
+- Missing Facebook Ads Rate Limit Monitoring — Monitor x-business-use-case-usage headers, implement circuit breaker
+- Facebook Ads API Data Staleness — Validate date ranges (13-month limit as of Jan 2026), archive old data
+
+**Stack elements:** facebook-nodejs-business-sdk 24.0.1+
+
+**Schema changes:** Add facebookAdAccountId, facebookLastSyncAt to Client model
+
+**Estimated time:** 6-10 hours (client setup: 2 hours, metrics fetch: 2-3 hours, caching: 1-2 hours, UI: 2-3 hours)
+
+**CRITICAL:** Start Advanced Access application immediately (Phase 1), not when this phase begins. 2-6 week approval blocks production launch.
+
+### Phase 5: Production Hardening & Deployment
+**Rationale:** Final phase ensures all integrations work in production environment with proper monitoring, error handling, and security configurations.
+
+**Delivers:**
+- Environment variable validation (startup checks for required secrets)
+- Production DNS configuration (SPF/DKIM/DMARC for email)
+- Stripe webhook testing in staging
+- Facebook Advanced Access verification (should be approved by now)
+- Google Drive quota monitoring
+- Error tracking setup (optional: Sentry)
+- Load testing for rate limits
+- Documentation of API keys and rotation procedures
+
+**Addresses:**
+- Production deployment checklist
+- Third-party service configurations
+- Security hardening
+
+**Avoids (from PITFALLS.md):**
+- All environment-specific pitfalls (wrong webhook secrets, test keys in production, missing DNS records)
+
+**Estimated time:** 4-8 hours (environment setup: 2 hours, testing: 2-3 hours, monitoring: 1-2 hours, documentation: 1 hour)
 
 ### Phase Ordering Rationale
 
-- **MVP first approach:** Build simplest version that delivers value (Phase 1) before adding integration complexity. For 1-5 clients, manual milestone updates via Prisma Studio are faster than building Sheets integration immediately.
+1. **Email First** — Enables notifications across all other integrations (document uploads, invoices, payments), simplest integration after chat links
+2. **Google Drive Second** — Core functionality replacement, needed before production, migration easier when fewer documents exist
+3. **Stripe Third** — Depends on email for receipts and notifications, complex webhooks need stable foundation
+4. **Facebook Ads Last** — Requires client ad accounts (not available initially), Advanced Access approval runs in parallel with other phases, metrics are enhancement not blocker
+5. **Production Hardening Final** — Validates all integrations work together in production environment
 
-- **External dependency isolation:** Phase 1 uses only existing stack, Phase 2 adds Google Sheets integration, Phase 3 adds cron automation. Each phase adds one external dependency layer, making debugging easier.
+**Dependency chain:**
+```
+Chat Links (no deps) → Email Infrastructure → Google Drive (uses email for notifications)
+                                           ↓
+                                      Stripe (uses email for receipts)
+                                           ↓
+                                   Facebook Ads (independent, nice-to-have)
+                                           ↓
+                              Production Hardening (validates all)
+```
 
-- **Critical pitfall prevention:** Service account setup happens in Phase 2, before any production use. Schema validation and locking built into Phase 2/3 before enabling automated syncs. Rate limiting avoided by architecture (sync-to-DB pattern).
-
-- **Validation gates:** Each phase has clear deliverable that can be validated before proceeding. Phase 1 proves UI/UX works, Phase 2 proves sync logic works, Phase 3 proves automation works, Phase 4 adds polish.
-
-- **Scalability path:** Manual → Manual Sheets sync → Automated sync → Enhanced features. Can stop at any phase based on client count and admin feedback.
+**Pitfall avoidance:**
+- Critical pitfalls (webhooks, secrets, OAuth) addressed in Phase 1 architecture decisions
+- Facebook Advanced Access started immediately, approved by Phase 4 implementation
+- Email authentication configured in Phase 1 before sending production emails
+- Environment separation enforced from Phase 1 onward
 
 ### Research Flags
 
 **Phases likely needing deeper research during planning:**
-- **Phase 2 (Sheets Sync):** Google Cloud project setup process, service account permission scoping, exact googleapis API surface for Next.js 16. Will benefit from focused research on googleapis integration patterns.
-- **Phase 4 (Email Digests):** Email service selection (Resend vs SendGrid vs alternatives), template design, deliverability best practices.
+- **Phase 2 (Google Drive):** Migration strategy from Vercel Blob requires investigation of existing file structure, folder organization patterns may need user research
+- **Phase 4 (Facebook Ads):** Client-specific ad account IDs and permissions need discovery, metric selection may need validation with actual client needs
 
 **Phases with standard patterns (skip research-phase):**
-- **Phase 1 (Core UI):** Well-documented shadcn/ui patterns, existing codebase has similar progress displays, straightforward React component work.
-- **Phase 3 (Vercel Cron):** Official Vercel documentation covers this completely, standard Next.js pattern.
+- **Phase 1 (Chat/Email):** Well-documented Resend integration, established patterns from official docs
+- **Phase 3 (Stripe):** Extensive Next.js 16 examples, official Stripe docs cover App Router patterns thoroughly
+- **Phase 5 (Production):** Deployment checklist, standard DevOps practices
+
+**Research completed proactively:**
+- All four integrations researched in parallel (STACK, FEATURES, ARCHITECTURE, PITFALLS)
+- No additional research needed unless implementation uncovers edge cases
+- Facebook Advanced Access process well-documented, no unknowns
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | googleapis is official Google library (verified pattern), existing Next.js stack proven, minimal new dependencies |
-| Features | HIGH | Agency portal patterns well-established, table stakes vs differentiators clear, anti-features informed by PM tool overengineering |
-| Architecture | HIGH | Sync-to-DB pattern is industry standard for external data sources, service account auth is recommended Google approach, component boundaries clean |
-| Pitfalls | HIGH | Rate limiting, schema validation, OAuth issues are documented failure modes for Sheets integrations, prevention strategies proven |
+| Stack | HIGH | All libraries verified from official sources, versions confirmed current as of Feb 2026, Next.js 16 compatibility explicit |
+| Features | MEDIUM-HIGH | Based on agency dashboard patterns and competitor analysis, table stakes validated across multiple sources, MVP boundaries clear |
+| Architecture | HIGH | Next.js 16 App Router patterns documented in official docs, integration service layer follows established patterns, webhook handling verified in multiple sources |
+| Pitfalls | HIGH | Critical pitfalls sourced from official docs (Stripe, Facebook, Google), security issues verified with 2026-dated sources, recent policy changes (Jan 2026) captured |
 
-**Overall confidence:** MEDIUM-HIGH
+**Overall confidence:** HIGH
 
-High confidence on architectural approach (sync-to-DB, service accounts, idempotent operations) and critical pitfall prevention. Medium confidence on exact version numbers for googleapis (stated as ^152.0.0 based on typical versioning, should verify with npm registry) and specific quota limits (may have changed since training data).
+Research quality is strong across all areas. Stack recommendations come from official documentation and verified package registries. Architecture patterns align with Next.js 16.1.6 official documentation (Feb 2026). Critical pitfalls sourced from vendor documentation and recent real-world experience articles. Features validated against agency dashboard competitors and standard SaaS patterns.
+
+Lower confidence on feature prioritization (MEDIUM-HIGH) reflects inherent uncertainty in product decisions — what's "table stakes" vs "differentiator" requires user validation. However, research provides clear framework for making these decisions based on industry patterns.
 
 ### Gaps to Address
 
-**Version verification needed:**
-- Confirm current googleapis package version on npm (research states ^152.0.0 based on training data)
-- Verify google-auth-library current version (stated as ^9.0.0)
-- Check if Google Sheets API v4 quota limits changed (training data says 300,000/day, 300/100sec)
+**Facebook Advanced Access timing uncertainty:**
+- Research shows 2-6 week approval timeline, but actual duration varies
+- Mitigation: Apply immediately in Phase 1, plan to launch Phase 4 with or without (manual data export fallback if delayed)
+- Validation: Track application status weekly, escalate if approaching 4 weeks
 
-**How to handle:** Run `npm info googleapis version` and `npm info google-auth-library version` during Phase 2 setup. Check official Google Sheets API documentation for current quota limits.
+**Google Drive migration data volume unknown:**
+- Existing Vercel Blob file count/size not researched
+- Mitigation: Audit existing files in Phase 2 planning, estimate migration time based on actual data
+- Could impact Phase 2 timeline if hundreds of large files exist
 
-**Google Cloud setup specifics:**
-- Exact steps for creating service account in Google Cloud Console (screenshots/guide would help)
-- Proper permission scopes for read-only Sheets access
-- How to share Sheet with service account email
+**Client ad account access permissions:**
+- Unclear if clients will grant ad account access willingly
+- Research assumes agency has access, but user acceptance not validated
+- Mitigation: User research before Phase 4, prepare "request access" flow if needed
 
-**How to handle:** During Phase 2 planning, use `/gsd:research-phase` to get current Google Cloud service account setup guide via Context7 or official docs.
+**Email deliverability testing needed:**
+- SPF/DKIM/DMARC configuration is documented, but actual deliverability requires testing
+- Mitigation: Use mail-tester.com (aim for 10/10 score) in Phase 1, send test emails to Gmail/Outlook/Yahoo
 
-**Sheet structure standardization:**
-- Exact column names and order for milestone tracking
-- Data validation rules to enforce in Sheets UI
-- Named range setup for resilient data fetching
-
-**How to handle:** Document in Phase 2 planning, create Sheet template as deliverable. This is design work, not research gap.
-
-**Cron job authentication:**
-- Vercel Cron secret header format for Next.js 16
-- Exact `vercel.json` syntax for App Router
-
-**How to handle:** Reference Vercel official docs during Phase 3 implementation, standard pattern.
+**Rate limit thresholds for actual usage:**
+- Research documents rate limits (Facebook: 200 calls/hour, Google Drive: 12K/60s), but actual usage patterns unknown
+- Mitigation: Monitor headers in production, implement circuit breakers proactively, request quota increases if needed
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- **Google Sheets API v4 documentation patterns** — Official Google documentation for googleapis library, service account authentication, API structure
-- **Next.js 16 App Router documentation** — Official Next.js docs for Server Actions, API routes, middleware
-- **Prisma ORM documentation** — Official patterns for upsert operations, transactions, schema design
-- **Vercel Cron documentation** — Official Vercel feature for scheduled jobs in Next.js apps
+
+**Official Documentation:**
+- Stripe Node.js library (v20.3.1) — Webhook patterns, App Router integration
+- Facebook Marketing API Node.js SDK (v24.0.1) — Campaign metrics, rate limits
+- Google APIs Node.js client (v145.0.0) — Drive API v3, service accounts
+- Resend documentation — Next.js integration guide
+- Next.js 16.1.6 documentation (Feb 2026) — Server Components, Server Actions, Route Handlers, Data Security Guide
+- Meta Ads API Integration Guide (2026) — Advanced Access requirements, Business Verification
+- Google Drive API Usage Limits — Quota documentation
+
+**Integration Guides (MEDIUM-HIGH confidence):**
+- "Stripe Checkout and Webhook in Next.js 15" (Medium, 2025) — App Router webhook patterns
+- "Meta Ads API Integration Guide: Complete Setup 2026" (AdStellar) — Advanced Access process
+- "Node.js quickstart | Google Drive" (Google for Developers) — Official quickstart guide
+- "Send emails with Next.js" (Resend official docs) — Transactional email setup
+
+**Security & Best Practices (HIGH confidence):**
+- Next.js Security Hardening: Five Steps to Bulletproof Your App in 2026 (Medium)
+- Handling Payment Webhooks Reliably: Idempotency, Retries, Validation (Medium)
+- Email Authentication Crisis 2026: Why Emails Fail & Fixes (Mailbird)
+- Facebook Marketing API: The Advanced Access Trap (Medium, firsthand account)
 
 ### Secondary (MEDIUM confidence)
-- **Agency client portal patterns** — Training knowledge of HubSpot Client Portal, Teamwork, Monday.com client-facing boards (2023-2025)
-- **SaaS onboarding/progress tracking UX** — Stripe Dashboard, Vercel project status, Linear milestone tracking
-- **Google Sheets integration best practices** — Community patterns for Sheets-as-backend architectures, sync strategies
 
-### Tertiary (LOW confidence)
-- **Specific version numbers** — googleapis ^152.0.0, google-auth-library ^9.0.0 based on training data versioning progression (verify with npm registry)
-- **Exact quota limits** — 300,000 read requests/day stated based on training data (verify with current Google Sheets API docs)
+**Agency Dashboard Patterns:**
+- AgencyAnalytics feature comparison — Competitor analysis for table stakes features
+- DashThis documentation — White-label dashboard patterns
+- "Automated Facebook Ads Reporting: A Complete Guide for 2026" (Improvado) — Standard metrics for agency reporting
 
-### Verification Recommendations
+**Community Patterns (verified with official docs):**
+- "How to handle concurrency with OAuth token refreshes" (Nango) — Race condition prevention
+- "How to Handle Google Drive API Rate Limits" (FolderPal) — Exponential backoff examples
+- "Stripe webhook signature verification" (various Medium articles) — App Router specific issues
 
-Before implementation:
-1. Check npm registry for current googleapis and google-auth-library versions
-2. Review Google Sheets API v4 quota documentation for any limit changes
-3. Confirm Vercel Cron syntax for Next.js 16 App Router in official docs
-4. Test service account creation flow in Google Cloud Console (may have UI changes)
+### Tertiary (LOW confidence, needs validation)
 
----
+**Chat Integration:**
+- Generic patterns for WhatsApp/Telegram links — Standard URL schemes (wa.me, t.me)
+- No platform-specific research beyond basic documentation
 
-## Synthesis Notes
-
-**Cross-cutting themes identified:**
-
-1. **Simplicity over complexity:** All four research files emphasize keeping the solution simple. FEATURES.md explicitly lists complex PM features (Gantt charts, Kanban) as anti-features. STACK.md recommends reusing existing dependencies. ARCHITECTURE.md favors poll-based sync over webhook complexity. PITFALLS.md warns against overengineering.
-
-2. **Admin experience as primary concern:** Google Sheets integration is highlighted across all files as THE differentiator. FEATURES.md calls it out specifically, STACK.md focuses new dependencies on it, ARCHITECTURE.md structures entire sync layer around it, PITFALLS.md warns about admin-introduced errors.
-
-3. **Rate limiting as existential risk:** PITFALLS.md calls this "Critical Pitfall #1", STACK.md explains quota limits, ARCHITECTURE.md designs around it with sync pattern. This is the single biggest technical risk if architecture is wrong.
-
-4. **Service account authentication non-negotiable:** STACK.md recommends it, ARCHITECTURE.md designs for it, PITFALLS.md marks OAuth as "Critical Pitfall #3". This decision must be made correctly in Phase 1 or causes production issues later.
-
-**Contradictions resolved:**
-
-- STACK.md suggests polling "every 5-15 minutes", ARCHITECTURE.md says "every 15 minutes", FEATURES.md says "real-time updates" are anti-feature. **Resolution:** 15-minute polling is the sweet spot, can adjust based on admin feedback.
-
-- ARCHITECTURE.md shows complex change detection logic, PITFALLS.md warns about "No Diff Detection" being only a moderate pitfall. **Resolution:** Implement timestamp-based change detection from start (Phase 2), but full diff optimization can wait until proven necessary.
-
-**Roadmap construction logic:**
-
-Phases structured by external dependency layers:
-- Phase 1: No external dependencies (UI only)
-- Phase 2: Add Google Sheets (one external API)
-- Phase 3: Add automation (Vercel Cron)
-- Phase 4: Add enhancements (email service if needed)
-
-This allows validation gates between each integration point and makes debugging easier by isolating failure domains.
+**Version Information (WebSearch):**
+- npm package latest versions — Current as of Feb 2026 research date, verify during implementation
 
 ---
-
-*Research completed: 2026-02-11*
+*Research completed: 2026-02-15*
 *Ready for roadmap: yes*
