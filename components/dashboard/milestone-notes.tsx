@@ -12,13 +12,16 @@ export function MilestoneNotes({ notes }: MilestoneNotesProps) {
 
   return (
     <div className="mt-3 space-y-2">
-      {notes.map((note) => {
+      {notes.map((note, index) => {
         const noteDate = new Date(note.createdAt);
-        const relativeTime = formatDistanceToNow(noteDate, { addSuffix: true });
+        const isValidDate = !isNaN(noteDate.getTime());
+        const relativeTime = isValidDate
+          ? formatDistanceToNow(noteDate, { addSuffix: true })
+          : "recently";
 
         return (
           <div
-            key={note.id}
+            key={`${note.id}-${index}`}
             className="text-sm text-muted-foreground border-l-2 border-muted pl-3 py-1"
           >
             <p className="text-foreground">{note.content}</p>
