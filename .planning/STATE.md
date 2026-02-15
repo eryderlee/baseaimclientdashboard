@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 5 of 6 (Client Onboarding and Management)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-02-15 — Completed 05-02-PLAN.md (Client Management UI)
+Plan: 3 of 3 in current phase
+Status: Phase complete
+Last activity: 2026-02-15 — Completed 05-03-PLAN.md (Client Editing & Status Management)
 
-Progress: [████████░░] 80%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
-- Average duration: 12 min
-- Total execution time: 2.5 hours
+- Total plans completed: 12
+- Average duration: 13 min
+- Total execution time: 2.9 hours
 
 **By Phase:**
 
@@ -31,11 +31,11 @@ Progress: [████████░░] 80%
 | 02-core-progress-tracking | 3 | 19 min | 6 min |
 | 03-client-data-isolation | 3 | 71 min | 24 min |
 | 04-admin-milestone-editing | 2 | 27 min | 14 min |
-| 05-client-onboarding-and-management | 2 | 6 min | 3 min |
+| 05-client-onboarding-and-management | 3 | 31 min | 10 min |
 
 **Recent Trend:**
-- Last 5 plans: 12 min, 45 min, 4 min, 23 min, 3 min, 3 min
-- Trend: Phase 5 plans extremely fast (3 min average), backend+UI working efficiently
+- Last 5 plans: 45 min, 4 min, 23 min, 3 min, 3 min, 25 min
+- Trend: Phase 5 complete (10 min average), client management features shipped efficiently
 
 *Updated after each plan completion*
 
@@ -115,6 +115,11 @@ Recent decisions affecting current work:
 - Type assertions for email/password errors in union type — TypeScript cannot narrow FieldErrors union type to access create-only fields, safe to use (errors as any) when guarded by mode === 'create' runtime check.
 - Grid layout with responsive breakpoints — Desktop users benefit from compact 2-column layout for related fields, collapses to single column on mobile.
 
+**From Phase 05-03:**
+- Remove redirect() from Server Actions that need client-side redirect — redirect() throws NEXT_REDIRECT which try/catch treats as error. Instead return { success: true } and redirect client-side with router.push() after showing success toast.
+- Separate StatusToggleButton as client component — Interactive table actions need client-side state (useTransition) for optimistic UI, imported into server component pages.
+- Admin dashboard action pattern — Edit (pencil icon), Milestones (list icon), Status toggle (text button) provide complete client management per row.
+
 ### Pending Todos
 
 2 todos pending. See `.planning/todos/pending/` or run `/gsd:check-todos`
@@ -128,7 +133,7 @@ None. Database configured and seeded successfully.
 
 ## Session Continuity
 
-Last session: 2026-02-15T05:05:37Z
-Stopped at: Completed 05-02-PLAN.md (Client Management UI)
+Last session: 2026-02-15T05:33:45Z
+Stopped at: Completed 05-03-PLAN.md (Client Editing & Status Management)
 Resume file: None
-Next: 05-03 (Client Listing & Edit UI) - ClientForm ready for reuse in edit mode
+Next: Phase 6 (Final Polish & Deployment) - Client onboarding and management complete, ready for production polish
