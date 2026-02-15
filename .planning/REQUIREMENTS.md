@@ -164,7 +164,7 @@ Explicitly excluded features. Documented to prevent scope creep.
 
 Which phases cover which requirements. Updated during roadmap creation.
 
-### Pre-v1.0 Phases (Completed)
+### v0.9 Foundation (Completed)
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
@@ -191,25 +191,81 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ADMIN-MGT-04 | Phase 5 | Complete |
 | ADMIN-MGT-06 | Phase 5 | Complete |
 
-### v1.0 Phases (To be mapped by roadmap)
+### v1.0 Production Launch
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| EMAIL-01 through EMAIL-08 | TBD | Pending |
-| CHAT-01 through CHAT-05 | TBD | Pending |
-| DRIVE-01 through DRIVE-08 | TBD | Pending |
-| STRIPE-01 through STRIPE-08 | TBD | Pending |
-| FBADS-01 through FBADS-07 | TBD | Pending |
-| PROD-01 through PROD-08 | TBD | Pending |
-| UI-01 through UI-06 | TBD | Pending |
-| ADMIN-01 through ADMIN-05 | TBD | Pending |
+| CHAT-01 | Phase 7 | Pending |
+| CHAT-02 | Phase 7 | Pending |
+| CHAT-03 | Phase 7 | Pending |
+| CHAT-04 | Phase 7 | Pending |
+| CHAT-05 | Phase 7 | Pending |
+| EMAIL-01 | Phase 8 | Pending |
+| EMAIL-02 | Phase 8 | Pending |
+| EMAIL-03 | Phase 8 | Pending |
+| EMAIL-04 | Phase 8 | Pending |
+| EMAIL-05 | Phase 8 | Pending |
+| EMAIL-06 | Phase 8 | Pending |
+| EMAIL-07 | Phase 8 | Pending |
+| EMAIL-08 | Phase 8 | Pending |
+| DRIVE-01 | Phase 9 | Pending |
+| DRIVE-02 | Phase 9 | Pending |
+| DRIVE-03 | Phase 9 | Pending |
+| DRIVE-04 | Phase 9 | Pending |
+| DRIVE-05 | Phase 9 | Pending |
+| DRIVE-06 | Phase 9 | Pending |
+| DRIVE-07 | Phase 9 | Pending |
+| DRIVE-08 | Phase 9 | Pending |
+| STRIPE-01 | Phase 10 | Pending |
+| STRIPE-02 | Phase 10 | Pending |
+| STRIPE-03 | Phase 10 | Pending |
+| STRIPE-04 | Phase 10 | Pending |
+| STRIPE-05 | Phase 10 | Pending |
+| STRIPE-06 | Phase 10 | Pending |
+| STRIPE-07 | Phase 10 | Pending |
+| STRIPE-08 | Phase 10 | Pending |
+| FBADS-01 | Phase 11 | Pending |
+| FBADS-02 | Phase 11 | Pending |
+| FBADS-03 | Phase 11 | Pending |
+| FBADS-04 | Phase 11 | Pending |
+| FBADS-05 | Phase 11 | Pending |
+| FBADS-06 | Phase 11 | Pending |
+| FBADS-07 | Phase 11 | Pending |
+| PROD-01 | Phase 12 | Pending |
+| PROD-02 | Phase 12 | Pending |
+| PROD-03 | Phase 12 | Pending |
+| PROD-04 | Phase 12 | Pending |
+| PROD-05 | Phase 12 | Pending |
+| PROD-06 | Phase 12 | Pending |
+| PROD-07 | Phase 12 | Pending |
+| PROD-08 | Phase 12 | Pending |
+| UI-01 | Phase 13 | Pending |
+| UI-02 | Phase 13 | Pending |
+| UI-03 | Phase 13 | Pending |
+| UI-04 | Phase 13 | Pending |
+| UI-05 | Phase 13 | Pending |
+| UI-06 | Phase 13 | Pending |
+| ADMIN-01 | Phase 13 | Pending |
+| ADMIN-02 | Phase 13 | Pending |
+| ADMIN-03 | Phase 13 | Pending |
+| ADMIN-04 | Phase 13 | Pending |
+| ADMIN-05 | Phase 13 | Pending |
 
 **Coverage:**
-- Validated requirements: 25 total (all complete)
-- v1.0 requirements: 52 total
-- Mapped to phases: 0 (roadmap will assign)
-- Unmapped: 52 ⚠️ (will be resolved during roadmap creation)
+- v0.9 Foundation requirements: 22 total (all complete)
+- v1.0 Production Launch requirements: 52 total
+- Mapped to phases: 52/52 ✓
+- Unmapped: 0 ✓
+
+**Phase Distribution:**
+- Phase 7 (Chat Integration): 5 requirements
+- Phase 8 (Email Infrastructure): 8 requirements
+- Phase 9 (Document Storage Migration): 8 requirements
+- Phase 10 (Payment Processing): 8 requirements
+- Phase 11 (Facebook Ads Analytics): 7 requirements
+- Phase 12 (Production Hardening): 8 requirements
+- Phase 13 (UI Polish & Admin Analytics Integration): 11 requirements (6 UI + 5 ADMIN)
 
 ---
 *Requirements defined: 2026-02-11*
-*Last updated: 2026-02-15 after v1.0 milestone definition*
+*Last updated: 2026-02-16 after v1.0 roadmap creation*
