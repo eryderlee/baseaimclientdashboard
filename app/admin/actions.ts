@@ -24,6 +24,7 @@ export async function createClient(formData: FormData) {
     name: formData.get('name'),
     email: formData.get('email'),
     password: formData.get('password'),
+    confirmPassword: formData.get('confirmPassword'),
     companyName: formData.get('companyName'),
     industry: formData.get('industry') || undefined,
     website: formData.get('website') || undefined,

@@ -39,6 +39,7 @@ export function ClientForm({ mode, defaultValues, clientId }: ClientFormProps) {
   const handleGeneratePassword = () => {
     const password = generateSecurePassword()
     setValue('password' as any, password)
+    setValue('confirmPassword' as any, password)
     toast.success('Secure password generated')
   }
 
@@ -127,29 +128,51 @@ export function ClientForm({ mode, defaultValues, clientId }: ClientFormProps) {
 
           {/* Password - Create mode only */}
           {mode === 'create' && (
-            <div>
-              <Label htmlFor="password">Password *</Label>
-              <div className="flex gap-2 mt-1">
-                <Input
-                  id="password"
-                  type="text"
-                  {...register('password' as any)}
-                  aria-invalid={!!(errors as any).password}
-                  className="flex-1"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleGeneratePassword}
-                  className="shrink-0"
-                >
-                  <Wand2 className="h-4 w-4 mr-2" />
-                  Generate
-                </Button>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="password">Password *</Label>
+                <div className="flex gap-2 mt-1">
+                  <Input
+                    id="password"
+                    type="text"
+                    {...register('password' as any)}
+                    aria-invalid={!!(errors as any).password}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleGeneratePassword}
+                    className="shrink-0"
+                  >
+                    <Wand2 className="h-4 w-4 mr-2" />
+                    Generate
+                  </Button>
+                </div>
+                {(errors as any).password && (
+                  <p className="text-sm text-destructive mt-1">{(errors as any).password.message}</p>
+                )}
               </div>
-              {(errors as any).password && (
-                <p className="text-sm text-destructive mt-1">{(errors as any).password.message}</p>
-              )}
+
+              <div>
+                <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                <Input
+                  id="confirmPassword"
+                  type="text"
+                  {...register('confirmPassword' as any)}
+                  aria-invalid={!!(errors as any).confirmPassword}
+                  className="mt-1"
+                />
+                {(errors as any).confirmPassword && (
+                  <p className="text-sm text-destructive mt-1">{(errors as any).confirmPassword.message}</p>
+                )}
+              </div>
+
+              <div className="rounded-md bg-blue-50 border border-blue-200 p-3">
+                <p className="text-sm text-blue-800">
+                  <strong>Note:</strong> Make sure you remember this password - you'll need it to share with the client for their login.
+                </p>
+              </div>
             </div>
           )}
         </CardContent>
