@@ -41,40 +41,43 @@ export function ClientForm({ mode, defaultValues, clientId }: ClientFormProps) {
 
   // Submit handler
   const onSubmit = async (data: CreateClientInput | UpdateClientInput) => {
-    try {
-      // Build FormData from validated data
-      const formData = new FormData()
+    // Build FormData from validated data
+    const formData = new FormData()
 
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          formData.append(key, value.toString())
-        }
-      })
-
-      let result
-
-      if (mode === 'create') {
-        // Create mode: call createClient
-        result = await createClient(formData)
-      } else {
-        // Edit mode: call updateClient
-        if (!clientId) {
-          toast.error('Client ID is required for update')
-          return
-        }
-        result = await updateClient(clientId, formData)
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        formData.append(key, value.toString())
       }
+    })
 
-      // Handle response
+    if (mode === 'create') {
+      // Create mode: call createClient
+      // NOTE: Do NOT wrap in try/catch - redirect() throws NEXT_REDIRECT which must propagate
+      const result = await createClient(formData)
+
+      // Only handle errors - successful creation redirects server-side
       if (result?.error) {
         toast.error(result.error)
-      } else if (mode === 'edit') {
-        // Edit mode shows success toast (create mode redirects server-side)
-        toast.success('Client updated successfully')
       }
-    } catch (error) {
-      toast.error('An unexpected error occurred')
-      console.error('Form submission error:', error)
+    } else {
+      // Edit mode: call updateClient with error handling
+      if (!clientId) {
+        toast.error('Client ID is required for update')
+        return
+      }
+
+      try {
+        const result = await updateClient(clientId, formData)
+
+        if (result?.error) {
+          toast.error(result.error)
+        } else {
+          toast.success('Client updated successfully')
+        }
+      } catch (error) {
+        toast.error('An unexpected error occurred')
+        console.error('Form submission error:', error)
+      }
     }
   }
 
