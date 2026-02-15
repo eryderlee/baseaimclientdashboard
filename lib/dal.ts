@@ -114,3 +114,29 @@ export const getClientWithMilestones = cache(async (clientId: string) => {
 
   return client
 })
+
+export const getClientForEdit = cache(async (clientId: string) => {
+  const { userRole } = await verifySession()
+
+  if (userRole !== 'ADMIN') {
+    throw new Error('Unauthorized: Admin access required')
+  }
+
+  const client = await prisma.client.findUnique({
+    where: { id: clientId },
+    include: {
+      user: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+    },
+  })
+
+  if (!client) {
+    throw new Error('Client not found')
+  }
+
+  return client
+})
