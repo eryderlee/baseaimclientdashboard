@@ -56,10 +56,7 @@ export default async function ClientEditPage({
         }}
       />
 
-      <PasswordResetSection
-        clientId={clientId}
-        currentPassword={client.user.hashedPassword || undefined}
-      />
+      <PasswordResetSection clientId={clientId} />
     </div>
   )
 }

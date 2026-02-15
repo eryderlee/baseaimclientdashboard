@@ -11,6 +11,14 @@ export default async function ProgressPage() {
     completedAt: m.completedAt ? new Date(m.completedAt).toISOString() : null,
     createdAt: new Date(m.createdAt).toISOString(),
     updatedAt: new Date(m.updatedAt).toISOString(),
+    notes: Array.isArray(m.notes)
+      ? m.notes.map((note: any) => ({
+          id: note.id || crypto.randomUUID(),
+          content: note.content || String(note),
+          createdAt: note.createdAt || new Date().toISOString(),
+          createdBy: note.createdBy || 'Admin',
+        }))
+      : [],
   }))
 
   return <ProgressView milestones={serializedMilestones} />

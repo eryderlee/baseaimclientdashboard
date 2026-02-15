@@ -129,7 +129,6 @@ export const getClientForEdit = cache(async (clientId: string) => {
         select: {
           name: true,
           email: true,
-          hashedPassword: true,
         },
       },
     },
