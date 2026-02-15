@@ -13,9 +13,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { updateMilestones } from "@/app/admin/clients/[clientId]/actions"
+import { updateMilestones, deleteNote, updateNote } from "@/app/admin/clients/[clientId]/actions"
 import { calculateMilestoneProgress } from "@/lib/utils/progress"
 import { MilestoneStatus } from "@prisma/client"
+import { X, Edit2, ChevronDown, ChevronUp } from "lucide-react"
 
 type MilestoneData = {
   id: string
@@ -47,6 +48,8 @@ export function MilestoneEditTable({
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [expandedNotes, setExpandedNotes] = useState<Record<string, boolean>>({})
+  const [editingNote, setEditingNote] = useState<{ milestoneId: string; noteId: string; content: string } | null>(null)
 
   const handleStatusChange = (milestoneId: string, newStatus: MilestoneStatus) => {
     setMilestones((prev) =>
@@ -105,6 +108,47 @@ export function MilestoneEditTable({
     setNewNotes((prev) => ({ ...prev, [milestoneId]: note }))
     setHasChanges(true)
     setSuccess(false)
+  }
+
+  const toggleNotesExpanded = (milestoneId: string) => {
+    setExpandedNotes((prev) => ({ ...prev, [milestoneId]: !prev[milestoneId] }))
+  }
+
+  const handleEditNote = (milestoneId: string, noteId: string, content: string) => {
+    setEditingNote({ milestoneId, noteId, content })
+  }
+
+  const handleSaveEditedNote = async () => {
+    if (!editingNote) return
+
+    startTransition(async () => {
+      const result = await updateNote(clientId, editingNote.milestoneId, editingNote.noteId, editingNote.content)
+
+      if (result.error) {
+        setError(result.error)
+      } else {
+        setEditingNote(null)
+        router.refresh()
+      }
+    })
+  }
+
+  const handleCancelEdit = () => {
+    setEditingNote(null)
+  }
+
+  const handleDeleteNote = async (milestoneId: string, noteId: string) => {
+    if (!confirm('Are you sure you want to delete this note?')) return
+
+    startTransition(async () => {
+      const result = await deleteNote(clientId, milestoneId, noteId)
+
+      if (result.error) {
+        setError(result.error)
+      } else {
+        router.refresh()
+      }
+    })
   }
 
   const handleSave = () => {
@@ -259,21 +303,135 @@ export function MilestoneEditTable({
                   {/* Notes */}
                   <TableCell>
                     <div className="space-y-2">
-                      {latestNoteContent && (
-                        <div className="rounded bg-neutral-100 px-2 py-1 text-xs text-neutral-600">
-                          <p className="font-medium text-neutral-500">Latest note:</p>
-                          <p>{latestNoteContent}</p>
+                      {/* Existing Notes List */}
+                      {notesArray.length > 0 && (
+                        <div className="space-y-1">
+                          <button
+                            type="button"
+                            onClick={() => toggleNotesExpanded(milestone.id)}
+                            className="flex items-center gap-1 text-xs font-medium text-neutral-600 hover:text-neutral-800"
+                          >
+                            {expandedNotes[milestone.id] ? (
+                              <ChevronUp className="h-3 w-3" />
+                            ) : (
+                              <ChevronDown className="h-3 w-3" />
+                            )}
+                            {notesArray.length} note{notesArray.length !== 1 ? 's' : ''}
+                          </button>
+
+                          {expandedNotes[milestone.id] && (
+                            <div className="space-y-1 max-h-60 overflow-y-auto">
+                              {notesArray.map((note) => {
+                                const noteObj = typeof note === 'object' && note !== null ? note as any : null
+                                const noteId = noteObj?.id || crypto.randomUUID()
+                                const content = noteObj?.content || (typeof note === 'string' ? note : '')
+                                const createdAt = noteObj?.createdAt
+                                const createdBy = noteObj?.createdBy
+
+                                const isEditing = editingNote?.milestoneId === milestone.id && editingNote?.noteId === noteId
+
+                                return (
+                                  <div
+                                    key={noteId}
+                                    className="rounded bg-neutral-100 px-2 py-1.5 text-xs"
+                                  >
+                                    {isEditing ? (
+                                      <div className="space-y-2">
+                                        <textarea
+                                          value={editingNote.content}
+                                          onChange={(e) =>
+                                            setEditingNote({ ...editingNote, content: e.target.value })
+                                          }
+                                          className="w-full rounded border border-neutral-300 px-2 py-1 text-xs resize-none"
+                                          rows={2}
+                                        />
+                                        <div className="flex gap-1">
+                                          <Button
+                                            type="button"
+                                            size="sm"
+                                            onClick={handleSaveEditedNote}
+                                            disabled={isPending}
+                                            className="h-6 text-xs px-2"
+                                          >
+                                            Save
+                                          </Button>
+                                          <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={handleCancelEdit}
+                                            disabled={isPending}
+                                            className="h-6 text-xs px-2"
+                                          >
+                                            Cancel
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <>
+                                        <div className="flex items-start justify-between gap-2">
+                                          <p className="flex-1 text-neutral-700">{content}</p>
+                                          <div className="flex gap-1 shrink-0">
+                                            <button
+                                              type="button"
+                                              onClick={() => handleEditNote(milestone.id, noteId, content)}
+                                              className="text-neutral-500 hover:text-blue-600"
+                                              title="Edit note"
+                                            >
+                                              <Edit2 className="h-3 w-3" />
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={() => handleDeleteNote(milestone.id, noteId)}
+                                              className="text-neutral-500 hover:text-red-600"
+                                              title="Delete note"
+                                            >
+                                              <X className="h-3 w-3" />
+                                            </button>
+                                          </div>
+                                        </div>
+                                        {(createdAt || createdBy) && (
+                                          <p className="text-neutral-500 mt-1">
+                                            {createdBy && <span>{createdBy}</span>}
+                                            {createdAt && createdBy && <span> • </span>}
+                                            {createdAt && (
+                                              <span>
+                                                {new Date(createdAt).toLocaleDateString('en-US', {
+                                                  month: 'short',
+                                                  day: 'numeric',
+                                                  year: 'numeric',
+                                                  hour: 'numeric',
+                                                  minute: '2-digit',
+                                                })}
+                                              </span>
+                                            )}
+                                          </p>
+                                        )}
+                                      </>
+                                    )}
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
                         </div>
                       )}
-                      <textarea
-                        value={newNotes[milestone.id] || ""}
-                        onChange={(e) =>
-                          handleNoteChange(milestone.id, e.target.value)
-                        }
-                        placeholder="Add a note..."
-                        rows={2}
-                        className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm hover:bg-neutral-50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
-                      />
+
+                      {/* Add New Note */}
+                      <div>
+                        <label className="text-xs font-medium text-neutral-600 mb-1 block">
+                          Add New Note:
+                        </label>
+                        <textarea
+                          value={newNotes[milestone.id] || ""}
+                          onChange={(e) =>
+                            handleNoteChange(milestone.id, e.target.value)
+                          }
+                          placeholder="Type a new note..."
+                          rows={2}
+                          className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm hover:bg-neutral-50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                        />
+                      </div>
                     </div>
                   </TableCell>
 
