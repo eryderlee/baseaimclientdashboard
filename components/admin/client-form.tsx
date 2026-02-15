@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { Wand2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 interface ClientFormProps {
   mode: 'create' | 'edit'
@@ -20,6 +21,8 @@ interface ClientFormProps {
 }
 
 export function ClientForm({ mode, defaultValues, clientId }: ClientFormProps) {
+  const router = useRouter()
+
   // Determine schema and types based on mode
   const schema = mode === 'create' ? createClientSchema : updateClientSchema
 
@@ -51,13 +54,14 @@ export function ClientForm({ mode, defaultValues, clientId }: ClientFormProps) {
     })
 
     if (mode === 'create') {
-      // Create mode: call createClient
-      // NOTE: Do NOT wrap in try/catch - redirect() throws NEXT_REDIRECT which must propagate
+      // Create mode: call createClient and handle client-side redirect
       const result = await createClient(formData)
 
-      // Only handle errors - successful creation redirects server-side
       if (result?.error) {
         toast.error(result.error)
+      } else if (result?.success) {
+        toast.success('Client created successfully')
+        router.push('/admin')
       }
     } else {
       // Edit mode: call updateClient with error handling

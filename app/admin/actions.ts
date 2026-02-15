@@ -99,9 +99,11 @@ export async function createClient(formData: FormData) {
       )
     })
 
-    // Revalidate admin page and redirect
+    // Revalidate admin page for fresh data
     revalidatePath('/admin')
-    redirect('/admin')
+
+    // Return success - client-side will handle redirect
+    return { success: true }
   } catch (error) {
     console.error('Failed to create client:', error)
     return { error: 'Failed to create client. Please try again.' }
