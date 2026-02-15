@@ -1,44 +1,70 @@
-import { redirect } from "next/navigation"
-import Link from "next/link"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Users, FileText, MessageSquare, DollarSign, UserPlus, Pencil, ListChecks } from "lucide-react"
-import { verifySession, getAllClientsWithMilestones } from "@/lib/dal"
-import { prisma } from "@/lib/prisma"
-import { calculateOverallProgress } from "@/lib/utils/progress"
-import { StatusToggleButton } from "@/components/admin/status-toggle-button"
+import { redirect } from 'next/navigation'
+import { Suspense } from 'react'
+import Link from 'next/link'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { UserPlus } from 'lucide-react'
+import { verifySession, getAllClientsWithMilestones, getAdminAnalytics } from '@/lib/dal'
+import { calculateOverallProgress } from '@/lib/utils/progress'
+import { detectClientRisk } from '@/lib/utils/risk-detection'
+import { AnalyticsSummary } from '@/components/admin/analytics-summary'
+import { ClientFilters } from '@/components/admin/client-filters'
+import { ClientAnalyticsTable } from '@/components/admin/client-analytics-table'
 
 async function getAdminData() {
+  // Get analytics summary
+  const analytics = await getAdminAnalytics()
+
+  // Get all clients with milestones
   const clients = await getAllClientsWithMilestones()
 
-  const totalClients = clients.length
-  const activeClients = clients.filter((c) => c.isActive).length
-  const totalDocuments = await prisma.document.count()
+  // Process each client to prepare data for analytics table
+  const processedClients = clients.map((client) => {
+    const overallProgress = calculateOverallProgress(client.milestones)
+    const completedMilestones = client.milestones.filter((m) => m.status === 'COMPLETED').length
+    const totalMilestones = client.milestones.length
+    const risk = detectClientRisk(client)
 
-  const invoices = await prisma.invoice.findMany({
-    where: { status: "PAID" },
-    select: { amount: true },
+    // Find next due date (earliest non-COMPLETED milestone)
+    const upcomingMilestones = client.milestones
+      .filter((m) => m.status !== 'COMPLETED' && m.dueDate)
+      .sort((a, b) => {
+        if (!a.dueDate || !b.dueDate) return 0
+        return a.dueDate.getTime() - b.dueDate.getTime()
+      })
+    const nextDueDate = upcomingMilestones[0]?.dueDate || null
+
+    return {
+      id: client.id,
+      companyName: client.companyName,
+      isActive: client.isActive,
+      overallProgress,
+      completedMilestones,
+      totalMilestones,
+      riskLevel: risk.riskLevel,
+      riskReasons: risk.reasons,
+      nextDueDate: nextDueDate ? nextDueDate.toISOString() : null,
+      user: {
+        name: client.user.name || '',
+        email: client.user.email,
+      },
+      createdAt: client.createdAt.toISOString(),
+    }
   })
-  const totalRevenue = invoices.reduce((sum, inv) => sum + inv.amount, 0)
 
-  const totalMessages = await prisma.message.count()
+  // Serialize upcoming due dates for AnalyticsSummary
+  const upcomingDueDates = analytics.upcomingDueDates.map((item) => ({
+    clientName: item.clientName,
+    milestoneTitle: item.milestoneTitle,
+    dueDate: item.dueDate.toISOString(),
+  }))
 
   return {
-    clients,
-    totalClients,
-    activeClients,
-    totalDocuments,
-    totalRevenue,
-    totalMessages,
+    analytics: {
+      ...analytics,
+      upcomingDueDates,
+    },
+    clients: processedClients,
   }
 }
 
@@ -46,14 +72,15 @@ export default async function AdminPage() {
   const { userRole } = await verifySession()
 
   // Check if user is admin
-  if (userRole !== "ADMIN") {
-    redirect("/dashboard")
+  if (userRole !== 'ADMIN') {
+    redirect('/dashboard')
   }
 
   const adminData = await getAdminData()
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
@@ -69,152 +96,30 @@ export default async function AdminPage() {
         </Button>
       </div>
 
-      {/* Admin Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Clients</CardTitle>
-            <Users className="h-4 w-4 text-neutral-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{adminData.totalClients}</div>
-            <p className="text-xs text-neutral-500 mt-1">
-              {adminData.activeClients} active
-            </p>
-          </CardContent>
-        </Card>
+      {/* Analytics Summary */}
+      <AnalyticsSummary
+        totalClients={adminData.analytics.totalClients}
+        activeClients={adminData.analytics.activeClients}
+        averageProgress={adminData.analytics.averageProgress}
+        atRiskClients={adminData.analytics.atRiskClients}
+        upcomingDueDates={adminData.analytics.upcomingDueDates}
+      />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Documents</CardTitle>
-            <FileText className="h-4 w-4 text-neutral-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{adminData.totalDocuments}</div>
-            <p className="text-xs text-neutral-500 mt-1">
-              Across all clients
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Messages</CardTitle>
-            <MessageSquare className="h-4 w-4 text-neutral-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{adminData.totalMessages}</div>
-            <p className="text-xs text-neutral-500 mt-1">
-              Communication activity
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-neutral-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${adminData.totalRevenue.toFixed(2)}
-            </div>
-            <p className="text-xs text-neutral-500 mt-1">
-              Paid invoices
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Clients Table */}
+      {/* Clients Table with Filters */}
       <Card>
         <CardHeader>
           <CardTitle>All Clients</CardTitle>
           <CardDescription>
-            Manage and monitor all client accounts
+            Filter, sort, and manage all client accounts
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Company</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Documents</TableHead>
-                <TableHead>Milestones</TableHead>
-                <TableHead>Overall Progress</TableHead>
-                <TableHead>Revenue</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Joined</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {adminData.clients.map((client) => {
-                const completedMilestones = client.milestones.filter(
-                  (m) => m.status === "COMPLETED"
-                ).length
-                const overallProgress = calculateOverallProgress(client.milestones)
-
-                return (
-                  <TableRow key={client.id}>
-                    <TableCell className="font-medium">
-                      {client.companyName}
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="text-sm">{client.user.name}</p>
-                        <p className="text-xs text-neutral-500">
-                          {client.user.email}
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell>{adminData.totalDocuments}</TableCell>
-                    <TableCell>
-                      {completedMilestones}/{client.milestones.length}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 w-16 rounded-full bg-neutral-200">
-                          <div
-                            className="h-2 rounded-full bg-primary"
-                            style={{ width: `${overallProgress}%` }}
-                          />
-                        </div>
-                        <span className="text-sm font-medium">{overallProgress}%</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>${adminData.totalRevenue.toFixed(2)}</TableCell>
-                    <TableCell>
-                      <Badge variant={client.isActive ? "default" : "secondary"}>
-                        {client.isActive ? "Active" : "Inactive"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(client.createdAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Button variant="outline" size="sm" asChild>
-                          <Link href={`/admin/clients/${client.id}/edit`}>
-                            <Pencil className="h-3 w-3 mr-1" />
-                            Edit
-                          </Link>
-                        </Button>
-                        <Button variant="outline" size="sm" asChild>
-                          <Link href={`/admin/clients/${client.id}`}>
-                            <ListChecks className="h-3 w-3 mr-1" />
-                            Milestones
-                          </Link>
-                        </Button>
-                        <StatusToggleButton clientId={client.id} isActive={client.isActive} />
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
+        <CardContent className="space-y-4">
+          <Suspense fallback={<div>Loading filters...</div>}>
+            <ClientFilters />
+          </Suspense>
+          <Suspense fallback={<div>Loading clients...</div>}>
+            <ClientAnalyticsTable clients={adminData.clients} />
+          </Suspense>
         </CardContent>
       </Card>
     </div>
