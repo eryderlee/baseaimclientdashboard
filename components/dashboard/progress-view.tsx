@@ -285,11 +285,9 @@ export function ProgressView({ milestones: serializedMilestones }: ProgressViewP
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(280px,1fr)]">
-        <MilestoneChecklist
-          milestones={milestones}
-          showSummary={false}
-          className="order-2 lg:order-1"
-        />
+        <div className="order-2 lg:order-1">
+          <MilestoneChecklist milestones={milestones} />
+        </div>
 
         <div className="order-1 space-y-6 lg:order-2">
           <Card>

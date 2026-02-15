@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Users, FileText, MessageSquare, DollarSign } from "lucide-react"
+import { Users, FileText, MessageSquare, DollarSign, UserPlus } from "lucide-react"
 import { verifySession, getAllClientsWithMilestones } from "@/lib/dal"
 import { prisma } from "@/lib/prisma"
 import { calculateOverallProgress } from "@/lib/utils/progress"
@@ -53,11 +53,19 @@ export default async function AdminPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-        <p className="text-neutral-500 mt-1">
-          Manage all clients and monitor platform activity
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+          <p className="text-neutral-500 mt-1">
+            Manage all clients and monitor platform activity
+          </p>
+        </div>
+        <Button asChild>
+          <Link href="/admin/clients/new">
+            <UserPlus className="h-4 w-4 mr-2" />
+            Add Client
+          </Link>
+        </Button>
       </div>
 
       {/* Admin Stats */}
