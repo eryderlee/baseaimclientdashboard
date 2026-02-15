@@ -309,7 +309,7 @@ export function DashboardOverview({ milestones: serializedMilestones }: Dashboar
             <div className="flex flex-wrap gap-4">
               <Button
                 asChild
-                className="rounded-full border-0 bg-gradient-to-r from-primary via-sky-400 to-cyan-400 px-6 py-2 font-semibold text-white shadow-lg shadow-sky-200 hover:opacity-90"
+                className="rounded-full bg-gradient-to-r from-primary via-sky-400 to-cyan-400 px-6 py-2 font-semibold text-white shadow-lg shadow-sky-200 hover:opacity-90 border-0"
               >
                 <Link href="/dashboard/documents" className="inline-flex items-center gap-2">
                   Upload or Approve Files
