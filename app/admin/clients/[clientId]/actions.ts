@@ -83,12 +83,21 @@ export async function updateMilestones(clientId: string, rawData: unknown) {
         updateData.completedAt = new Date()
       }
 
-      // Handle notes - append to existing JSON array
+      // Handle notes - append to existing JSON array with proper structure
       if (milestone.newNote && milestone.newNote.trim()) {
         const existingNotes = Array.isArray(current.notes)
           ? current.notes
           : []
-        updateData.notes = [...existingNotes, milestone.newNote.trim()]
+
+        // Create structured note object matching MilestoneNote interface
+        const newNoteObject = {
+          id: crypto.randomUUID(),
+          content: milestone.newNote.trim(),
+          createdAt: new Date().toISOString(),
+          createdBy: 'Admin', // TODO: Get actual admin user name from session
+        }
+
+        updateData.notes = [...existingNotes, newNoteObject]
       }
 
       // Calculate and store progress

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -37,6 +38,7 @@ export function MilestoneEditTable({
   clientId,
   initialMilestones,
 }: MilestoneEditTableProps) {
+  const router = useRouter()
   const [milestones, setMilestones] = useState<MilestoneData[]>(initialMilestones)
   const [newNotes, setNewNotes] = useState<Record<string, string>>(
     Object.fromEntries(initialMilestones.map((m) => [m.id, ""]))
@@ -128,6 +130,8 @@ export function MilestoneEditTable({
         setSuccess(true)
         // Clear all new notes
         setNewNotes(Object.fromEntries(milestones.map((m) => [m.id, ""])))
+        // Refresh the page to show updated notes
+        router.refresh()
         // Reset success indicator after 3 seconds
         setTimeout(() => setSuccess(false), 3000)
       }
@@ -189,10 +193,21 @@ export function MilestoneEditTable({
           </TableHeader>
           <TableBody>
             {milestones.map((milestone) => {
+              // Handle notes as MilestoneNote objects or fallback to strings
               const notesArray = Array.isArray(milestone.notes)
-                ? (milestone.notes as string[])
+                ? milestone.notes
                 : []
-              const latestNote = notesArray.length > 0 ? notesArray[notesArray.length - 1] : null
+
+              // Get latest note - handle both object and string formats
+              let latestNoteContent: string | null = null
+              if (notesArray.length > 0) {
+                const lastNote = notesArray[notesArray.length - 1]
+                if (typeof lastNote === 'string') {
+                  latestNoteContent = lastNote
+                } else if (lastNote && typeof lastNote === 'object' && 'content' in lastNote) {
+                  latestNoteContent = (lastNote as any).content
+                }
+              }
 
               return (
                 <TableRow key={milestone.id}>
@@ -244,10 +259,10 @@ export function MilestoneEditTable({
                   {/* Notes */}
                   <TableCell>
                     <div className="space-y-2">
-                      {latestNote && (
+                      {latestNoteContent && (
                         <div className="rounded bg-neutral-100 px-2 py-1 text-xs text-neutral-600">
                           <p className="font-medium text-neutral-500">Latest note:</p>
-                          <p>{latestNote}</p>
+                          <p>{latestNoteContent}</p>
                         </div>
                       )}
                       <textarea

@@ -25,17 +25,9 @@ export default async function ClientMilestonePage({
 
   // 4. Serialize milestone dates and compute progress
   const serializedMilestones = client.milestones.map((milestone) => {
-    // Serialize notes: handle both string[] and object[] formats
-    let serializedNotes: string[] = []
-    if (Array.isArray(milestone.notes)) {
-      // If notes is array of objects with content field, extract content
-      serializedNotes = milestone.notes.map((note: any) =>
-        typeof note === 'string' ? note : note.content || JSON.stringify(note)
-      )
-    } else if (milestone.notes) {
-      // If notes is a single value, wrap in array
-      serializedNotes = [typeof milestone.notes === 'string' ? milestone.notes : JSON.stringify(milestone.notes)]
-    }
+    // Pass notes as-is (they're already JSON from database)
+    // They should be MilestoneNote[] objects with id, content, createdAt, createdBy
+    const notesData = Array.isArray(milestone.notes) ? milestone.notes : []
 
     return {
       id: milestone.id,
@@ -44,7 +36,7 @@ export default async function ClientMilestonePage({
       status: milestone.status,
       dueDate: milestone.dueDate ? milestone.dueDate.toISOString() : null,
       startDate: milestone.startDate ? milestone.startDate.toISOString() : null,
-      notes: serializedNotes,
+      notes: notesData,
       progress: calculateMilestoneProgress(
         milestone.status,
         milestone.startDate,
