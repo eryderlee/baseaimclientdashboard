@@ -9,18 +9,18 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 
 ## Current Position
 
-Phase: 5 of 6 (Client Onboarding and Management)
-Plan: 3 of 3 in current phase
-Status: Phase complete
-Last activity: 2026-02-15 — Completed 05-03-PLAN.md (Client Editing & Status Management)
+Phase: 6 of 6 (Admin Analytics)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-02-15 — Completed 06-01-PLAN.md (Admin Analytics Foundation)
 
-Progress: [██████████] 100%
+Progress: [█████████████░] 93%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
-- Average duration: 13 min
+- Total plans completed: 13
+- Average duration: 12 min
 - Total execution time: 2.9 hours
 
 **By Phase:**
@@ -32,10 +32,11 @@ Progress: [██████████] 100%
 | 03-client-data-isolation | 3 | 71 min | 24 min |
 | 04-admin-milestone-editing | 2 | 27 min | 14 min |
 | 05-client-onboarding-and-management | 3 | 31 min | 10 min |
+| 06-admin-analytics | 1 | 4 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 45 min, 4 min, 23 min, 3 min, 3 min, 25 min
-- Trend: Phase 5 complete (10 min average), client management features shipped efficiently
+- Last 5 plans: 4 min, 23 min, 3 min, 3 min, 25 min
+- Trend: Phase 6 started with efficient 4-minute foundation build, analytics components ready for integration
 
 *Updated after each plan completion*
 
@@ -120,6 +121,12 @@ Recent decisions affecting current work:
 - Separate StatusToggleButton as client component — Interactive table actions need client-side state (useTransition) for optimistic UI, imported into server component pages.
 - Admin dashboard action pattern — Edit (pencil icon), Milestones (list icon), Status toggle (text button) provide complete client management per row.
 
+**From Phase 06-01:**
+- Risk detection uses overdue + stalled milestone heuristics with weighted severity — Stalled alone (IN_PROGRESS 14+ days, <50% progress) = low risk, 1 overdue = medium, 2+ overdue OR stalled + overdue = high
+- Analytics reuses getAllClientsWithMilestones for efficient caching — getAdminAnalytics leverages React cache() deduplication via existing cached DAL function to avoid redundant queries
+- Upcoming due dates limited to 7-day window — Filters milestones with dueDate between now and 7 days from now, excludes COMPLETED, sorted by date ascending
+- Risk badge returns null for 'none' level — Avoids visual clutter when no risk detected, only renders badges for low/medium/high severity levels
+
 ### Pending Todos
 
 2 todos pending. See `.planning/todos/pending/` or run `/gsd:check-todos`
@@ -133,7 +140,7 @@ None. Database configured and seeded successfully.
 
 ## Session Continuity
 
-Last session: 2026-02-15T05:33:45Z
-Stopped at: Completed 05-03-PLAN.md (Client Editing & Status Management)
+Last session: 2026-02-15T18:34:25Z
+Stopped at: Completed 06-01-PLAN.md (Admin Analytics Foundation)
 Resume file: None
-Next: Phase 6 (Final Polish & Deployment) - Client onboarding and management complete, ready for production polish
+Next: 06-02-PLAN.md - Integrate analytics components into admin dashboard page
