@@ -3,6 +3,8 @@ import { cache } from 'react'
 import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { calculateOverallProgress } from '@/lib/utils/progress'
+import { detectClientRisk } from '@/lib/utils/risk-detection'
 
 export const verifySession = cache(async () => {
   const session = await auth()
@@ -139,4 +141,85 @@ export const getClientForEdit = cache(async (clientId: string) => {
   }
 
   return client
+})
+
+export const getAdminAnalytics = cache(async () => {
+  const { userRole } = await verifySession()
+
+  if (userRole !== 'ADMIN') {
+    throw new Error('Unauthorized: Admin access required')
+  }
+
+  // Reuse cached function to get all clients with milestones
+  const clients = await getAllClientsWithMilestones()
+
+  // Calculate total and active clients
+  const totalClients = clients.length
+  const activeClients = clients.filter((c) => c.isActive).length
+
+  // Calculate average progress across all clients
+  let totalProgress = 0
+  clients.forEach((client) => {
+    const clientProgress = calculateOverallProgress(client.milestones)
+    totalProgress += clientProgress
+  })
+  const averageProgress = totalClients > 0 ? Math.round(totalProgress / totalClients) : 0
+
+  // Count at-risk clients
+  const atRiskClients = clients.filter((client) => {
+    const risk = detectClientRisk(client)
+    return risk.isAtRisk
+  }).length
+
+  // Calculate upcoming due dates (within 7 days, not completed)
+  const now = new Date()
+  const sevenDaysFromNow = new Date()
+  sevenDaysFromNow.setDate(now.getDate() + 7)
+
+  const upcomingDueDates: Array<{
+    clientName: string
+    milestoneTitle: string
+    dueDate: Date
+  }> = []
+
+  clients.forEach((client) => {
+    client.milestones.forEach((milestone) => {
+      if (
+        milestone.status !== 'COMPLETED' &&
+        milestone.dueDate &&
+        milestone.dueDate >= now &&
+        milestone.dueDate <= sevenDaysFromNow
+      ) {
+        upcomingDueDates.push({
+          clientName: client.companyName,
+          milestoneTitle: milestone.title,
+          dueDate: milestone.dueDate,
+        })
+      }
+    })
+  })
+
+  // Sort upcoming due dates by date
+  upcomingDueDates.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())
+
+  // Calculate total and completed milestones
+  let totalMilestones = 0
+  let completedMilestones = 0
+
+  clients.forEach((client) => {
+    totalMilestones += client.milestones.length
+    completedMilestones += client.milestones.filter(
+      (m) => m.status === 'COMPLETED'
+    ).length
+  })
+
+  return {
+    totalClients,
+    activeClients,
+    averageProgress,
+    atRiskClients,
+    upcomingDueDates,
+    totalMilestones,
+    completedMilestones,
+  }
 })
