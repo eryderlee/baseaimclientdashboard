@@ -44,9 +44,10 @@ export function ClientAnalyticsTable({ clients }: ClientAnalyticsTableProps) {
 
   const status = searchParams.get('status') || 'all'
   const sort = searchParams.get('sort') || 'name'
+  const search = searchParams.get('search') || ''
 
   const filteredAndSortedClients = useMemo(() => {
-    // Filter
+    // Filter by status
     let filtered = clients
     if (status === 'active') {
       filtered = clients.filter((c) => c.isActive === true)
@@ -54,6 +55,13 @@ export function ClientAnalyticsTable({ clients }: ClientAnalyticsTableProps) {
       filtered = clients.filter((c) => c.isActive === false)
     } else if (status === 'at-risk') {
       filtered = clients.filter((c) => c.riskLevel !== 'none')
+    }
+
+    // Filter by search term (case-insensitive)
+    if (search) {
+      filtered = filtered.filter((c) =>
+        c.companyName.toLowerCase().includes(search.toLowerCase())
+      )
     }
 
     // Sort
@@ -73,7 +81,7 @@ export function ClientAnalyticsTable({ clients }: ClientAnalyticsTableProps) {
     }
 
     return sorted
-  }, [clients, status, sort])
+  }, [clients, status, sort, search])
 
   const handleClearFilters = () => {
     router.push('/admin')
