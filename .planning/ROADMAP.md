@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Core Progress Tracking** - Milestone checklist system with status indicators
 - [x] **Phase 3: Client Data Isolation** - Per-client authentication and data access
 - [x] **Phase 4: Admin Milestone Editing** - Custom admin interface for updating client milestones
-- [ ] **Phase 5: Client Onboarding & Management** - Admin tools for adding/managing clients and users
+- [x] **Phase 5: Client Onboarding & Management** - Admin tools for adding/managing clients and users
 - [ ] **Phase 6: Admin Analytics** - Overview dashboard for admin to track all clients
 
 ## Phase Details
@@ -96,9 +96,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Backend: Zod schemas, Server Actions (create/update/toggle), DAL function, Sonner setup
-- [ ] 05-02-PLAN.md — UI: ClientForm component with RHF+Zod validation, /admin/clients/new page
-- [ ] 05-03-PLAN.md — Client edit page, deactivate/reactivate toggle, end-to-end verification
+- [x] 05-01-PLAN.md — Backend: Zod schemas, Server Actions (create/update/toggle), DAL function, Sonner setup
+- [x] 05-02-PLAN.md — UI: ClientForm component with RHF+Zod validation, /admin/clients/new page
+- [x] 05-03-PLAN.md — Client edit page, deactivate/reactivate toggle, end-to-end verification
 
 ### Phase 6: Admin Analytics
 **Goal**: Admin has overview dashboard showing all client progress and project health
@@ -125,5 +125,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 2. Core Progress Tracking | 3/3 | ✓ Complete | 2026-02-12 |
 | 3. Client Data Isolation | 3/3 | ✓ Complete | 2026-02-13 |
 | 4. Admin Milestone Editing | 2/2 | ✓ Complete | 2026-02-15 |
-| 5. Client Onboarding & Management | 0/3 | Not started | - |
+| 5. Client Onboarding & Management | 3/3 | ✓ Complete | 2026-02-15 |
 | 6. Admin Analytics | 0/TBD | Not started | - |
