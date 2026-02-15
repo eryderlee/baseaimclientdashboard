@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 
 ## Current Position
 
-Phase: 4 of 6 (Admin Milestone Editing)
-Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-02-15 — Completed 04-02-PLAN.md (Admin UI)
+Phase: 5 of 6 (Client Onboarding and Management)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-02-15 — Completed 05-01-PLAN.md (Client Onboarding Backend)
 
-Progress: [██████░░░░] 67%
+Progress: [███████░░░] 73%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
-- Average duration: 14 min
-- Total execution time: 2.3 hours
+- Total plans completed: 10
+- Average duration: 13 min
+- Total execution time: 2.4 hours
 
 **By Phase:**
 
@@ -31,10 +31,11 @@ Progress: [██████░░░░] 67%
 | 02-core-progress-tracking | 3 | 19 min | 6 min |
 | 03-client-data-isolation | 3 | 71 min | 24 min |
 | 04-admin-milestone-editing | 2 | 27 min | 14 min |
+| 05-client-onboarding-and-management | 1 | 3 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 15 min, 4 min, 12 min, 45 min, 4 min, 23 min
-- Trend: UI plans with verification ~20 min, backend-only fast (4 min)
+- Last 5 plans: 4 min, 12 min, 45 min, 4 min, 23 min, 3 min
+- Trend: Backend-only plans extremely fast (3-4 min), UI plans with verification ~20 min
 
 *Updated after each plan completion*
 
@@ -102,6 +103,12 @@ Recent decisions affecting current work:
 - Notes display latest from array with textarea for new — Read-only display of most recent note, textarea appends new notes to history
 - Real-time progress calculation on edits — calculateMilestoneProgress runs on status/date changes for immediate feedback before save
 
+**From Phase 05-01:**
+- Hash password BEFORE transaction (not inside) — bcrypt.hash is CPU-intensive (~100ms). Calling it inside transaction holds database connection and locks unnecessarily. Hashing before transaction keeps transaction fast.
+- Import STANDARD_MILESTONES array (not seedStandardMilestones function) — seedStandardMilestones instantiates its own PrismaClient, which would deadlock if called inside an existing transaction. Importing only the data array allows milestone creation using the transaction client.
+- Use crypto.getRandomValues for password generation — Math.random() is NOT cryptographically secure. crypto.getRandomValues provides cryptographically strong random values required for password generation.
+- Website field accepts valid URL OR empty string — Zod url() validation rejects empty strings. Using .or(z.literal('')) allows optional URL fields to match form UX expectations.
+
 ### Pending Todos
 
 2 todos pending. See `.planning/todos/pending/` or run `/gsd:check-todos`
@@ -115,7 +122,7 @@ None. Database configured and seeded successfully.
 
 ## Session Continuity
 
-Last session: 2026-02-15T00:42:51Z
-Stopped at: Completed 04-02-PLAN.md (Admin UI)
+Last session: 2026-02-15T04:58:25Z
+Stopped at: Completed 05-01-PLAN.md (Client Onboarding Backend)
 Resume file: None
-Next: Phase 5 (Polish & Production Prep) - Phase 4 complete
+Next: 05-02 (Client Management UI) - Backend foundation ready
