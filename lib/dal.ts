@@ -223,3 +223,14 @@ export const getAdminAnalytics = cache(async () => {
     completedMilestones,
   }
 })
+
+export const getChatSettings = cache(async () => {
+  const settings = await prisma.settings.findFirst({
+    select: {
+      whatsappNumber: true,
+      telegramUsername: true,
+    },
+  })
+
+  return settings
+})

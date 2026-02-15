@@ -230,3 +230,13 @@ model Activity {
   @@index([userId])
   @@index([entityId])
 }
+
+model Settings {
+  id                String   @id @default(cuid())
+  whatsappNumber    String?
+  telegramUsername  String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("settings")
+}
