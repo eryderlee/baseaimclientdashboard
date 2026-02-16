@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 8 of 13 (Email Infrastructure)
-Plan: 1 of 1 complete
+Plan: 2 of 2 complete
 Status: Phase 8 complete
-Last activity: 2026-02-16 — Completed 08-01-PLAN.md (Email Infrastructure)
+Last activity: 2026-02-16 — Completed 08-02-PLAN.md (Password Reset and Email Templates)
 
-Progress: [██████████░░░░░░░░░░░░░░░░] 57% (17/30 total plans complete)
+Progress: [███████████░░░░░░░░░░░░░░░] 60% (18/30 total plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 17 (14 v0.9 Foundation + 3 v1.0 Production Launch)
-- Average duration: 9 min
-- Total execution time: 3.13 hours
+- Total plans completed: 18 (14 v0.9 Foundation + 4 v1.0 Production Launch)
+- Average duration: 8.6 min
+- Total execution time: 3.22 hours
 
 **By Phase:**
 
@@ -34,10 +34,10 @@ Progress: [██████████░░░░░░░░░░░░░
 | 05-client-onboarding-and-management | 3 | 31 min | 10 min |
 | 06-admin-analytics | 2 | 8 min | 4 min |
 | 07-chat-integration | 2 | 5 min | 2.5 min |
-| 08-email-infrastructure | 1 | 3 min | 3 min |
+| 08-email-infrastructure | 2 | 9 min | 4.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 3 min, 3 min, 3 min, 2 min, 3 min
+- Last 5 plans: 5.5 min, 3 min, 3 min, 3 min, 2 min
 - Trend: Accelerating — v1.0 Production Launch momentum
 
 *Updated after each plan completion*
@@ -77,6 +77,10 @@ Recent decisions affecting current work:
 - Fire-and-forget email sending — Email failures don't block client creation flow
 - Inline styles for email templates — Email clients don't support Tailwind/external CSS
 - Resend for email delivery — Modern API, React Email integration, generous free tier
+- Password reset tokens expire after 60 minutes — Balance between security and convenience
+- Email enumeration prevention — Same response whether email exists or not (security best practice)
+- One active reset token per email — Old tokens deleted on new request
+- Build email templates upfront — Phase 9/10 templates created in Phase 8 for faster future execution
 
 ### Pending Todos
 
@@ -104,7 +108,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-16T04:51:30Z
-Stopped at: Completed 08-01-PLAN.md (Phase 8 complete)
+Last session: 2026-02-16T05:00:42Z
+Stopped at: Completed 08-02-PLAN.md (Phase 8 Email Infrastructure complete)
 Resume file: None
 Next: Begin Phase 9 (Google Drive Integration)
