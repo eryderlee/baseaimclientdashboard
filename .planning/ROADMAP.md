@@ -144,11 +144,11 @@ Plans:
   5. Client receives email notification when new document is uploaded to their Drive folder
   6. All emails use professional React Email templates with BaseAim branding
   7. Email service (Resend) is properly configured with SPF/DKIM/DMARC for high deliverability
-**Plans:** TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 08-01: TBD
-- [ ] 08-02: TBD
+- [ ] 08-01-PLAN.md — Email infrastructure: Resend setup, send utility, branded layout, welcome email template, wire into client creation
+- [ ] 08-02-PLAN.md — Password reset flow (schema, actions, pages, email) and remaining email templates (invoice, payment, document)
 
 #### Phase 9: Document Storage Migration
 **Goal**: Google Drive replaces Vercel Blob for document storage with proper folder organization
@@ -272,7 +272,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 7. Chat Integration | 2/2 | ✓ Complete | 2026-02-16 |
-| 8. Email Infrastructure | 0/TBD | Not started | - |
+| 8. Email Infrastructure | 0/2 | Not started | - |
 | 9. Document Storage Migration | 0/TBD | Not started | - |
 | 10. Payment Processing | 0/TBD | Not started | - |
 | 11. Facebook Ads Analytics | 0/TBD | Not started | - |
