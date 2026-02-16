@@ -169,12 +169,24 @@ export async function updateNote(
     }
 
     // 4. Update the specific note in the array
+    // Handle both old format (strings) and new format (objects with id)
     const notesArray = Array.isArray(milestone.notes) ? milestone.notes : []
     const updatedNotes = notesArray.map((note: any) => {
-      if (note.id === noteId) {
+      // New format: object with id property
+      if (note && typeof note === 'object' && 'id' in note && note.id === noteId) {
         return {
           ...note,
           content: newContent.trim(),
+          editedAt: new Date().toISOString(),
+        }
+      }
+      // Old format: plain string - match by content and convert to new format
+      if (typeof note === 'string' && note === noteId) {
+        return {
+          id: crypto.randomUUID(),
+          content: newContent.trim(),
+          createdAt: new Date().toISOString(),
+          createdBy: 'Admin',
           editedAt: new Date().toISOString(),
         }
       }
@@ -232,8 +244,20 @@ export async function deleteNote(
     }
 
     // 3. Filter out the note to delete
+    // Handle both old format (strings) and new format (objects with id)
     const notesArray = Array.isArray(milestone.notes) ? milestone.notes : []
-    const updatedNotes = notesArray.filter((note: any) => note.id !== noteId)
+    const updatedNotes = notesArray.filter((note: any) => {
+      // New format: object with id property
+      if (note && typeof note === 'object' && 'id' in note) {
+        return note.id !== noteId
+      }
+      // Old format: plain string - match by content
+      // (noteId is actually the content for old notes)
+      if (typeof note === 'string') {
+        return note !== noteId
+      }
+      return true
+    })
 
     // 4. Save updated notes array
     await prisma.milestone.update({

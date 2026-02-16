@@ -128,7 +128,7 @@ export function MilestoneEditTable({
         setError(result.error)
       } else {
         setEditingNote(null)
-        router.refresh()
+        window.location.reload()
       }
     })
   }
@@ -146,7 +146,7 @@ export function MilestoneEditTable({
       if (result.error) {
         setError(result.error)
       } else {
-        router.refresh()
+        window.location.reload()
       }
     })
   }
@@ -175,9 +175,7 @@ export function MilestoneEditTable({
         // Clear all new notes
         setNewNotes(Object.fromEntries(milestones.map((m) => [m.id, ""])))
         // Refresh the page to show updated notes
-        router.refresh()
-        // Reset success indicator after 3 seconds
-        setTimeout(() => setSuccess(false), 3000)
+        window.location.reload()
       }
     })
   }
@@ -321,9 +319,11 @@ export function MilestoneEditTable({
 
                           {expandedNotes[milestone.id] && (
                             <div className="space-y-1 max-h-60 overflow-y-auto">
-                              {notesArray.map((note) => {
+                              {notesArray.map((note, noteIndex) => {
                                 const noteObj = typeof note === 'object' && note !== null ? note as any : null
-                                const noteId = noteObj?.id || crypto.randomUUID()
+                                // For old format (strings), use the content as the ID for deletion
+                                // For new format (objects), use the actual ID
+                                const noteId = noteObj?.id || (typeof note === 'string' ? note : `note-${noteIndex}`)
                                 const content = noteObj?.content || (typeof note === 'string' ? note : '')
                                 const createdAt = noteObj?.createdAt
                                 const createdBy = noteObj?.createdBy
