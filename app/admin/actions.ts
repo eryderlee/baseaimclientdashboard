@@ -7,6 +7,7 @@ import bcrypt from 'bcryptjs'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { STANDARD_MILESTONES } from '@/prisma/seed-milestones'
+import { sendWelcomeEmail } from '@/lib/email'
 
 /**
  * Create a new client with User account, Client profile, and standard milestones
@@ -99,6 +100,13 @@ export async function createClient(formData: FormData) {
         )
       )
     })
+
+    // Fire and forget - send welcome email (don't block client creation on email delivery)
+    sendWelcomeEmail({
+      clientName: name,
+      email,
+      temporaryPassword: password
+    }).catch((err) => console.error('Welcome email failed:', err))
 
     // Revalidate admin page for fresh data
     revalidatePath('/admin')
