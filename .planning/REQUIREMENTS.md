@@ -200,14 +200,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CHAT-03 | Phase 7 | Complete |
 | CHAT-04 | Phase 7 | Complete |
 | CHAT-05 | Phase 7 | Complete |
-| EMAIL-01 | Phase 8 | Pending |
-| EMAIL-02 | Phase 8 | Pending |
-| EMAIL-03 | Phase 8 | Pending |
-| EMAIL-04 | Phase 8 | Pending |
-| EMAIL-05 | Phase 8 | Pending |
-| EMAIL-06 | Phase 8 | Pending |
-| EMAIL-07 | Phase 8 | Pending |
-| EMAIL-08 | Phase 8 | Pending |
+| EMAIL-01 | Phase 8 | Complete |
+| EMAIL-02 | Phase 8 | Complete |
+| EMAIL-03 | Phase 8 | Complete |
+| EMAIL-04 | Phase 8 | Complete |
+| EMAIL-05 | Phase 8 | Complete |
+| EMAIL-06 | Phase 13 | Pending |
+| EMAIL-07 | Phase 8 | Complete |
+| EMAIL-08 | Phase 8 | Complete |
 | DRIVE-01 | Phase 9 | Pending |
 | DRIVE-02 | Phase 9 | Pending |
 | DRIVE-03 | Phase 9 | Pending |
@@ -259,12 +259,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 **Phase Distribution:**
 - Phase 7 (Chat Integration): 5 requirements
-- Phase 8 (Email Infrastructure): 8 requirements
+- Phase 8 (Email Infrastructure): 7 requirements (EMAIL-06 deferred to Phase 13)
 - Phase 9 (Document Storage Migration): 8 requirements
 - Phase 10 (Payment Processing): 8 requirements
 - Phase 11 (Facebook Ads Analytics): 7 requirements
 - Phase 12 (Production Hardening): 8 requirements
-- Phase 13 (UI Polish & Admin Analytics Integration): 11 requirements (6 UI + 5 ADMIN)
+- Phase 13 (UI Polish & Admin Analytics Integration): 12 requirements (6 UI + 5 ADMIN + 1 EMAIL)
 
 ---
 *Requirements defined: 2026-02-11*

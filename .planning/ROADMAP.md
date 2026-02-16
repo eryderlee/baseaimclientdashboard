@@ -135,20 +135,23 @@ Plans:
 #### Phase 8: Email Infrastructure
 **Goal**: Dashboard sends professional transactional emails for key client actions
 **Depends on**: Phase 7
-**Requirements**: EMAIL-01, EMAIL-02, EMAIL-03, EMAIL-04, EMAIL-05, EMAIL-06, EMAIL-07, EMAIL-08
+**Requirements**: EMAIL-01, EMAIL-02, EMAIL-03, EMAIL-04, EMAIL-05, EMAIL-07, EMAIL-08 (EMAIL-06 deferred to Phase 13)
 **Success Criteria** (what must be TRUE):
   1. Client receives welcome email with login credentials when account is created
   2. Client receives password reset email with secure reset link when requested
-  3. Client receives email notification when new invoice is created
-  4. Client receives payment confirmation email after successful Stripe payment
-  5. Client receives email notification when new document is uploaded to their Drive folder
+  3. Client receives email notification when new invoice is created (template ready, wired in Phase 10)
+  4. Client receives payment confirmation email after successful Stripe payment (template ready, wired in Phase 10)
+  5. Client receives email notification when new document is uploaded to their Drive folder (template ready, wired in Phase 9)
   6. All emails use professional React Email templates with BaseAim branding
   7. Email service (Resend) is properly configured with SPF/DKIM/DMARC for high deliverability
+
+**Note:** EMAIL-06 (weekly progress digest) deferred to Phase 13 - requires data from Facebook Ads (Phase 11) and Stripe (Phase 10) to be meaningful, plus cron/scheduling infrastructure.
+
 **Plans:** 2 plans
 
 Plans:
-- [ ] 08-01-PLAN.md — Email infrastructure: Resend setup, send utility, branded layout, welcome email template, wire into client creation
-- [ ] 08-02-PLAN.md — Password reset flow (schema, actions, pages, email) and remaining email templates (invoice, payment, document)
+- [x] 08-01-PLAN.md — Email infrastructure: Resend setup, send utility, branded layout, welcome email template, wire into client creation
+- [x] 08-02-PLAN.md — Password reset flow (schema, actions, pages, email) and remaining email templates (invoice, payment, document)
 
 #### Phase 9: Document Storage Migration
 **Goal**: Google Drive replaces Vercel Blob for document storage with proper folder organization
@@ -272,7 +275,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 7. Chat Integration | 2/2 | ✓ Complete | 2026-02-16 |
-| 8. Email Infrastructure | 0/2 | Not started | - |
+| 8. Email Infrastructure | 2/2 | ✓ Complete | 2026-02-16 |
 | 9. Document Storage Migration | 0/TBD | Not started | - |
 | 10. Payment Processing | 0/TBD | Not started | - |
 | 11. Facebook Ads Analytics | 0/TBD | Not started | - |
