@@ -2,6 +2,7 @@ import { resend } from '@/lib/resend'
 import { render } from '@react-email/render'
 import { ReactElement } from 'react'
 import { WelcomeEmail } from '@/emails/welcome-email'
+import { PasswordResetEmail } from '@/emails/password-reset'
 
 interface SendEmailParams {
   to: string
@@ -80,6 +81,29 @@ export async function sendWelcomeEmail({
       email,
       temporaryPassword,
       loginUrl,
+    }),
+  })
+}
+
+interface PasswordResetEmailParams {
+  email: string
+  resetUrl: string
+}
+
+/**
+ * Send password reset email with secure tokenized link
+ * Link expires in 60 minutes
+ */
+export async function sendPasswordResetEmail({
+  email,
+  resetUrl,
+}: PasswordResetEmailParams): Promise<SendEmailResult> {
+  return sendEmail({
+    to: email,
+    subject: 'Reset Your Password - BaseAim',
+    react: PasswordResetEmail({
+      resetUrl,
+      expiresInMinutes: 60,
     }),
   })
 }

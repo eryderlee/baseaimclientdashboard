@@ -240,3 +240,15 @@ model Settings {
 
   @@map("settings")
 }
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("password_reset_tokens")
+  @@index([email])
+  @@index([token])
+}
