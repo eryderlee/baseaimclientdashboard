@@ -3,6 +3,9 @@ import { render } from '@react-email/render'
 import { ReactElement } from 'react'
 import { WelcomeEmail } from '@/emails/welcome-email'
 import { PasswordResetEmail } from '@/emails/password-reset'
+import { InvoiceCreatedEmail } from '@/emails/invoice-created'
+import { PaymentConfirmationEmail } from '@/emails/payment-confirmation'
+import { DocumentUploadedEmail } from '@/emails/document-uploaded'
 
 interface SendEmailParams {
   to: string
@@ -104,6 +107,113 @@ export async function sendPasswordResetEmail({
     react: PasswordResetEmail({
       resetUrl,
       expiresInMinutes: 60,
+    }),
+  })
+}
+
+interface InvoiceCreatedEmailParams {
+  clientName: string
+  email: string
+  invoiceNumber: string
+  amount: number
+  currency: string
+  dueDate: string
+  viewUrl: string
+}
+
+/**
+ * Send invoice created notification
+ * Triggered by Phase 10 (Stripe) when invoice is generated
+ */
+export async function sendInvoiceCreatedEmail({
+  clientName,
+  email,
+  invoiceNumber,
+  amount,
+  currency,
+  dueDate,
+  viewUrl,
+}: InvoiceCreatedEmailParams): Promise<SendEmailResult> {
+  const formattedAmount = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency.toUpperCase(),
+  }).format(amount)
+
+  return sendEmail({
+    to: email,
+    subject: `Invoice ${invoiceNumber} - ${formattedAmount}`,
+    react: InvoiceCreatedEmail({
+      clientName,
+      invoiceNumber,
+      amount,
+      currency,
+      dueDate,
+      viewUrl,
+    }),
+  })
+}
+
+interface PaymentConfirmationEmailParams {
+  clientName: string
+  email: string
+  invoiceNumber: string
+  amount: number
+  currency: string
+  paidDate: string
+}
+
+/**
+ * Send payment confirmation
+ * Triggered by Phase 10 (Stripe webhook) when payment received
+ */
+export async function sendPaymentConfirmationEmail({
+  clientName,
+  email,
+  invoiceNumber,
+  amount,
+  currency,
+  paidDate,
+}: PaymentConfirmationEmailParams): Promise<SendEmailResult> {
+  return sendEmail({
+    to: email,
+    subject: `Payment Confirmed - Invoice ${invoiceNumber}`,
+    react: PaymentConfirmationEmail({
+      clientName,
+      invoiceNumber,
+      amount,
+      currency,
+      paidDate,
+    }),
+  })
+}
+
+interface DocumentUploadedEmailParams {
+  clientName: string
+  email: string
+  documentName: string
+  uploadedBy: string
+  viewUrl: string
+}
+
+/**
+ * Send document uploaded notification
+ * Triggered by Phase 9 (Google Drive) when admin uploads document
+ */
+export async function sendDocumentUploadedEmail({
+  clientName,
+  email,
+  documentName,
+  uploadedBy,
+  viewUrl,
+}: DocumentUploadedEmailParams): Promise<SendEmailResult> {
+  return sendEmail({
+    to: email,
+    subject: `New Document: ${documentName}`,
+    react: DocumentUploadedEmail({
+      clientName,
+      documentName,
+      uploadedBy,
+      viewUrl,
     }),
   })
 }
