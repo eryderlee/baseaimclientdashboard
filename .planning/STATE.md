@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 10 of 13 (Payment Processing)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase (10-03 complete; 10-02 still pending)
 Status: In progress
-Last activity: 2026-02-20 — Completed 10-01-PLAN.md (Stripe backend: DAL, server actions, webhook, invoice URL route)
+Last activity: 2026-02-20 — Completed 10-03-PLAN.md (Client billing page: Pay Now, Download PDF, Manage Billing via Stripe)
 
-Progress: [███████████████░░░░░░░░░░░] 77% (23/30 total plans complete)
+Progress: [████████████████░░░░░░░░░░] 80% (24/30 total plans complete)
 
 ## Performance Metrics
 
@@ -137,9 +137,15 @@ Recent decisions affecting current work:
 - STRIPE_WEBHOOK_SECRET must be configured for webhook to function
 - Stripe webhook endpoint needs registering in Stripe Dashboard (events: invoice.paid, invoice.payment_failed)
 
+**Phase 10 - Stripe Client UI (from 10-03):**
+- Stripe URLs fetched on-demand at click time via /api/invoices/[id]/urls — not cached client-side (they expire)
+- ManageBillingButton shown in page header AND per-subscription card (conditional on stripeCustomerId)
+- Download PDF shown for all non-DRAFT statuses; Pay Now only for SENT|OVERDUE
+- Intl.NumberFormat used per-invoice with invoice.currency field
+
 ## Session Continuity
 
-Last session: 2026-02-20T16:48:18Z
-Stopped at: Completed 10-01-PLAN.md (Phase 10 Plan 1 - Stripe backend infrastructure)
+Last session: 2026-02-20T16:54:56Z
+Stopped at: Completed 10-03-PLAN.md (Phase 10 Plan 3 - Client billing UI with Stripe actions)
 Resume file: None
-Next: 10-02 (Admin invoice UI) or 10-03 (Client billing UI updates)
+Next: 10-02 (Admin invoice UI — only remaining plan in Phase 10)
