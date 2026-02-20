@@ -103,7 +103,7 @@ export function DocumentList({ documents }: DocumentListProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => window.open(doc.fileUrl, "_blank")}
+                  onClick={() => window.open(`/api/documents/download/${doc.fileUrl}`, "_blank")}
                 >
                   <Download className="h-4 w-4" />
                 </Button>

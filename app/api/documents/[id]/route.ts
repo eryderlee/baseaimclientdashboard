@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { del } from "@vercel/blob"
+import { deleteFileFromDrive } from "@/lib/google-drive"
 
 export async function DELETE(
   req: NextRequest,
@@ -29,18 +29,20 @@ export async function DELETE(
       return NextResponse.json({ error: "Document not found" }, { status: 404 })
     }
 
-    // Check if user owns this document
-    if (document.client.userId !== session.user.id) {
+    // Check if user owns this document OR is an admin
+    const isOwner = document.client.userId === session.user.id
+    const isAdmin = session.user.role === "ADMIN"
+
+    if (!isOwner && !isAdmin) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    // Delete from Vercel Blob if applicable
-    if (process.env.BLOB_READ_WRITE_TOKEN && document.fileUrl.includes("vercel")) {
-      try {
-        await del(document.fileUrl)
-      } catch (error) {
-        console.error("Failed to delete blob:", error)
-      }
+    // Delete from Google Drive
+    try {
+      await deleteFileFromDrive(document.fileUrl)
+    } catch (error) {
+      console.error("Failed to delete from Drive:", error)
+      // Continue with DB deletion even if Drive delete fails
     }
 
     // Delete from database
