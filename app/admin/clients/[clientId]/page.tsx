@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Pencil, FolderOpen, Receipt } from "lucide-react"
 import { verifySession, getClientWithMilestones } from "@/lib/dal"
 import { calculateMilestoneProgress } from "@/lib/utils/progress"
 import { MilestoneEditTable } from "@/components/admin/milestone-edit-table"
@@ -57,13 +57,35 @@ export default async function ClientMilestonePage({
         </Button>
       </div>
 
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">
-          {client.companyName}
-        </h1>
-        <p className="text-neutral-500 mt-1">
-          Manage milestones for {client.user.name}
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {client.companyName}
+          </h1>
+          <p className="text-neutral-500 mt-1">
+            Manage milestones for {client.user.name}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <Button variant="outline" size="sm" asChild>
+            <Link href={`/admin/clients/${clientId}/edit`}>
+              <Pencil className="h-4 w-4 mr-2" />
+              Edit
+            </Link>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <Link href={`/admin/clients/${clientId}/documents`}>
+              <FolderOpen className="h-4 w-4 mr-2" />
+              Documents
+            </Link>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <Link href={`/admin/clients/${clientId}/invoices`}>
+              <Receipt className="h-4 w-4 mr-2" />
+              Invoices
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <MilestoneEditTable
