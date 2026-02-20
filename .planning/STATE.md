@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-15)
 
 **Core value:** Clients can see exactly where their project stands without having to ask
-**Current focus:** Phase 9 - Document Storage Migration (v1.0 Production Launch)
+**Current focus:** Phase 10 - Payment Processing (Stripe Integration)
 
 ## Current Position
 
-Phase: 9 of 13 (Document Storage Migration) - COMPLETE
-Plan: 4 of 4 complete
-Status: Phase 9 complete — ready for Phase 10 (Stripe Integration)
-Last activity: 2026-02-20 — Completed 09-04-PLAN.md (Migration script, Blob-to-Drive migration, @vercel/blob removal)
+Phase: 10 of 13 (Payment Processing)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-02-20 — Completed 10-01-PLAN.md (Stripe backend: DAL, server actions, webhook, invoice URL route)
 
-Progress: [██████████████░░░░░░░░░░░░] 73% (22/30 total plans complete)
+Progress: [███████████████░░░░░░░░░░░] 77% (23/30 total plans complete)
 
 ## Performance Metrics
 
@@ -126,13 +126,20 @@ Recent decisions affecting current work:
 - Application MUST be submitted at start of Phase 7, not when Phase 11 begins
 - Without Advanced Access, Phase 11 cannot complete
 
-**For Phase 10 (Stripe):**
-- Webhook signature verification critical — must use raw body parsing (await req.text())
-- Separate .env.production with live-mode secret needed
+**Phase 10 - Stripe Backend (from 10-01):**
+- Webhook returns 200 for handler errors (after sig verification) — prevents Stripe retry storms
+- Lazy Stripe customer creation — first invoice triggers customer.create(), stored in Subscription.stripeCustomerId
+- Invoice URLs (hosted_invoice_url, invoice_pdf) fetched on-demand from Stripe — never stored in DB (they expire)
+- createInvoice accepts FormData with items as JSON string for server action + fetch() compatibility
+- Idempotent webhook handlers — check status before updating (e.g. skip if already PAID)
+
+**For Phase 10 remaining plans:**
+- STRIPE_WEBHOOK_SECRET must be configured for webhook to function
+- Stripe webhook endpoint needs registering in Stripe Dashboard (events: invoice.paid, invoice.payment_failed)
 
 ## Session Continuity
 
-Last session: 2026-02-20T12:02:09Z
-Stopped at: Completed 09-04-PLAN.md (Phase 9 Plan 4 - Migration script + @vercel/blob removal)
+Last session: 2026-02-20T16:48:18Z
+Stopped at: Completed 10-01-PLAN.md (Phase 10 Plan 1 - Stripe backend infrastructure)
 Resume file: None
-Next: 10-stripe-integration (Phase 10 begins)
+Next: 10-02 (Admin invoice UI) or 10-03 (Client billing UI updates)
