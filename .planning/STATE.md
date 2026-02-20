@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 Phase: 9 of 13 (Document Storage Migration)
 Plan: 3 of 4 complete
 Status: Phase 9 in progress
-Last activity: 2026-02-20 — Completed 09-03-PLAN.md (Download proxy + Drive delete: streaming proxy route, DocumentList updated, delete route migrated off Vercel Blob)
+Last activity: 2026-02-20 — Completed 09-02-PLAN.md (Upload write path: Vercel Blob → Drive, Drive folder creation on onboarding, admin upload endpoint + UI)
 
 Progress: [█████████████░░░░░░░░░░░░░] 70% (21/30 total plans complete)
 
@@ -92,6 +92,13 @@ Recent decisions affecting current work:
 - driveFolderId nullable (String?) on Client model — existing clients start null, populated by migration script
 - fileUrl column in Document model kept as-is (Option A from research) — will store Drive file IDs post-migration
 
+**Phase 9 - Google Drive (from 09-02):**
+- Drive folder creation is fire-and-forget in createClient() — .then().catch() chain after transaction, not await
+- Transaction now returns newClient so client.id is available for Drive call outside transaction
+- Lazy Drive folder initialization in admin upload route — creates folder on-demand for clients missing driveFolderId
+- Admin-uploaded documents have status APPROVED — no approval workflow for admin-sourced content
+- fileUrl column repurposed to store Google Drive file ID (was Vercel Blob URL) — Option A from research
+
 **Phase 9 - Google Drive (from 09-03):**
 - Download proxy at /api/documents/download/[fileId] — streaming response (not buffered) avoids Vercel 4.5 MB limit
 - isOwner || isAdmin auth pattern on download AND delete — admins need full document management access
@@ -125,7 +132,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-20T09:44:31Z
-Stopped at: Completed 09-03-PLAN.md (Phase 9 Plan 3 - Download proxy + Drive delete)
+Last session: 2026-02-20T09:46:15Z
+Stopped at: Completed 09-02-PLAN.md (Phase 9 Plan 2 - Upload write path + admin upload UI)
 Resume file: None
-Next: 09-04-PLAN.md (File Upload to Drive)
+Next: 09-04-PLAN.md (Vercel Blob migration + delete integration)
