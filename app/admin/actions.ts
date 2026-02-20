@@ -8,6 +8,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { STANDARD_MILESTONES } from '@/prisma/seed-milestones'
 import { sendWelcomeEmail } from '@/lib/email'
+import { createClientDriveFolder } from '@/lib/google-drive'
 
 /**
  * Create a new client with User account, Client profile, and standard milestones
@@ -58,7 +59,7 @@ export async function createClient(formData: FormData) {
 
   try {
     // Atomic transaction: User + Client + 6 Milestones
-    await prisma.$transaction(async (tx) => {
+    const client = await prisma.$transaction(async (tx) => {
       // Create user
       const user = await tx.user.create({
         data: {
@@ -70,7 +71,7 @@ export async function createClient(formData: FormData) {
       })
 
       // Create client profile
-      const client = await tx.client.create({
+      const newClient = await tx.client.create({
         data: {
           userId: user.id,
           companyName,
@@ -87,7 +88,7 @@ export async function createClient(formData: FormData) {
         STANDARD_MILESTONES.map((milestone) =>
           tx.milestone.create({
             data: {
-              clientId: client.id,
+              clientId: newClient.id,
               title: milestone.title,
               description: milestone.description,
               order: milestone.order,
@@ -99,7 +100,20 @@ export async function createClient(formData: FormData) {
           })
         )
       )
+
+      return newClient
     })
+
+    // Create Google Drive folder (fire and forget - don't block client creation)
+    // External HTTP calls must be outside DB transactions (not atomic, errors are non-fatal)
+    createClientDriveFolder(companyName, client.id)
+      .then(async (driveFolderId) => {
+        await prisma.client.update({
+          where: { id: client.id },
+          data: { driveFolderId },
+        })
+      })
+      .catch((err) => console.error('Drive folder creation failed:', err))
 
     // Fire and forget - send welcome email (don't block client creation on email delivery)
     sendWelcomeEmail({
@@ -239,10 +253,10 @@ export async function resetClientPassword(clientId: string, newPassword: string)
   }
 
   try {
-    // Get client to find associated user
+    // Get client and user details for email
     const client = await prisma.client.findUnique({
       where: { id: clientId },
-      select: { userId: true },
+      include: { user: { select: { id: true, name: true, email: true } } },
     })
 
     if (!client) {
@@ -257,6 +271,14 @@ export async function resetClientPassword(clientId: string, newPassword: string)
       where: { id: client.userId },
       data: { password: hashedPassword },
     })
+
+    // Send new credentials email (fire and forget)
+    sendWelcomeEmail({
+      clientName: client.user.name || client.companyName,
+      email: client.user.email,
+      temporaryPassword: newPassword,
+      subject: 'Your BaseAim Password Has Been Updated',
+    }).catch((err) => console.error('Password reset email failed:', err))
 
     return { success: true }
   } catch (error) {

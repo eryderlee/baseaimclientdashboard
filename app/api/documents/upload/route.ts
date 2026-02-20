@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { put } from "@vercel/blob"
+import { uploadFileToDrive } from "@/lib/google-drive"
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,23 +17,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 })
     }
 
-    // Upload to Vercel Blob (or use local storage for development)
-    let fileUrl: string
-
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
-      const blob = await put(file.name, file, {
-        access: "public",
-      })
-      fileUrl = blob.url
-    } else {
-      // For development without Blob storage
-      fileUrl = `/uploads/${file.name}`
-    }
-
-    // Get user's client profile
+    // Get user's client profile, including their Drive folder ID
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      include: { clientProfile: true },
+      include: {
+        clientProfile: {
+          select: {
+            id: true,
+            driveFolderId: true,
+          },
+        },
+      },
     })
 
     if (!user?.clientProfile) {
@@ -43,10 +37,29 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    const { clientProfile } = user
+
+    // Require Drive folder to be configured before accepting uploads
+    if (!clientProfile.driveFolderId) {
+      return NextResponse.json(
+        {
+          error:
+            "Drive folder not configured for this client. Contact admin.",
+        },
+        { status: 400 }
+      )
+    }
+
+    // Upload to Google Drive
+    const driveFile = await uploadFileToDrive(file, clientProfile.driveFolderId)
+
+    // Store the Drive file ID in the fileUrl column
+    const fileUrl = driveFile.id
+
     // Save document metadata to database
     const document = await prisma.document.create({
       data: {
-        clientId: user.clientProfile.id,
+        clientId: clientProfile.id,
         title: file.name,
         fileName: file.name,
         fileSize: file.size,
