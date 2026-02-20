@@ -1,39 +1,36 @@
 import 'server-only'
 import { drive_v3, drive as createDrive } from '@googleapis/drive'
-import { GoogleAuth } from 'google-auth-library'
+import { OAuth2Client } from 'google-auth-library'
 import { Readable } from 'stream'
 
 // Singleton Drive client instance (cached in module scope for development)
 let driveClient: drive_v3.Drive | undefined
 
 /**
- * Returns a singleton Google Drive v3 client authenticated with a service account.
+ * Returns a singleton Google Drive v3 client authenticated via OAuth2.
  *
- * Credentials are read from individual env vars to avoid private key newline
- * corruption that occurs when storing the full JSON as a single env var.
+ * Uses a stored refresh token so the app authenticates as the real Google
+ * account owner (which has Drive storage quota). The OAuth2Client handles
+ * access token refresh automatically.
  *
- * Apply GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY.replace(/\\n/g, '\n') to restore
- * literal newlines that shells/Vercel may double-escape.
+ * Required env vars: GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET,
+ * GOOGLE_OAUTH_REFRESH_TOKEN (obtained once via scripts/get-oauth-token.ts)
  */
 export function getDriveClient(): drive_v3.Drive {
   if (driveClient) return driveClient
 
-  const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL
-  const privateKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, '\n')
+  const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID
+  const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET
+  const refreshToken = process.env.GOOGLE_OAUTH_REFRESH_TOKEN
 
-  if (!clientEmail || !privateKey) {
+  if (!clientId || !clientSecret || !refreshToken) {
     throw new Error(
-      'GOOGLE_SERVICE_ACCOUNT_EMAIL and GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY must be set'
+      'GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET, and GOOGLE_OAUTH_REFRESH_TOKEN must be set'
     )
   }
 
-  const auth = new GoogleAuth({
-    credentials: {
-      client_email: clientEmail,
-      private_key: privateKey,
-    },
-    scopes: ['https://www.googleapis.com/auth/drive'],
-  })
+  const auth = new OAuth2Client({ clientId, clientSecret })
+  auth.setCredentials({ refresh_token: refreshToken })
 
   driveClient = createDrive({ version: 'v3', auth })
   return driveClient

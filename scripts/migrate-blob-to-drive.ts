@@ -16,7 +16,7 @@
 import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
 import { drive as createDrive, drive_v3 } from '@googleapis/drive'
-import { GoogleAuth } from 'google-auth-library'
+import { OAuth2Client } from 'google-auth-library'
 import { Readable } from 'stream'
 
 // ---------------------------------------------------------------------------
@@ -30,22 +30,18 @@ const prisma = new PrismaClient()
 // ---------------------------------------------------------------------------
 
 function getDriveClient(): drive_v3.Drive {
-  const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL
-  const privateKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, '\n')
+  const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID
+  const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET
+  const refreshToken = process.env.GOOGLE_OAUTH_REFRESH_TOKEN
 
-  if (!clientEmail || !privateKey) {
+  if (!clientId || !clientSecret || !refreshToken) {
     throw new Error(
-      'GOOGLE_SERVICE_ACCOUNT_EMAIL and GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY must be set in .env'
+      'GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET, and GOOGLE_OAUTH_REFRESH_TOKEN must be set in .env'
     )
   }
 
-  const auth = new GoogleAuth({
-    credentials: {
-      client_email: clientEmail,
-      private_key: privateKey,
-    },
-    scopes: ['https://www.googleapis.com/auth/drive'],
-  })
+  const auth = new OAuth2Client({ clientId, clientSecret })
+  auth.setCredentials({ refresh_token: refreshToken })
 
   return createDrive({ version: 'v3', auth })
 }
