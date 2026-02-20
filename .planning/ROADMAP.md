@@ -187,11 +187,12 @@ Plans:
   6. Invoice status automatically updates when payment.failed event is received
   7. Stripe webhook endpoint properly verifies signatures using raw body parsing
   8. Client receives email notifications for new invoices and payment confirmations (uses Phase 8 email)
-**Plans:** TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 10-01: TBD
-- [ ] 10-02: TBD
+- [ ] 10-01-PLAN.md — Backend: DAL billing functions, server actions (createInvoice, createPortalSession), Stripe webhook handler, invoice URL API route
+- [ ] 10-02-PLAN.md — Admin UI: Invoice list page, create invoice form with dynamic line items, client detail page link
+- [ ] 10-03-PLAN.md — Client UI: Update billing page to use DAL, wire Pay Now/Download PDF/Manage Billing actions
 
 #### Phase 11: Facebook Ads Analytics
 **Goal**: Clients can view their Facebook Ads campaign performance metrics in dashboard
@@ -278,7 +279,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 7. Chat Integration | 2/2 | ✓ Complete | 2026-02-16 |
 | 8. Email Infrastructure | 2/2 | ✓ Complete | 2026-02-16 |
 | 9. Document Storage Migration | 0/4 | Not started | - |
-| 10. Payment Processing | 0/TBD | Not started | - |
+| 10. Payment Processing | 0/3 | Not started | - |
 | 11. Facebook Ads Analytics | 0/TBD | Not started | - |
 | 12. Production Hardening | 0/TBD | Not started | - |
 | 13. UI Polish & Admin Analytics Integration | 0/TBD | Not started | - |
