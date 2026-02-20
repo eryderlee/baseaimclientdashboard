@@ -1,8 +1,6 @@
-import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { getClientBillingData } from "@/lib/dal"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Table,
   TableBody,
@@ -13,38 +11,52 @@ import {
 } from "@/components/ui/table"
 import {
   CreditCard,
-  Download,
   DollarSign,
   Clock,
   CheckCircle,
   AlertCircle,
 } from "lucide-react"
-import Link from "next/link"
+import { InvoiceActions, ManageBillingButton } from "@/components/dashboard/billing-actions"
 
-async function getBillingData(userId: string) {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: {
-      clientProfile: {
-        include: {
-          invoices: {
-            orderBy: { createdAt: "desc" },
-          },
-          subscriptions: true,
-        },
-      },
-    },
-  })
+function formatCurrency(amount: number, currency: string) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency.toUpperCase(),
+  }).format(amount)
+}
 
-  return {
-    invoices: user?.clientProfile?.invoices || [],
-    subscriptions: user?.clientProfile?.subscriptions || [],
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case "PAID":
+      return "default"
+    case "SENT":
+      return "secondary"
+    case "OVERDUE":
+      return "destructive"
+    case "CANCELLED":
+      return "outline"
+    default:
+      return "outline"
+  }
+}
+
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case "PAID":
+      return <CheckCircle className="h-4 w-4 text-green-500" />
+    case "SENT":
+      return <Clock className="h-4 w-4 text-blue-500" />
+    case "OVERDUE":
+      return <AlertCircle className="h-4 w-4 text-red-500" />
+    default:
+      return null
   }
 }
 
 export default async function BillingPage() {
-  const session = await auth()
-  const { invoices, subscriptions } = await getBillingData(session!.user!.id)
+  const { invoices, subscriptions } = await getClientBillingData()
+
+  const hasStripeCustomer = subscriptions.some((sub) => sub.stripeCustomerId !== null)
 
   const totalPaid = invoices
     .filter((inv) => inv.status === "PAID")
@@ -56,41 +68,19 @@ export default async function BillingPage() {
 
   const overdueInvoices = invoices.filter((inv) => inv.status === "OVERDUE")
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "PAID":
-        return "default"
-      case "SENT":
-        return "secondary"
-      case "OVERDUE":
-        return "destructive"
-      case "CANCELLED":
-        return "outline"
-      default:
-        return "outline"
-    }
-  }
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "PAID":
-        return <CheckCircle className="h-4 w-4 text-green-500" />
-      case "SENT":
-        return <Clock className="h-4 w-4 text-blue-500" />
-      case "OVERDUE":
-        return <AlertCircle className="h-4 w-4 text-red-500" />
-      default:
-        return null
-    }
-  }
+  // Use the primary currency from the first invoice (default to USD)
+  const primaryCurrency = invoices[0]?.currency ?? "usd"
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Billing & Payments</h1>
-        <p className="text-neutral-500 mt-1">
-          Manage your invoices, payments, and subscription
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Billing & Payments</h1>
+          <p className="text-neutral-500 mt-1">
+            Manage your invoices, payments, and subscription
+          </p>
+        </div>
+        {hasStripeCustomer && <ManageBillingButton />}
       </div>
 
       {/* Stats Overview */}
@@ -101,7 +91,9 @@ export default async function BillingPage() {
             <DollarSign className="h-4 w-4 text-neutral-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalPaid.toFixed(2)}</div>
+            <div className="text-2xl font-bold">
+              {formatCurrency(totalPaid, primaryCurrency)}
+            </div>
             <p className="text-xs text-neutral-500 mt-1">
               Lifetime payments
             </p>
@@ -114,7 +106,9 @@ export default async function BillingPage() {
             <Clock className="h-4 w-4 text-neutral-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalPending.toFixed(2)}</div>
+            <div className="text-2xl font-bold">
+              {formatCurrency(totalPending, primaryCurrency)}
+            </div>
             <p className="text-xs text-neutral-500 mt-1">
               Awaiting payment
             </p>
@@ -158,14 +152,17 @@ export default async function BillingPage() {
                     </p>
                   </div>
                 </div>
-                {sub.currentPeriodEnd && (
-                  <div className="text-right">
-                    <p className="text-sm font-medium">Next billing date</p>
-                    <p className="text-sm text-neutral-500">
-                      {new Date(sub.currentPeriodEnd).toLocaleDateString()}
-                    </p>
-                  </div>
-                )}
+                <div className="flex items-center gap-4">
+                  {sub.currentPeriodEnd && (
+                    <div className="text-right">
+                      <p className="text-sm font-medium">Next billing date</p>
+                      <p className="text-sm text-neutral-500">
+                        {new Date(sub.currentPeriodEnd).toLocaleDateString()}
+                      </p>
+                    </div>
+                  )}
+                  {sub.stripeCustomerId && <ManageBillingButton />}
+                </div>
               </div>
             ))}
           </CardContent>
@@ -210,7 +207,7 @@ export default async function BillingPage() {
                       {invoice.description || "Invoice"}
                     </TableCell>
                     <TableCell className="font-medium">
-                      ${invoice.amount.toFixed(2)}
+                      {formatCurrency(invoice.amount, invoice.currency)}
                     </TableCell>
                     <TableCell>
                       {new Date(invoice.dueDate).toLocaleDateString()}
@@ -224,16 +221,10 @@ export default async function BillingPage() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        {(invoice.status === "SENT" || invoice.status === "OVERDUE") && (
-                          <Link href={`/dashboard/billing/pay/${invoice.id}`}>
-                            <Button size="sm">Pay Now</Button>
-                          </Link>
-                        )}
-                        <Button variant="ghost" size="sm">
-                          <Download className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      <InvoiceActions
+                        invoiceId={invoice.id}
+                        status={invoice.status}
+                      />
                     </TableCell>
                   </TableRow>
                 ))}
