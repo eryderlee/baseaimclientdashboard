@@ -278,8 +278,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 |-------|----------------|--------|-----------|
 | 7. Chat Integration | 2/2 | ✓ Complete | 2026-02-16 |
 | 8. Email Infrastructure | 2/2 | ✓ Complete | 2026-02-16 |
-| 9. Document Storage Migration | 0/4 | Not started | - |
-| 10. Payment Processing | 0/3 | Not started | - |
+| 9. Document Storage Migration | 4/4 | ✓ Complete | 2026-02-20 |
+| 10. Payment Processing | 3/3 | ✓ Complete | 2026-02-20 |
 | 11. Facebook Ads Analytics | 0/TBD | Not started | - |
 | 12. Production Hardening | 0/TBD | Not started | - |
 | 13. UI Polish & Admin Analytics Integration | 0/TBD | Not started | - |

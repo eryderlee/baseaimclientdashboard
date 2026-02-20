@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 10 of 13 (Payment Processing)
-Plan: 2 of 3 in current phase (10-03 complete; 10-02 still pending)
-Status: In progress
-Last activity: 2026-02-20 — Completed 10-03-PLAN.md (Client billing page: Pay Now, Download PDF, Manage Billing via Stripe)
+Plan: 3 of 3 in current phase — Phase Complete
+Status: Phase 10 complete, Phase 11 ready
+Last activity: 2026-02-20 — Completed 10-02-PLAN.md (Admin invoice UI: list page, create form, client detail link)
 
-Progress: [████████████████░░░░░░░░░░] 80% (24/30 total plans complete)
+Progress: [█████████████████░░░░░░░░░] 25/25 plans complete (Phases 1-10 done)
 
 ## Performance Metrics
 
@@ -143,9 +143,14 @@ Recent decisions affecting current work:
 - Download PDF shown for all non-DRAFT statuses; Pay Now only for SENT|OVERDUE
 - Intl.NumberFormat used per-invoice with invoice.currency field
 
+**Phase 10 - Stripe Admin UI (from 10-02):**
+- z.number() not z.coerce.number() for form amounts — coerce breaks react-hook-form Resolver type inference
+- useTransition for server action submit state — cleaner than formState.isSubmitting for async actions
+- Admin client detail page now has Edit+Documents+Invoices action buttons row
+
 ## Session Continuity
 
-Last session: 2026-02-20T16:54:56Z
-Stopped at: Completed 10-03-PLAN.md (Phase 10 Plan 3 - Client billing UI with Stripe actions)
+Last session: 2026-02-20T16:56:16Z
+Stopped at: Completed 10-02-PLAN.md (Phase 10 Plan 2 - Admin invoice UI)
 Resume file: None
-Next: 10-02 (Admin invoice UI — only remaining plan in Phase 10)
+Next: Phase 11 (Facebook Ads Analytics) — run /gsd:plan-phase 11
