@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 9 of 13 (Document Storage Migration)
-Plan: 1 of 4 complete
+Plan: 3 of 4 complete
 Status: Phase 9 in progress
-Last activity: 2026-02-20 — Completed 09-01-PLAN.md (Google Drive Foundation: client singleton, schema, config)
+Last activity: 2026-02-20 — Completed 09-03-PLAN.md (Download proxy + Drive delete: streaming proxy route, DocumentList updated, delete route migrated off Vercel Blob)
 
-Progress: [████████████░░░░░░░░░░░░░░] 63% (19/30 total plans complete)
+Progress: [█████████████░░░░░░░░░░░░░] 70% (21/30 total plans complete)
 
 ## Performance Metrics
 
@@ -35,10 +35,10 @@ Progress: [████████████░░░░░░░░░░░
 | 06-admin-analytics | 2 | 8 min | 4 min |
 | 07-chat-integration | 2 | 5 min | 2.5 min |
 | 08-email-infrastructure | 2 | 9 min | 4.5 min |
-| 09-document-storage-migration | 1 | 6 min | 6 min |
+| 09-document-storage-migration | 3 | 16 min | 5.3 min |
 
 **Recent Trend:**
-- Last 5 plans: 5.5 min, 3 min, 3 min, 3 min, 6 min
+- Last 5 plans: 3 min, 3 min, 6 min, 4 min, 4 min
 - Trend: Fast — v1.0 Production Launch momentum
 
 *Updated after each plan completion*
@@ -92,6 +92,12 @@ Recent decisions affecting current work:
 - driveFolderId nullable (String?) on Client model — existing clients start null, populated by migration script
 - fileUrl column in Document model kept as-is (Option A from research) — will store Drive file IDs post-migration
 
+**Phase 9 - Google Drive (from 09-03):**
+- Download proxy at /api/documents/download/[fileId] — streaming response (not buffered) avoids Vercel 4.5 MB limit
+- isOwner || isAdmin auth pattern on download AND delete — admins need full document management access
+- Drive delete is graceful: catch error, always proceed with DB deletion
+- findFirst({ where: { fileUrl: fileId } }) to resolve Drive file ID to a Document record
+
 ### Pending Todos
 
 1 todo pending from v0.9. See `.planning/todos/pending/` or run `/gsd:check-todos`
@@ -119,7 +125,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-20T09:36:38Z
-Stopped at: Completed 09-01-PLAN.md (Phase 9 Plan 1 - Google Drive Foundation)
+Last session: 2026-02-20T09:44:31Z
+Stopped at: Completed 09-03-PLAN.md (Phase 9 Plan 3 - Download proxy + Drive delete)
 Resume file: None
-Next: 09-02-PLAN.md (Folder Creation at Client Onboarding)
+Next: 09-04-PLAN.md (File Upload to Drive)
