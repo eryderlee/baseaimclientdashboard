@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { Readable } from "stream"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { streamFileFromDrive } from "@/lib/google-drive"
@@ -42,7 +43,7 @@ export async function GET(
     // Stream file from Google Drive
     const { stream, mimeType, fileName } = await streamFileFromDrive(fileId)
 
-    return new Response(stream as unknown as ReadableStream, {
+    return new Response(Readable.toWeb(stream as Readable) as ReadableStream, {
       headers: {
         "Content-Type": mimeType,
         "Content-Disposition": `attachment; filename="${encodeURIComponent(fileName)}"`,
