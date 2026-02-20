@@ -63,6 +63,7 @@ model Client {
   website         String?
   phone           String?
   address         String?
+  driveFolderId   String?   // Google Drive folder ID for this client's documents
   onboardingStep  Int       @default(0)
   isActive        Boolean   @default(true)
   createdAt       DateTime  @default(now())
