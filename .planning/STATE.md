@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 
 ## Current Position
 
-Phase: 9 of 13 (Document Storage Migration)
-Plan: 3 of 4 complete
-Status: Phase 9 in progress
-Last activity: 2026-02-20 — Completed 09-02-PLAN.md (Upload write path: Vercel Blob → Drive, Drive folder creation on onboarding, admin upload endpoint + UI)
+Phase: 9 of 13 (Document Storage Migration) - COMPLETE
+Plan: 4 of 4 complete
+Status: Phase 9 complete — ready for Phase 10 (Stripe Integration)
+Last activity: 2026-02-20 — Completed 09-04-PLAN.md (Migration script, Blob-to-Drive migration, @vercel/blob removal)
 
-Progress: [█████████████░░░░░░░░░░░░░] 70% (21/30 total plans complete)
+Progress: [██████████████░░░░░░░░░░░░] 73% (22/30 total plans complete)
 
 ## Performance Metrics
 
@@ -35,7 +35,7 @@ Progress: [█████████████░░░░░░░░░░
 | 06-admin-analytics | 2 | 8 min | 4 min |
 | 07-chat-integration | 2 | 5 min | 2.5 min |
 | 08-email-infrastructure | 2 | 9 min | 4.5 min |
-| 09-document-storage-migration | 3 | 16 min | 5.3 min |
+| 09-document-storage-migration | 4 | ~21 min | ~5.3 min |
 
 **Recent Trend:**
 - Last 5 plans: 3 min, 3 min, 6 min, 4 min, 4 min
@@ -105,6 +105,11 @@ Recent decisions affecting current work:
 - Drive delete is graceful: catch error, always proceed with DB deletion
 - findFirst({ where: { fileUrl: fileId } }) to resolve Drive file ID to a Document record
 
+**Phase 9 - Google Drive (from 09-04):**
+- Zero Blob files existed (BLOB_READ_WRITE_TOKEN was always empty) — Phase 9 migration was purely Drive folder provisioning
+- Migration script uses inline Drive client to bypass server-only module import restrictions
+- @vercel/blob fully removed; no rollback path needed
+
 ### Pending Todos
 
 1 todo pending from v0.9. See `.planning/todos/pending/` or run `/gsd:check-todos`
@@ -121,18 +126,13 @@ Recent decisions affecting current work:
 - Application MUST be submitted at start of Phase 7, not when Phase 11 begins
 - Without Advanced Access, Phase 11 cannot complete
 
-**For Phase 9 (Google Drive) - remaining plans:**
-- Google Cloud setup required before end-to-end testing (service account, Drive API, root folder, env vars)
-- Existing Vercel Blob file count/size unknown — audit in Plan 09-05 before migration
-- BLOB_READ_WRITE_TOKEN is empty in .env — production may have zero Blob files to migrate
-
 **For Phase 10 (Stripe):**
 - Webhook signature verification critical — must use raw body parsing (await req.text())
 - Separate .env.production with live-mode secret needed
 
 ## Session Continuity
 
-Last session: 2026-02-20T09:46:15Z
-Stopped at: Completed 09-02-PLAN.md (Phase 9 Plan 2 - Upload write path + admin upload UI)
+Last session: 2026-02-20T12:02:09Z
+Stopped at: Completed 09-04-PLAN.md (Phase 9 Plan 4 - Migration script + @vercel/blob removal)
 Resume file: None
-Next: 09-04-PLAN.md (Vercel Blob migration + delete integration)
+Next: 10-stripe-integration (Phase 10 begins)
