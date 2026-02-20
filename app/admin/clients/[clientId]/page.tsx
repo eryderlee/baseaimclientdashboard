@@ -2,8 +2,10 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { verifySession, getClientWithMilestones } from "@/lib/dal"
+import { prisma } from "@/lib/prisma"
 import { calculateMilestoneProgress } from "@/lib/utils/progress"
 import { MilestoneEditTable } from "@/components/admin/milestone-edit-table"
+import { ClientDocuments } from "@/components/admin/client-documents"
 import { Button } from "@/components/ui/button"
 
 export default async function ClientMilestonePage({
@@ -23,7 +25,28 @@ export default async function ClientMilestonePage({
   // 3. Fetch client data via DAL
   const client = await getClientWithMilestones(clientId)
 
-  // 4. Serialize milestone dates and compute progress
+  // 4. Fetch documents for this client
+  const documents = await prisma.document.findMany({
+    where: { clientId },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      title: true,
+      fileName: true,
+      fileSize: true,
+      fileType: true,
+      status: true,
+      createdAt: true,
+    },
+  })
+
+  // 5. Serialize document dates
+  const serializedDocuments = documents.map((doc) => ({
+    ...doc,
+    createdAt: doc.createdAt.toISOString(),
+  }))
+
+  // 6. Serialize milestone dates and compute progress
   const serializedMilestones = client.milestones.map((milestone) => {
     // Pass notes as-is (they're already JSON from database)
     // They should be MilestoneNote[] objects with id, content, createdAt, createdBy
@@ -59,10 +82,10 @@ export default async function ClientMilestonePage({
 
       <div>
         <h1 className="text-3xl font-bold tracking-tight">
-          Edit Milestones - {client.companyName}
+          {client.companyName}
         </h1>
         <p className="text-neutral-500 mt-1">
-          Update milestone status, dates, and notes for {client.user.name}
+          Manage milestones and documents for {client.user.name}
         </p>
       </div>
 
@@ -70,6 +93,13 @@ export default async function ClientMilestonePage({
         clientId={clientId}
         initialMilestones={serializedMilestones}
       />
+
+      <div className="border rounded-lg p-6">
+        <ClientDocuments
+          clientId={clientId}
+          documents={serializedDocuments}
+        />
+      </div>
     </div>
   )
 }
