@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Pencil, ListChecks } from 'lucide-react'
+import { Pencil, ListChecks, Eye, FolderOpen } from 'lucide-react'
 import { RiskBadge } from '@/components/admin/at-risk-indicator'
 import { StatusToggleButton } from '@/components/admin/status-toggle-button'
 
@@ -156,6 +156,12 @@ export function ClientAnalyticsTable({ clients }: ClientAnalyticsTableProps) {
             <TableCell>
               <div className="flex items-center gap-1">
                 <Button variant="outline" size="sm" asChild>
+                  <Link href={`/admin/preview/${client.id}`}>
+                    <Eye className="h-3 w-3 mr-1" />
+                    View
+                  </Link>
+                </Button>
+                <Button variant="outline" size="sm" asChild>
                   <Link href={`/admin/clients/${client.id}/edit`}>
                     <Pencil className="h-3 w-3 mr-1" />
                     Edit
@@ -165,6 +171,12 @@ export function ClientAnalyticsTable({ clients }: ClientAnalyticsTableProps) {
                   <Link href={`/admin/clients/${client.id}`}>
                     <ListChecks className="h-3 w-3 mr-1" />
                     Milestones
+                  </Link>
+                </Button>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={`/admin/clients/${client.id}/documents`}>
+                    <FolderOpen className="h-3 w-3 mr-1" />
+                    Documents
                   </Link>
                 </Button>
                 <StatusToggleButton clientId={client.id} isActive={client.isActive} />

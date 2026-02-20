@@ -57,20 +57,13 @@ export default async function ClientMilestonePage({
         </Button>
       </div>
 
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            {client.companyName}
-          </h1>
-          <p className="text-neutral-500 mt-1">
-            Manage milestones for {client.user.name}
-          </p>
-        </div>
-        <Button variant="outline" size="sm" asChild>
-          <Link href={`/admin/clients/${clientId}/documents`}>
-            Documents
-          </Link>
-        </Button>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">
+          {client.companyName}
+        </h1>
+        <p className="text-neutral-500 mt-1">
+          Manage milestones for {client.user.name}
+        </p>
       </div>
 
       <MilestoneEditTable
