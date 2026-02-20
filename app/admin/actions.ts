@@ -104,16 +104,20 @@ export async function createClient(formData: FormData) {
       return newClient
     })
 
-    // Create Google Drive folder (fire and forget - don't block client creation)
-    // External HTTP calls must be outside DB transactions (not atomic, errors are non-fatal)
-    createClientDriveFolder(companyName, client.id)
-      .then(async (driveFolderId) => {
-        await prisma.client.update({
-          where: { id: client.id },
-          data: { driveFolderId },
-        })
+    // Create Google Drive folder and persist ID before returning
+    // Awaited here (not fire-and-forget) to prevent race condition where admin
+    // uploads a document before the async folder creation completes, causing
+    // the lazy-init in the upload route to create a second duplicate folder.
+    try {
+      const driveFolderId = await createClientDriveFolder(companyName, client.id)
+      await prisma.client.update({
+        where: { id: client.id },
+        data: { driveFolderId },
       })
-      .catch((err) => console.error('Drive folder creation failed:', err))
+    } catch (err) {
+      console.error('Drive folder creation failed:', err)
+      // Non-fatal — client exists, folder can be created later via migration script
+    }
 
     // Fire and forget - send welcome email (don't block client creation on email delivery)
     sendWelcomeEmail({
