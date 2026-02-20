@@ -166,12 +166,13 @@ Plans:
   6. Document UI in dashboard maintains existing design (Google Drive is backend replacement only)
   7. All existing Vercel Blob documents have been migrated to Google Drive
   8. Client receives email notification when new document is uploaded (uses Phase 8 email infrastructure)
-**Plans:** TBD
+**Plans:** 4 plans
 
 Plans:
-- [ ] 09-01: TBD
-- [ ] 09-02: TBD
-- [ ] 09-03: TBD
+- [ ] 09-01-PLAN.md — Foundation: Drive client singleton, helper functions, schema migration (driveFolderId), dependency setup
+- [ ] 09-02-PLAN.md — Upload: Replace Vercel Blob upload with Drive, folder creation on onboarding, admin upload endpoint and UI
+- [ ] 09-03-PLAN.md — Download/Delete: Streaming download proxy, DocumentList update, Drive file deletion
+- [ ] 09-04-PLAN.md — Migration: Audit existing documents, migrate Blob files to Drive, remove Vercel Blob dependency
 
 #### Phase 10: Payment Processing
 **Goal**: Clients can view invoices and pay through Stripe integration
@@ -276,7 +277,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 |-------|----------------|--------|-----------|
 | 7. Chat Integration | 2/2 | ✓ Complete | 2026-02-16 |
 | 8. Email Infrastructure | 2/2 | ✓ Complete | 2026-02-16 |
-| 9. Document Storage Migration | 0/TBD | Not started | - |
+| 9. Document Storage Migration | 0/4 | Not started | - |
 | 10. Payment Processing | 0/TBD | Not started | - |
 | 11. Facebook Ads Analytics | 0/TBD | Not started | - |
 | 12. Production Hardening | 0/TBD | Not started | - |
