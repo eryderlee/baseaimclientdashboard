@@ -39,14 +39,14 @@ Requirements for v1.0 Production Launch milestone. Each maps to roadmap phases.
 
 ### Payment Processing (Stripe)
 
-- [ ] **STRIPE-01**: Client can view list of invoices with payment status
-- [ ] **STRIPE-02**: Client can download invoice PDFs
-- [ ] **STRIPE-03**: Client can access Stripe Customer Portal to manage payment methods
-- [ ] **STRIPE-04**: Admin can create invoices for clients through dashboard
-- [ ] **STRIPE-05**: Stripe webhook receives and processes payment.succeeded events
-- [ ] **STRIPE-06**: Stripe webhook receives and processes payment.failed events
-- [ ] **STRIPE-07**: Invoice status automatically updates in database when payment succeeds/fails
-- [ ] **STRIPE-08**: Stripe webhook endpoint uses raw body parsing for signature verification
+- [x] **STRIPE-01**: Client can view list of invoices with payment status
+- [x] **STRIPE-02**: Client can download invoice PDFs
+- [x] **STRIPE-03**: Client can access Stripe Customer Portal to manage payment methods
+- [x] **STRIPE-04**: Admin can create invoices for clients through dashboard
+- [x] **STRIPE-05**: Stripe webhook receives and processes payment.succeeded events
+- [x] **STRIPE-06**: Stripe webhook receives and processes payment.failed events
+- [x] **STRIPE-07**: Invoice status automatically updates in database when payment succeeds/fails
+- [x] **STRIPE-08**: Stripe webhook endpoint uses raw body parsing for signature verification
 
 ### Facebook Ads Analytics
 
@@ -216,14 +216,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DRIVE-06 | Phase 9 | Pending |
 | DRIVE-07 | Phase 9 | Pending |
 | DRIVE-08 | Phase 9 | Pending |
-| STRIPE-01 | Phase 10 | Pending |
-| STRIPE-02 | Phase 10 | Pending |
-| STRIPE-03 | Phase 10 | Pending |
-| STRIPE-04 | Phase 10 | Pending |
-| STRIPE-05 | Phase 10 | Pending |
-| STRIPE-06 | Phase 10 | Pending |
-| STRIPE-07 | Phase 10 | Pending |
-| STRIPE-08 | Phase 10 | Pending |
+| STRIPE-01 | Phase 10 | Complete |
+| STRIPE-02 | Phase 10 | Complete |
+| STRIPE-03 | Phase 10 | Complete |
+| STRIPE-04 | Phase 10 | Complete |
+| STRIPE-05 | Phase 10 | Complete |
+| STRIPE-06 | Phase 10 | Complete |
+| STRIPE-07 | Phase 10 | Complete |
+| STRIPE-08 | Phase 10 | Complete |
 | FBADS-01 | Phase 11 | Pending |
 | FBADS-02 | Phase 11 | Pending |
 | FBADS-03 | Phase 11 | Pending |

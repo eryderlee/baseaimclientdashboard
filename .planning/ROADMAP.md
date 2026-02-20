@@ -190,9 +190,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 10-01-PLAN.md — Backend: DAL billing functions, server actions (createInvoice, createPortalSession), Stripe webhook handler, invoice URL API route
-- [ ] 10-02-PLAN.md — Admin UI: Invoice list page, create invoice form with dynamic line items, client detail page link
-- [ ] 10-03-PLAN.md — Client UI: Update billing page to use DAL, wire Pay Now/Download PDF/Manage Billing actions
+- [x] 10-01-PLAN.md — Backend: DAL billing functions, server actions (createInvoice, createPortalSession), Stripe webhook handler, invoice URL API route
+- [x] 10-02-PLAN.md — Admin UI: Invoice list page, create invoice form with dynamic line items, client detail page link
+- [x] 10-03-PLAN.md — Client UI: Update billing page to use DAL, wire Pay Now/Download PDF/Manage Billing actions
 
 #### Phase 11: Facebook Ads Analytics
 **Goal**: Clients can view their Facebook Ads campaign performance metrics in dashboard
