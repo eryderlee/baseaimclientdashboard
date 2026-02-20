@@ -234,3 +234,108 @@ export const getChatSettings = cache(async () => {
 
   return settings
 })
+
+// ─── Billing DAL Functions ───────────────────────────────────────────────────
+
+/**
+ * Get all invoices for the currently logged-in client
+ * CLIENT role only
+ */
+export const getClientInvoices = cache(async () => {
+  const clientId = await getCurrentClientId()
+
+  if (!clientId) {
+    throw new Error('Client profile not found')
+  }
+
+  return await prisma.invoice.findMany({
+    where: { clientId },
+    orderBy: { createdAt: 'desc' },
+  })
+})
+
+/**
+ * Get complete billing data for the currently logged-in client
+ * CLIENT role only — replaces inline getBillingData on billing page
+ */
+export const getClientBillingData = cache(async () => {
+  const clientId = await getCurrentClientId()
+
+  if (!clientId) {
+    throw new Error('Client profile not found')
+  }
+
+  const client = await prisma.client.findUnique({
+    where: { id: clientId },
+    include: {
+      invoices: {
+        orderBy: { createdAt: 'desc' },
+      },
+      subscriptions: true,
+    },
+  })
+
+  if (!client) {
+    throw new Error('Client not found')
+  }
+
+  return {
+    client,
+    invoices: client.invoices,
+    subscriptions: client.subscriptions,
+  }
+})
+
+/**
+ * Get all invoices for a specific client — admin use
+ * ADMIN role only
+ */
+export const getAdminClientInvoices = cache(async (clientId: string) => {
+  const { userRole } = await verifySession()
+
+  if (userRole !== 'ADMIN') {
+    throw new Error('Unauthorized: Admin access required')
+  }
+
+  return await prisma.invoice.findMany({
+    where: { clientId },
+    orderBy: { createdAt: 'desc' },
+  })
+})
+
+/**
+ * Get client data needed for invoice creation — admin use
+ * Returns companyName, user email, and subscriptions (stripeCustomerId)
+ * ADMIN role only
+ */
+export const getAdminClientForBilling = cache(async (clientId: string) => {
+  const { userRole } = await verifySession()
+
+  if (userRole !== 'ADMIN') {
+    throw new Error('Unauthorized: Admin access required')
+  }
+
+  const client = await prisma.client.findUnique({
+    where: { id: clientId },
+    include: {
+      user: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+      subscriptions: {
+        select: {
+          id: true,
+          stripeCustomerId: true,
+        },
+      },
+    },
+  })
+
+  if (!client) {
+    throw new Error('Client not found')
+  }
+
+  return client
+})
