@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 11 of 13 (Facebook Ads Analytics)
-Plan: 1 of 3 in current phase — In progress
+Plan: 2 of 3 in current phase — In progress
 Status: In progress
-Last activity: 2026-02-21 — Completed 11-01-PLAN.md (Schema migration + FB API helper + DAL function)
+Last activity: 2026-02-21 — Completed 11-02-PLAN.md (Admin UI: FB token settings + per-client adAccountId)
 
-Progress: [██████████████████░░░░░░░░] 28/30 plans complete through 11-01
+Progress: [███████████████████░░░░░░░] 29/30 plans complete through 11-02
 
 ## Performance Metrics
 
@@ -160,6 +160,12 @@ Recent decisions affecting current work:
 - Subscription dates serialized (Date → ISO string) at server component boundary — required for React serialization
 - window.confirm for cancel confirmation — simple, no extra dialog component needed
 
+**Phase 11 - Facebook Ads Admin UI (from 11-02):**
+- FbSettingsForm is a separate component in same file as ChatSettingsForm — each form submits independently
+- settings/page.tsx queries prisma.settings.findFirst() directly for facebookAccessToken — getChatSettings may not select it
+- adAccountId stored as null (not empty string) when cleared — consistent with other nullable DB fields
+- ClientFormProps.defaultValues typed as Partial<CreateClientInput & UpdateClientInput> — allows adAccountId in edit mode without casting
+
 **Phase 11 - Facebook Ads Foundation (from 11-01):**
 - verifySession() called BEFORE unstable_cache boundary — unstable_cache cannot access session cookies/headers (Next.js constraint)
 - No Facebook SDK — single fetch to Marketing API v22.0 (no bundle overhead)
@@ -171,7 +177,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-21T11:41:07Z
-Stopped at: Completed 11-01-PLAN.md (Phase 11 Plan 1 - Schema + FB API helper + DAL function)
+Last session: 2026-02-21T11:47:36Z
+Stopped at: Completed 11-02-PLAN.md (Phase 11 Plan 2 - Admin UI: FB token settings + per-client adAccountId)
 Resume file: None
-Next: Phase 11 Plan 2 — run /gsd:execute-phase 11 02
+Next: Phase 11 Plan 3 — run /gsd:execute-phase 11 03
