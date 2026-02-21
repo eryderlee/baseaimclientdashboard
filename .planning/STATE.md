@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 11 of 13 (Facebook Ads Analytics)
-Plan: 2 of 3 in current phase — In progress
-Status: In progress
-Last activity: 2026-02-21 — Completed 11-02-PLAN.md (Admin UI: FB token settings + per-client adAccountId)
+Plan: 3 of 3 in current phase — Awaiting human verification checkpoint
+Status: In progress (checkpoint)
+Last activity: 2026-02-21 — Executed 11-03-PLAN.md auto tasks (client analytics page + FB metrics components)
 
-Progress: [███████████████████░░░░░░░] 29/30 plans complete through 11-02
+Progress: [████████████████████░░░░░░] 30/31 plans complete through 11-03 auto tasks
 
 ## Performance Metrics
 
@@ -160,6 +160,12 @@ Recent decisions affecting current work:
 - Subscription dates serialized (Date → ISO string) at server component boundary — required for React serialization
 - window.confirm for cancel confirmation — simple, no extra dialog component needed
 
+**Phase 11 - Facebook Ads Client Analytics (from 11-03):**
+- Dynamic import('jspdf') inside exportPdf onClick — jspdf is browser-only, prevents SSR bundle
+- isConfigured check at page level via prisma.client.findUnique — keeps FbAdsMetrics purely presentational
+- searchParams.range defaults to '30d' when absent/invalid — most useful FB ad review window
+- rangToDatePreset() maps UI range strings ('7d'|'30d'|'all') to Facebook DatePreset values
+
 **Phase 11 - Facebook Ads Admin UI (from 11-02):**
 - FbSettingsForm is a separate component in same file as ChatSettingsForm — each form submits independently
 - settings/page.tsx queries prisma.settings.findFirst() directly for facebookAccessToken — getChatSettings may not select it
@@ -177,7 +183,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-21T11:47:36Z
-Stopped at: Completed 11-02-PLAN.md (Phase 11 Plan 2 - Admin UI: FB token settings + per-client adAccountId)
+Last session: 2026-02-21T12:12:00Z
+Stopped at: 11-03-PLAN.md checkpoint (Task 2 complete, awaiting human-verify of full Phase 11)
 Resume file: None
-Next: Phase 11 Plan 3 — run /gsd:execute-phase 11 03
+Next: After user approves checkpoint — run /gsd:execute-phase 11 03 (continuation)
