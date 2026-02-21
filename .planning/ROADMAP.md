@@ -209,11 +209,12 @@ Plans:
 
 **CRITICAL NOTE:** Facebook Advanced Access requires 2-6 weeks approval. Application must be submitted at start of Phase 7, not when this phase begins.
 
-**Plans:** TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 11-01: TBD
-- [ ] 11-02: TBD
+- [ ] 11-01-PLAN.md — Schema migration (adAccountId + facebookAccessToken), FB fetch helper, DAL with 6-hour cache, settings schema
+- [ ] 11-02-PLAN.md — Admin UI: Facebook token field in settings page, adAccountId field in client edit form
+- [ ] 11-03-PLAN.md — Client analytics page: FB metrics grid, date range switcher, CSV/PDF export
 
 #### Phase 12: Production Hardening
 **Goal**: Dashboard is secure, reliable, and production-ready with proper error handling and monitoring
@@ -280,6 +281,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 8. Email Infrastructure | 2/2 | ✓ Complete | 2026-02-16 |
 | 9. Document Storage Migration | 4/4 | ✓ Complete | 2026-02-20 |
 | 10. Payment Processing | 3/3 | ✓ Complete | 2026-02-20 |
-| 11. Facebook Ads Analytics | 0/TBD | Not started | - |
+| 11. Facebook Ads Analytics | 0/3 | Not started | - |
 | 12. Production Hardening | 0/TBD | Not started | - |
 | 13. UI Polish & Admin Analytics Integration | 0/TBD | Not started | - |
