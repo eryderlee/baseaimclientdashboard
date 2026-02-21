@@ -1,13 +1,24 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { getClientFbInsights } from "@/lib/dal"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AnalyticsCharts } from "@/components/dashboard/analytics-charts"
+import { FbAdsMetrics } from "@/components/dashboard/fb-ads-metrics"
 import {
   FileText,
   MessageSquare,
   TrendingUp,
   Activity,
 } from "lucide-react"
+import type { DatePreset } from "@/lib/facebook-ads"
+
+type DateRange = '7d' | '30d' | 'all'
+
+function rangToDatePreset(range: DateRange): DatePreset {
+  if (range === '7d') return 'last_7d'
+  if (range === 'all') return 'maximum'
+  return 'last_30d'
+}
 
 async function getAnalyticsData(userId: string) {
   const user = await prisma.user.findUnique({
@@ -86,9 +97,38 @@ async function getAnalyticsData(userId: string) {
   }
 }
 
-export default async function AnalyticsPage() {
+export default async function AnalyticsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ range?: string }>
+}) {
   const session = await auth()
-  const analytics = await getAnalyticsData(session!.user!.id)
+  const userId = session!.user!.id
+
+  // Resolve searchParams (Next.js 15 async pattern)
+  const resolvedParams = await searchParams
+  const rawRange = resolvedParams?.range
+
+  // Validate and default the date range
+  const dateRange: DateRange =
+    rawRange === '7d' || rawRange === '30d' || rawRange === 'all'
+      ? rawRange
+      : '30d'
+
+  const datePreset = rangToDatePreset(dateRange)
+
+  // Determine isConfigured: client has adAccountId set
+  const clientProfile = await prisma.client.findUnique({
+    where: { userId },
+    select: { adAccountId: true },
+  })
+  const isConfigured = !!clientProfile?.adAccountId
+
+  // Fetch FB insights (returns null when not configured or no data)
+  const fbInsights = await getClientFbInsights(datePreset)
+
+  // Fetch existing project analytics data
+  const analytics = await getAnalyticsData(userId)
 
   return (
     <div className="space-y-6">
@@ -99,61 +139,74 @@ export default async function AnalyticsPage() {
         </p>
       </div>
 
-      {/* Key Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Documents</CardTitle>
-            <FileText className="h-4 w-4 text-neutral-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics.totalDocuments}</div>
-            <p className="text-xs text-neutral-500 mt-1">
-              Uploaded to date
-            </p>
-          </CardContent>
-        </Card>
+      {/* Facebook Ads Performance */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold tracking-tight">Facebook Ads Performance</h2>
+        <FbAdsMetrics
+          insights={fbInsights}
+          dateRange={dateRange}
+          isConfigured={isConfigured}
+        />
+      </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Messages Sent</CardTitle>
-            <MessageSquare className="h-4 w-4 text-neutral-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics.totalMessages}</div>
-            <p className="text-xs text-neutral-500 mt-1">
-              Total communications
-            </p>
-          </CardContent>
-        </Card>
+      {/* Project Metrics */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold tracking-tight">Project Metrics</h2>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Documents</CardTitle>
+              <FileText className="h-4 w-4 text-neutral-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{analytics.totalDocuments}</div>
+              <p className="text-xs text-neutral-500 mt-1">
+                Uploaded to date
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completion Rate</CardTitle>
-            <TrendingUp className="h-4 w-4 text-neutral-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analytics.progressRate}%</div>
-            <p className="text-xs text-neutral-500 mt-1">
-              {analytics.completedMilestones} of {analytics.totalMilestones} milestones
-            </p>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Messages Sent</CardTitle>
+              <MessageSquare className="h-4 w-4 text-neutral-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{analytics.totalMessages}</div>
+              <p className="text-xs text-neutral-500 mt-1">
+                Total communications
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
-            <Activity className="h-4 w-4 text-neutral-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {analytics.activityData.slice(0, 7).reduce((sum, d) => sum + d.count, 0)}
-            </div>
-            <p className="text-xs text-neutral-500 mt-1">
-              Last 7 days
-            </p>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Completion Rate</CardTitle>
+              <TrendingUp className="h-4 w-4 text-neutral-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{analytics.progressRate}%</div>
+              <p className="text-xs text-neutral-500 mt-1">
+                {analytics.completedMilestones} of {analytics.totalMilestones} milestones
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
+              <Activity className="h-4 w-4 text-neutral-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {analytics.activityData.slice(0, 7).reduce((sum, d) => sum + d.count, 0)}
+              </div>
+              <p className="text-xs text-neutral-500 mt-1">
+                Last 7 days
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Charts */}
