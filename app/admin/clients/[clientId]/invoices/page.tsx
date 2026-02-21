@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, CreditCard, Plus } from "lucide-react"
-import { verifySession, getAdminClientInvoices, getAdminClientForBilling } from "@/lib/dal"
+import { verifySession, getAdminClientInvoices, getAdminClientForBilling, getAdminClientSubscription } from "@/lib/dal"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { InvoiceStatus } from "@prisma/client"
+import { SubscriptionManager } from "@/components/admin/subscription-manager"
 
 // Format currency amount (amount is stored as a float, e.g. 1500.00)
 function formatCurrency(amount: number, currency: string) {
@@ -66,11 +67,23 @@ export default async function ClientInvoicesPage({
   // 2. Await params (Next.js 16+ async params)
   const { clientId } = await params
 
-  // 3. Fetch client and invoices via DAL
-  const [client, invoices] = await Promise.all([
-    getAdminClientForBilling(clientId),
+  // 3. Fetch client, invoices, and subscription via DAL
+  const [invoices, clientData, subscription] = await Promise.all([
     getAdminClientInvoices(clientId),
+    getAdminClientForBilling(clientId),
+    getAdminClientSubscription(clientId),
   ])
+
+  // 4. Serialize subscription for client component (dates must be strings)
+  const serializedSubscription = subscription
+    ? {
+        id: subscription.id,
+        status: subscription.status,
+        currentPeriodEnd: subscription.currentPeriodEnd?.toISOString() ?? null,
+        stripePriceId: subscription.stripePriceId,
+        stripeSubscriptionId: subscription.stripeSubscriptionId,
+      }
+    : null
 
   return (
     <div className="space-y-6">
@@ -88,7 +101,7 @@ export default async function ClientInvoicesPage({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            {client.companyName} — Invoices
+            {clientData.companyName} — Invoices
           </h1>
           <p className="text-neutral-500 mt-1">
             {invoices.length} invoice{invoices.length !== 1 ? "s" : ""} total
@@ -102,6 +115,12 @@ export default async function ClientInvoicesPage({
         </Button>
       </div>
 
+      {/* Subscription Manager */}
+      <SubscriptionManager
+        clientId={clientId}
+        subscription={serializedSubscription}
+      />
+
       {/* Invoices table or empty state */}
       {invoices.length === 0 ? (
         <Card>
@@ -110,7 +129,7 @@ export default async function ClientInvoicesPage({
             <div className="text-center">
               <p className="text-lg font-medium text-neutral-900">No invoices yet</p>
               <p className="text-neutral-500 mt-1">
-                Create the first invoice for {client.companyName}
+                Create the first invoice for {clientData.companyName}
               </p>
             </div>
             <Button asChild>
