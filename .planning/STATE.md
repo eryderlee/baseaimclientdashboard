@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 10 of 13 (Payment Processing)
-Plan: 3 of 3 in current phase — Phase Complete
-Status: Phase 10 complete, Phase 11 ready
-Last activity: 2026-02-20 — Completed 10-02-PLAN.md (Admin invoice UI: list page, create form, client detail link)
+Plan: 4 of 5 in current phase — In progress
+Status: In progress
+Last activity: 2026-02-21 — Completed 10-04-PLAN.md (Subscription backend: server actions, webhooks, DAL)
 
-Progress: [█████████████████░░░░░░░░░] 25/25 plans complete (Phases 1-10 done)
+Progress: [█████████████████░░░░░░░░░] 26/26 plans complete through 10-04
 
 ## Performance Metrics
 
@@ -135,7 +135,7 @@ Recent decisions affecting current work:
 
 **For Phase 10 remaining plans:**
 - STRIPE_WEBHOOK_SECRET must be configured for webhook to function
-- Stripe webhook endpoint needs registering in Stripe Dashboard (events: invoice.paid, invoice.payment_failed)
+- Stripe webhook endpoint needs registering in Stripe Dashboard (events: invoice.paid, invoice.payment_failed, customer.subscription.updated, customer.subscription.deleted)
 
 **Phase 10 - Stripe Client UI (from 10-03):**
 - Stripe URLs fetched on-demand at click time via /api/invoices/[id]/urls — not cached client-side (they expire)
@@ -148,9 +148,15 @@ Recent decisions affecting current work:
 - useTransition for server action submit state — cleaner than formState.isSubmitting for async actions
 - Admin client detail page now has Edit+Documents+Invoices action buttons row
 
+**Phase 10 - Subscription Backend (from 10-04):**
+- clientId not unique on Subscription model — startSubscription uses findFirst+update/create instead of upsert where:{ clientId }
+- current_period_end cast via (as unknown as { current_period_end: number }) — avoids TypeScript any warning while keeping noEmit clean
+- cancelSubscription finds by stripeSubscriptionId not null — works regardless of current status string
+- getAdminClientSubscription returns most recent by createdAt desc — handles multiple historical records
+
 ## Session Continuity
 
-Last session: 2026-02-20T16:56:16Z
-Stopped at: Completed 10-02-PLAN.md (Phase 10 Plan 2 - Admin invoice UI)
+Last session: 2026-02-21T06:58:38Z
+Stopped at: Completed 10-04-PLAN.md (Phase 10 Plan 4 - Subscription backend)
 Resume file: None
-Next: Phase 11 (Facebook Ads Analytics) — run /gsd:plan-phase 11
+Next: 10-05 (Subscription admin UI) — run /gsd:execute-phase 10 05
