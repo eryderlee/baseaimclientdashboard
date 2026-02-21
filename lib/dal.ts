@@ -304,6 +304,21 @@ export const getAdminClientInvoices = cache(async (clientId: string) => {
 })
 
 /**
+ * Get subscription status for a specific client — admin use
+ * Returns the most recent Subscription record (or null if none)
+ * ADMIN role only
+ */
+export const getAdminClientSubscription = cache(async (clientId: string) => {
+  const { userRole } = await verifySession()
+  if (userRole !== 'ADMIN') throw new Error('Unauthorized')
+
+  return prisma.subscription.findFirst({
+    where: { clientId },
+    orderBy: { createdAt: 'desc' },
+  })
+})
+
+/**
  * Get client data needed for invoice creation — admin use
  * Returns companyName, user email, and subscriptions (stripeCustomerId)
  * ADMIN role only

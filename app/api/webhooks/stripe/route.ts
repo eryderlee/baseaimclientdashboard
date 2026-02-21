@@ -153,6 +153,71 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         break
       }
 
+      case 'customer.subscription.deleted': {
+        const stripeSubscription = event.data.object as Stripe.Subscription
+
+        // Find local subscription by stripeSubscriptionId
+        const localSubscription = await prisma.subscription.findFirst({
+          where: { stripeSubscriptionId: stripeSubscription.id },
+        })
+
+        if (!localSubscription) {
+          console.warn(
+            `Stripe webhook: customer.subscription.deleted — no local subscription for stripeSubscriptionId=${stripeSubscription.id}`
+          )
+          return NextResponse.json({ received: true }, { status: 200 })
+        }
+
+        // Mark subscription as inactive and clear Stripe IDs
+        await prisma.subscription.update({
+          where: { id: localSubscription.id },
+          data: {
+            status: 'inactive',
+            stripeSubscriptionId: null,
+            currentPeriodEnd: null,
+          },
+        })
+
+        console.info(
+          `Stripe webhook: customer.subscription.deleted — marked inactive (subscriptionId=${localSubscription.id})`
+        )
+        break
+      }
+
+      case 'customer.subscription.updated': {
+        const stripeSubscription = event.data.object as Stripe.Subscription
+
+        // Find local subscription by stripeSubscriptionId
+        const localSubscription = await prisma.subscription.findFirst({
+          where: { stripeSubscriptionId: stripeSubscription.id },
+        })
+
+        if (!localSubscription) {
+          console.warn(
+            `Stripe webhook: customer.subscription.updated — no local subscription for stripeSubscriptionId=${stripeSubscription.id}`
+          )
+          return NextResponse.json({ received: true }, { status: 200 })
+        }
+
+        // Update status and period end
+        await prisma.subscription.update({
+          where: { id: localSubscription.id },
+          data: {
+            status: stripeSubscription.cancel_at_period_end
+              ? 'cancelling'
+              : stripeSubscription.status,
+            currentPeriodEnd: new Date(
+              (stripeSubscription as unknown as { current_period_end: number }).current_period_end * 1000
+            ),
+          },
+        })
+
+        console.info(
+          `Stripe webhook: customer.subscription.updated — updated (subscriptionId=${localSubscription.id})`
+        )
+        break
+      }
+
       default:
         // Unhandled event types — log and return 200 (not an error)
         console.info(`Stripe webhook: unhandled event type "${event.type}"`)
