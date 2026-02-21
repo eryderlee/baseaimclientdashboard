@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react"
 import { verifySession, getClientForEdit } from "@/lib/dal"
 import { ClientForm } from "@/components/admin/client-form"
 import { PasswordResetSection } from "@/components/admin/password-reset-section"
+import { DeleteClientSection } from "@/components/admin/delete-client-section"
 import { Button } from "@/components/ui/button"
 
 export default async function ClientEditPage({
@@ -39,7 +40,7 @@ export default async function ClientEditPage({
           Edit Client - {client.companyName}
         </h1>
         <p className="text-neutral-500 mt-1">
-          Update client details and company information
+          {client.user.email}
         </p>
       </div>
 
@@ -53,10 +54,13 @@ export default async function ClientEditPage({
           website: client.website || undefined,
           phone: client.phone || undefined,
           address: client.address || undefined,
+          adAccountId: client.adAccountId || undefined,
         }}
       />
 
       <PasswordResetSection clientId={clientId} />
+
+      <DeleteClientSection clientId={clientId} companyName={client.companyName} />
     </div>
   )
 }

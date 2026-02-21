@@ -156,6 +156,7 @@ export async function updateClient(clientId: string, formData: FormData) {
     website: formData.get('website') || undefined,
     phone: formData.get('phone') || undefined,
     address: formData.get('address') || undefined,
+    adAccountId: formData.get('adAccountId') || undefined,
   }
 
   const validatedFields = updateClientSchema.safeParse(rawData)
@@ -167,7 +168,7 @@ export async function updateClient(clientId: string, formData: FormData) {
     }
   }
 
-  const { name, companyName, industry, website, phone, address } = validatedFields.data
+  const { name, companyName, industry, website, phone, address, adAccountId } = validatedFields.data
 
   try {
     // Update client and user in transaction
@@ -181,6 +182,7 @@ export async function updateClient(clientId: string, formData: FormData) {
           website,
           phone,
           address,
+          adAccountId: adAccountId || null,
         },
       })
 

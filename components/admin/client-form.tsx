@@ -16,7 +16,7 @@ import { useRouter } from 'next/navigation'
 
 interface ClientFormProps {
   mode: 'create' | 'edit'
-  defaultValues?: Partial<CreateClientInput>
+  defaultValues?: Partial<CreateClientInput & UpdateClientInput>
   clientId?: string // required for edit mode
 }
 
@@ -263,6 +263,38 @@ export function ClientForm({ mode, defaultValues, clientId }: ClientFormProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Facebook Ads Configuration — Edit mode only */}
+      {mode === 'edit' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Facebook Ads Configuration</CardTitle>
+            <CardDescription>
+              Configure the Facebook Ad Account ID for this client&apos;s analytics integration.
+              The System User token is configured globally in Admin Settings.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="adAccountId">Facebook Ad Account ID</Label>
+              <Input
+                id="adAccountId"
+                placeholder="act_123456789"
+                {...register('adAccountId' as any)}
+                className="mt-1 font-mono"
+              />
+              <p className="text-sm text-neutral-500 mt-1">
+                Found in Meta Ads Manager URL or Business Settings &rsaquo; Ad Accounts. Must include act_ prefix.
+              </p>
+              {(errors as any).adAccountId && (
+                <p className="text-sm text-destructive mt-1">
+                  {(errors as any).adAccountId.message}
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Submit Button */}
       <div className="flex justify-end">

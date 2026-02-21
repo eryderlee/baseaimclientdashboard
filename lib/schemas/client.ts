@@ -30,6 +30,11 @@ export const updateClientSchema = z.object({
   website: z.string().url("Enter a valid URL").or(z.literal("")).optional(),
   phone: z.string().optional(),
   address: z.string().optional(),
+  adAccountId: z
+    .string()
+    .regex(/^act_\d+$/, 'Format must be act_XXXXXXXXX (e.g. act_123456789)')
+    .optional()
+    .or(z.literal('')),
 });
 
 // Inferred TypeScript types from schemas
