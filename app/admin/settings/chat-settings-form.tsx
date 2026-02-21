@@ -2,8 +2,8 @@
 
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { chatSettingsSchema, type ChatSettingsData } from '@/lib/schemas/settings'
-import { updateChatSettings } from './actions'
+import { chatSettingsSchema, type ChatSettingsData, fbSettingsSchema, type FbSettingsData } from '@/lib/schemas/settings'
+import { updateChatSettings, updateFbSettings } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -108,6 +108,72 @@ export function ChatSettingsForm({ defaultValues }: ChatSettingsFormProps) {
       <div className="flex justify-end">
         <Button type="submit" disabled={isSubmitting || isPending} size="lg">
           {isSubmitting || isPending ? 'Saving...' : 'Save Settings'}
+        </Button>
+      </div>
+    </form>
+  )
+}
+
+interface FbSettingsFormProps {
+  defaultValues: FbSettingsData
+}
+
+export function FbSettingsForm({ defaultValues }: FbSettingsFormProps) {
+  const [isPending, startTransition] = useTransition()
+
+  const form = useForm<FbSettingsData>({
+    resolver: zodResolver(fbSettingsSchema),
+    defaultValues,
+  })
+
+  const { register, handleSubmit, formState: { isSubmitting } } = form
+
+  const onSubmit = async (data: FbSettingsData) => {
+    const formData = new FormData()
+    if (data.facebookAccessToken) {
+      formData.append('facebookAccessToken', data.facebookAccessToken)
+    }
+
+    startTransition(async () => {
+      const result = await updateFbSettings(formData)
+      if (result?.error) {
+        toast.error(result.error)
+      } else if (result?.success) {
+        toast.success('Facebook settings saved')
+      }
+    })
+  }
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Facebook Ads Integration</CardTitle>
+          <CardDescription>
+            Configure the Meta Business Manager System User token for Facebook Ads analytics.
+            Generate this token from Business Manager &rsaquo; Users &rsaquo; System Users.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="facebookAccessToken">System User Access Token</Label>
+            <Input
+              id="facebookAccessToken"
+              type="password"
+              placeholder="EAABxx..."
+              {...register('facebookAccessToken')}
+              className="mt-1 font-mono text-sm"
+            />
+            <p className="text-sm text-neutral-500 mt-1">
+              System User tokens do not expire. Store securely — token grants access to all configured ad accounts.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="flex justify-end">
+        <Button type="submit" disabled={isSubmitting || isPending} size="lg">
+          {isSubmitting || isPending ? 'Saving...' : 'Save Facebook Settings'}
         </Button>
       </div>
     </form>

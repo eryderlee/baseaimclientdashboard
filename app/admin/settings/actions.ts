@@ -2,7 +2,7 @@
 
 import { verifySession } from '@/lib/dal'
 import { prisma } from '@/lib/prisma'
-import { chatSettingsSchema } from '@/lib/schemas/settings'
+import { chatSettingsSchema, fbSettingsSchema } from '@/lib/schemas/settings'
 import { revalidatePath } from 'next/cache'
 
 /**
@@ -64,6 +64,60 @@ export async function updateChatSettings(formData: FormData) {
     return { success: true }
   } catch (error) {
     console.error('Failed to update settings:', error)
+    return { error: 'Failed to update settings. Please try again.' }
+  }
+}
+
+/**
+ * Update Facebook Ads settings (System User access token)
+ * Uses same upsert pattern as updateChatSettings
+ */
+export async function updateFbSettings(formData: FormData) {
+  // Verify admin role
+  const { userRole } = await verifySession()
+  if (userRole !== 'ADMIN') {
+    return { error: 'Unauthorized' }
+  }
+
+  // Extract form data
+  const rawData = {
+    facebookAccessToken: formData.get('facebookAccessToken') || '',
+  }
+
+  const validatedFields = fbSettingsSchema.safeParse(rawData)
+
+  if (!validatedFields.success) {
+    return {
+      error: 'Validation failed',
+      errors: validatedFields.error.flatten().fieldErrors,
+    }
+  }
+
+  const { facebookAccessToken } = validatedFields.data
+
+  try {
+    const existingSettings = await prisma.settings.findFirst()
+
+    if (existingSettings) {
+      await prisma.settings.update({
+        where: { id: existingSettings.id },
+        data: {
+          facebookAccessToken: facebookAccessToken || null,
+        },
+      })
+    } else {
+      await prisma.settings.create({
+        data: {
+          facebookAccessToken: facebookAccessToken || null,
+        },
+      })
+    }
+
+    revalidatePath('/admin/settings')
+
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to update Facebook settings:', error)
     return { error: 'Failed to update settings. Please try again.' }
   }
 }

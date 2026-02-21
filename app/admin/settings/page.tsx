@@ -1,16 +1,19 @@
 import { redirect } from "next/navigation"
 import { verifySession, getChatSettings } from "@/lib/dal"
-import { ChatSettingsForm } from "./chat-settings-form"
+import { prisma } from "@/lib/prisma"
+import { ChatSettingsForm, FbSettingsForm } from "./chat-settings-form"
 
 export default async function AdminSettingsPage() {
-  // Verify admin access
   const { userRole } = await verifySession()
   if (userRole !== "ADMIN") {
     redirect("/dashboard")
   }
 
-  // Fetch current settings
   const settings = await getChatSettings()
+
+  const fullSettings = await prisma.settings.findFirst({
+    select: { facebookAccessToken: true },
+  })
 
   return (
     <div className="space-y-6">
@@ -25,6 +28,12 @@ export default async function AdminSettingsPage() {
         defaultValues={{
           whatsappNumber: settings?.whatsappNumber || '',
           telegramUsername: settings?.telegramUsername || '',
+        }}
+      />
+
+      <FbSettingsForm
+        defaultValues={{
+          facebookAccessToken: fullSettings?.facebookAccessToken || '',
         }}
       />
     </div>
