@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-15)
 
 **Core value:** Clients can see exactly where their project stands without having to ask
-**Current focus:** Phase 10 - Payment Processing (Stripe Integration)
+**Current focus:** Phase 11 - Facebook Ads Analytics
 
 ## Current Position
 
-Phase: 10 of 13 (Payment Processing)
-Plan: 5 of 5 in current phase — Phase complete
-Status: Phase complete
-Last activity: 2026-02-21 — Completed 10-05-PLAN.md (Subscription admin UI: SubscriptionManager component)
+Phase: 11 of 13 (Facebook Ads Analytics)
+Plan: 1 of 3 in current phase — In progress
+Status: In progress
+Last activity: 2026-02-21 — Completed 11-01-PLAN.md (Schema migration + FB API helper + DAL function)
 
-Progress: [██████████████████░░░░░░░░] 27/27 plans complete through 10-05
+Progress: [██████████████████░░░░░░░░] 28/30 plans complete through 11-01
 
 ## Performance Metrics
 
@@ -160,9 +160,18 @@ Recent decisions affecting current work:
 - Subscription dates serialized (Date → ISO string) at server component boundary — required for React serialization
 - window.confirm for cancel confirmation — simple, no extra dialog component needed
 
+**Phase 11 - Facebook Ads Foundation (from 11-01):**
+- verifySession() called BEFORE unstable_cache boundary — unstable_cache cannot access session cookies/headers (Next.js constraint)
+- No Facebook SDK — single fetch to Marketing API v22.0 (no bundle overhead)
+- cache: 'no-store' on fetchFacebookInsights — caching entirely delegated to unstable_cache in DAL layer
+- 6-hour TTL (revalidate: 21600) — balances data freshness with Facebook API rate limits
+- All FbInsights values are strings — Facebook API returns numbers as strings, always parseFloat() before arithmetic
+- Returns null (not throw) when adAccountId or facebookAccessToken not configured — UI shows "not configured" state
+- prisma db push used (not migrate dev) — project uses schema-first push approach, no migrations folder exists
+
 ## Session Continuity
 
-Last session: 2026-02-21T07:03:00Z
-Stopped at: Completed 10-05-PLAN.md (Phase 10 Plan 5 - Subscription admin UI) — Phase 10 complete
+Last session: 2026-02-21T11:41:07Z
+Stopped at: Completed 11-01-PLAN.md (Phase 11 Plan 1 - Schema + FB API helper + DAL function)
 Resume file: None
-Next: Phase 11 (Facebook Ads Integration) — run /gsd:execute-phase 11 01
+Next: Phase 11 Plan 2 — run /gsd:execute-phase 11 02
