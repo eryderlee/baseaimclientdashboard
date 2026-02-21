@@ -226,6 +226,76 @@ export async function createInvoice(formData: FormData): Promise<ActionResult> {
 }
 
 /**
+ * Create a Stripe Checkout setup session for a client to save their card
+ * ADMIN role only — returns a URL the admin can send to the client
+ * The client opens the URL, adds their card, then the admin can start a subscription
+ */
+export async function createCardSetupLink(formData: FormData): Promise<ActionResult> {
+  try {
+    const { userRole } = await verifySession()
+    if (userRole !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Admin access required' }
+    }
+
+    const clientId = formData.get('clientId') as string
+    if (!clientId) return { success: false, error: 'Client ID is required' }
+
+    const client = await prisma.client.findUnique({
+      where: { id: clientId },
+      include: {
+        user: { select: { name: true, email: true } },
+        subscriptions: { select: { id: true, stripeCustomerId: true } },
+      },
+    })
+
+    if (!client) return { success: false, error: 'Client not found' }
+
+    // Get or create Stripe customer (same lazy pattern as createInvoice)
+    let stripeCustomerId: string
+    const existingSubscription = client.subscriptions.find(
+      (s) => s.stripeCustomerId !== null
+    )
+
+    if (existingSubscription?.stripeCustomerId) {
+      stripeCustomerId = existingSubscription.stripeCustomerId
+    } else {
+      const stripeCustomer = await stripe.customers.create({
+        email: client.user.email,
+        name: client.companyName,
+        metadata: { clientId },
+      })
+      stripeCustomerId = stripeCustomer.id
+
+      await prisma.subscription.upsert({
+        where: { id: existingSubscription?.id || '' },
+        update: { stripeCustomerId },
+        create: { clientId, stripeCustomerId, status: 'inactive' },
+      })
+    }
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+
+    // Stripe Checkout in setup mode — no charge, just saves the card
+    // The checkout.session.completed webhook sets the card as the customer's default
+    const session = await stripe.checkout.sessions.create({
+      customer: stripeCustomerId,
+      mode: 'setup',
+      payment_method_types: ['card'],
+      success_url: `${appUrl}/dashboard/billing?setup=success`,
+      cancel_url: `${appUrl}/dashboard/billing`,
+    })
+
+    return { success: true, url: session.url! }
+  } catch (error) {
+    console.error('createCardSetupLink error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to create setup link',
+    }
+  }
+}
+
+/**
  * Start a monthly retainer subscription for a client
  * ADMIN role only
  * - Gets or creates a Stripe customer lazily

@@ -1,9 +1,13 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { RefreshCw, XCircle } from 'lucide-react'
+import { RefreshCw, XCircle, Link2, Copy, Check } from 'lucide-react'
 import { toast } from 'sonner'
-import { startSubscription, cancelSubscription } from '@/app/actions/billing'
+import {
+  startSubscription,
+  cancelSubscription,
+  createCardSetupLink,
+} from '@/app/actions/billing'
 import {
   Card,
   CardContent,
@@ -32,8 +36,11 @@ export function SubscriptionManager({
   subscription,
 }: SubscriptionManagerProps) {
   const [isPending, startTransition] = useTransition()
+  const [isSetupPending, startSetupTransition] = useTransition()
   const [monthlyAmount, setMonthlyAmount] = useState<number>(0)
   const [description, setDescription] = useState<string>('Monthly Retainer')
+  const [setupLink, setSetupLink] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
 
   const isActive =
     subscription !== null &&
@@ -58,6 +65,26 @@ export function SubscriptionManager({
       })
     }
 
+    const handleGenerateSetupLink = () => {
+      startSetupTransition(async () => {
+        const formData = new FormData()
+        formData.set('clientId', clientId)
+        const result = await createCardSetupLink(formData)
+        if (result.success && result.url) {
+          setSetupLink(result.url)
+        } else {
+          toast.error(result.error || 'Failed to generate setup link')
+        }
+      })
+    }
+
+    const handleCopy = async () => {
+      if (!setupLink) return
+      await navigator.clipboard.writeText(setupLink)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+
     return (
       <Card>
         <CardHeader>
@@ -69,7 +96,7 @@ export function SubscriptionManager({
             Start automatic monthly billing for this client
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="monthly-amount">Monthly Amount (AUD)</Label>
@@ -92,10 +119,66 @@ export function SubscriptionManager({
                 onChange={(e) => setDescription(e.target.value)}
               />
             </div>
-            <Button type="submit" disabled={isPending}>
+            <Button type="submit" disabled={isPending || isSetupPending}>
               {isPending ? 'Starting...' : 'Start Retainer'}
             </Button>
           </form>
+
+          {/* Divider */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">
+                Client needs to add a card first?
+              </span>
+            </div>
+          </div>
+
+          {/* Setup link section */}
+          {setupLink ? (
+            <div className="space-y-2">
+              <p className="text-sm text-neutral-600">
+                Send this link to the client — they add their card via Stripe,
+                then you can start the retainer:
+              </p>
+              <div className="flex gap-2">
+                <Input
+                  value={setupLink}
+                  readOnly
+                  className="font-mono text-xs"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={handleCopy}
+                  aria-label="Copy link"
+                >
+                  {copied ? (
+                    <Check className="h-4 w-4 text-green-600" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+              <p className="text-xs text-neutral-400">
+                This link expires after 24 hours. Generate a new one if needed.
+              </p>
+            </div>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              disabled={isSetupPending || isPending}
+              onClick={handleGenerateSetupLink}
+            >
+              <Link2 className="h-4 w-4 mr-2" />
+              {isSetupPending ? 'Generating...' : 'Generate Card Setup Link'}
+            </Button>
+          )}
         </CardContent>
       </Card>
     )

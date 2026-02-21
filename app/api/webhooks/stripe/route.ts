@@ -235,6 +235,33 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         break
       }
 
+      case 'checkout.session.completed': {
+        const session = event.data.object as Stripe.Checkout.Session
+
+        // Only handle setup mode sessions (card setup flow)
+        if (session.mode !== 'setup' || !session.setup_intent || !session.customer) {
+          break
+        }
+
+        // Retrieve the setup intent to get the saved payment method
+        const setupIntent = await stripe.setupIntents.retrieve(
+          session.setup_intent as string
+        )
+
+        if (setupIntent.payment_method && typeof setupIntent.payment_method === 'string') {
+          // Set as the customer's default payment method for invoices
+          await stripe.customers.update(session.customer as string, {
+            invoice_settings: {
+              default_payment_method: setupIntent.payment_method,
+            },
+          })
+          console.info(
+            `Stripe webhook: checkout.session.completed — set default payment method for customer=${session.customer}`
+          )
+        }
+        break
+      }
+
       case 'customer.subscription.deleted': {
         const stripeSubscription = event.data.object as Stripe.Subscription
 
