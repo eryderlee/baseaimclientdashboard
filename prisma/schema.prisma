@@ -64,6 +64,7 @@ model Client {
   phone           String?
   address         String?
   driveFolderId   String?   // Google Drive folder ID for this client's documents
+  adAccountId     String?   // Facebook Ad Account ID, e.g. "act_123456789"
   onboardingStep  Int       @default(0)
   isActive        Boolean   @default(true)
   createdAt       DateTime  @default(now())
@@ -233,11 +234,12 @@ model Activity {
 }
 
 model Settings {
-  id                String   @id @default(cuid())
-  whatsappNumber    String?
-  telegramUsername  String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id                   String   @id @default(cuid())
+  whatsappNumber       String?
+  telegramUsername     String?
+  facebookAccessToken  String?  // Meta Business Manager System User token
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   @@map("settings")
 }
