@@ -14,18 +14,16 @@ import {
 } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { InvoiceStatus } from "@prisma/client"
-import { SubscriptionManager } from "@/components/admin/subscription-manager"
 
-// Format currency amount (amount is stored as a float, e.g. 1500.00)
 function formatCurrency(amount: number, currency: string) {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("en-AU", {
     style: "currency",
     currency: currency.toLowerCase(),
   }).format(amount)
 }
 
 function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat("en-AU", {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -53,73 +51,74 @@ function getStatusBadge(status: InvoiceStatus) {
   }
 }
 
+function RetainerBadge({ status }: { status: string }) {
+  if (status === "active") {
+    return (
+      <Badge className="bg-green-100 text-green-800 border-green-200 hover:bg-green-100">
+        Retainer Active
+      </Badge>
+    )
+  }
+  if (status === "cancelling") {
+    return (
+      <Badge className="bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-100">
+        Retainer Cancelling
+      </Badge>
+    )
+  }
+  return null
+}
+
 export default async function ClientInvoicesPage({
   params,
 }: {
   params: Promise<{ clientId: string }>
 }) {
-  // 1. Verify admin access
   const { userRole } = await verifySession()
   if (userRole !== "ADMIN") {
     redirect("/dashboard")
   }
 
-  // 2. Await params (Next.js 16+ async params)
   const { clientId } = await params
 
-  // 3. Fetch client, invoices, and subscription via DAL
   const [invoices, clientData, subscription] = await Promise.all([
     getAdminClientInvoices(clientId),
     getAdminClientForBilling(clientId),
     getAdminClientSubscription(clientId),
   ])
 
-  // 4. Serialize subscription for client component (dates must be strings)
-  const serializedSubscription = subscription
-    ? {
-        id: subscription.id,
-        status: subscription.status,
-        currentPeriodEnd: subscription.currentPeriodEnd?.toISOString() ?? null,
-        stripePriceId: subscription.stripePriceId,
-        stripeSubscriptionId: subscription.stripeSubscriptionId,
-      }
-    : null
+  const retainerStatus =
+    subscription?.status === "active" || subscription?.status === "cancelling"
+      ? subscription.status
+      : null
 
   return (
     <div className="space-y-6">
       {/* Back link */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="sm" asChild>
-          <Link href={`/admin/clients/${clientId}`}>
+          <Link href="/admin">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Client
+            Back to Clients
           </Link>
         </Button>
       </div>
 
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
+        <div className="flex items-center gap-3">
           <h1 className="text-3xl font-bold tracking-tight">
             {clientData.companyName} — Invoices
           </h1>
-          <p className="text-neutral-500 mt-1">
-            {invoices.length} invoice{invoices.length !== 1 ? "s" : ""} total
-          </p>
+          {retainerStatus && <RetainerBadge status={retainerStatus} />}
         </div>
         <Button asChild>
           <Link href={`/admin/clients/${clientId}/invoices/new`}>
             <Plus className="h-4 w-4 mr-2" />
-            Create Invoice
+            New
           </Link>
         </Button>
       </div>
-
-      {/* Subscription Manager */}
-      <SubscriptionManager
-        clientId={clientId}
-        subscription={serializedSubscription}
-      />
 
       {/* Invoices table or empty state */}
       {invoices.length === 0 ? (
@@ -135,7 +134,7 @@ export default async function ClientInvoicesPage({
             <Button asChild>
               <Link href={`/admin/clients/${clientId}/invoices/new`}>
                 <Plus className="h-4 w-4 mr-2" />
-                Create Invoice
+                New
               </Link>
             </Button>
           </CardContent>

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Pencil, FolderOpen, Receipt } from "lucide-react"
+import { ArrowLeft, Pencil } from "lucide-react"
 import { verifySession, getClientWithMilestones } from "@/lib/dal"
 import { calculateMilestoneProgress } from "@/lib/utils/progress"
 import { MilestoneEditTable } from "@/components/admin/milestone-edit-table"
@@ -71,18 +71,6 @@ export default async function ClientMilestonePage({
             <Link href={`/admin/clients/${clientId}/edit`}>
               <Pencil className="h-4 w-4 mr-2" />
               Edit
-            </Link>
-          </Button>
-          <Button variant="outline" size="sm" asChild>
-            <Link href={`/admin/clients/${clientId}/documents`}>
-              <FolderOpen className="h-4 w-4 mr-2" />
-              Documents
-            </Link>
-          </Button>
-          <Button variant="outline" size="sm" asChild>
-            <Link href={`/admin/clients/${clientId}/invoices`}>
-              <Receipt className="h-4 w-4 mr-2" />
-              Invoices
             </Link>
           </Button>
         </div>
