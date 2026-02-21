@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 10 of 13 (Payment Processing)
-Plan: 4 of 5 in current phase — In progress
-Status: In progress
-Last activity: 2026-02-21 — Completed 10-04-PLAN.md (Subscription backend: server actions, webhooks, DAL)
+Plan: 5 of 5 in current phase — Phase complete
+Status: Phase complete
+Last activity: 2026-02-21 — Completed 10-05-PLAN.md (Subscription admin UI: SubscriptionManager component)
 
-Progress: [█████████████████░░░░░░░░░] 26/26 plans complete through 10-04
+Progress: [██████████████████░░░░░░░░] 27/27 plans complete through 10-05
 
 ## Performance Metrics
 
@@ -154,9 +154,15 @@ Recent decisions affecting current work:
 - cancelSubscription finds by stripeSubscriptionId not null — works regardless of current status string
 - getAdminClientSubscription returns most recent by createdAt desc — handles multiple historical records
 
+**Phase 10 - Subscription Admin UI (from 10-05):**
+- SubscriptionManager renders two distinct states (no-subscription vs active/cancelling) — avoids prop-drilling complex mode flags
+- useTransition for both startSubscription and cancelSubscription calls — consistent loading UX pattern
+- Subscription dates serialized (Date → ISO string) at server component boundary — required for React serialization
+- window.confirm for cancel confirmation — simple, no extra dialog component needed
+
 ## Session Continuity
 
-Last session: 2026-02-21T06:58:38Z
-Stopped at: Completed 10-04-PLAN.md (Phase 10 Plan 4 - Subscription backend)
+Last session: 2026-02-21T07:03:00Z
+Stopped at: Completed 10-05-PLAN.md (Phase 10 Plan 5 - Subscription admin UI) — Phase 10 complete
 Resume file: None
-Next: 10-05 (Subscription admin UI) — run /gsd:execute-phase 10 05
+Next: Phase 11 (Facebook Ads Integration) — run /gsd:execute-phase 11 01
