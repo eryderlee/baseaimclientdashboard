@@ -19,7 +19,14 @@ const CreateInvoiceSchema = z.object({
   description: z.string().min(1, 'Description is required'),
   items: z.array(InvoiceItemSchema).min(1, 'At least one item is required'),
   dueDate: z.string().min(1, 'Due date is required'),
-  currency: z.string().default('usd'),
+  currency: z.string().default('aud'),
+})
+
+const StartSubscriptionSchema = z.object({
+  clientId: z.string().min(1),
+  monthlyAmount: z.number().positive('Amount must be positive'),
+  description: z.string().default('Monthly Retainer'),
+  currency: z.string().default('aud'),
 })
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -64,7 +71,7 @@ export async function createInvoice(formData: FormData): Promise<ActionResult> {
       description: formData.get('description'),
       items: parsedItems,
       dueDate: formData.get('dueDate'),
-      currency: formData.get('currency') || 'usd',
+      currency: formData.get('currency') || 'aud',
     })
 
     if (!validation.success) {
@@ -214,6 +221,213 @@ export async function createInvoice(formData: FormData): Promise<ActionResult> {
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to create invoice',
+    }
+  }
+}
+
+/**
+ * Start a monthly retainer subscription for a client
+ * ADMIN role only
+ * - Gets or creates a Stripe customer lazily
+ * - Creates a recurring Price on-the-fly
+ * - Creates a Stripe Subscription
+ * - Upserts the local Subscription record
+ */
+export async function startSubscription(formData: FormData): Promise<ActionResult> {
+  try {
+    // 1. Verify admin session
+    const { userRole } = await verifySession()
+    if (userRole !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Admin access required' }
+    }
+
+    // 2. Parse formData
+    const validation = StartSubscriptionSchema.safeParse({
+      clientId: formData.get('clientId'),
+      monthlyAmount: parseFloat(formData.get('monthlyAmount') as string),
+      description: formData.get('description') || 'Monthly Retainer',
+      currency: formData.get('currency') || 'aud',
+    })
+
+    if (!validation.success) {
+      return { success: false, error: validation.error.issues[0].message }
+    }
+
+    const { clientId, monthlyAmount, description, currency } = validation.data
+
+    // 3. Look up client with user and subscriptions
+    const client = await prisma.client.findUnique({
+      where: { id: clientId },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+        subscriptions: {
+          select: {
+            id: true,
+            stripeCustomerId: true,
+            stripeSubscriptionId: true,
+            status: true,
+          },
+        },
+      },
+    })
+
+    if (!client) {
+      return { success: false, error: 'Client not found' }
+    }
+
+    // 4. Check if client already has an active subscription
+    const existing = client.subscriptions.find(
+      (s) => s.stripeSubscriptionId && s.status === 'active'
+    )
+    if (existing) {
+      return { success: false, error: 'Client already has an active subscription' }
+    }
+
+    // 5. Get or create Stripe customer (lazy creation — same pattern as createInvoice)
+    let stripeCustomerId: string
+    const existingSubscription = client.subscriptions.find(
+      (s) => s.stripeCustomerId !== null
+    )
+
+    if (existingSubscription?.stripeCustomerId) {
+      stripeCustomerId = existingSubscription.stripeCustomerId
+    } else {
+      // Create new Stripe customer
+      const stripeCustomer = await stripe.customers.create({
+        email: client.user.email,
+        name: client.companyName,
+        metadata: { clientId },
+      })
+      stripeCustomerId = stripeCustomer.id
+
+      // Upsert a Subscription record with the new stripeCustomerId
+      await prisma.subscription.upsert({
+        where: {
+          id: existingSubscription?.id || '',
+        },
+        update: {
+          stripeCustomerId,
+        },
+        create: {
+          clientId,
+          stripeCustomerId,
+          status: 'inactive',
+        },
+      })
+    }
+
+    // 6. Create Stripe Price on-the-fly (recurring monthly)
+    const price = await stripe.prices.create({
+      unit_amount: Math.round(monthlyAmount * 100),
+      currency,
+      recurring: { interval: 'month' },
+      product_data: { name: description },
+    })
+
+    // 7. Create Stripe Subscription
+    const stripeSubscription = await stripe.subscriptions.create({
+      customer: stripeCustomerId,
+      items: [{ price: price.id }],
+    })
+
+    // 8. Upsert local Subscription record
+    const localSub = client.subscriptions.find((s) => s.stripeCustomerId === stripeCustomerId)
+    if (localSub) {
+      await prisma.subscription.update({
+        where: { id: localSub.id },
+        data: {
+          stripeSubscriptionId: stripeSubscription.id,
+          stripePriceId: price.id,
+          status: stripeSubscription.status,
+          currentPeriodEnd: new Date(
+            (stripeSubscription as unknown as { current_period_end: number }).current_period_end * 1000
+          ),
+        },
+      })
+    } else {
+      await prisma.subscription.create({
+        data: {
+          clientId,
+          stripeCustomerId,
+          stripeSubscriptionId: stripeSubscription.id,
+          stripePriceId: price.id,
+          status: stripeSubscription.status,
+          currentPeriodEnd: new Date(
+            (stripeSubscription as unknown as { current_period_end: number }).current_period_end * 1000
+          ),
+        },
+      })
+    }
+
+    // 9. Revalidate paths
+    revalidatePath(`/admin/clients/${clientId}/invoices`)
+    revalidatePath('/dashboard/billing')
+
+    return { success: true }
+  } catch (error) {
+    console.error('startSubscription error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to start subscription',
+    }
+  }
+}
+
+/**
+ * Cancel a client's active subscription at period end
+ * ADMIN role only
+ * - Updates Stripe subscription with cancel_at_period_end: true
+ * - Updates local Subscription status to 'cancelling'
+ */
+export async function cancelSubscription(formData: FormData): Promise<ActionResult> {
+  try {
+    // 1. Verify admin session
+    const { userRole } = await verifySession()
+    if (userRole !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Admin access required' }
+    }
+
+    // 2. Get clientId from formData
+    const clientId = formData.get('clientId') as string
+    if (!clientId) {
+      return { success: false, error: 'Client ID is required' }
+    }
+
+    // 3. Look up active subscription
+    const subscription = await prisma.subscription.findFirst({
+      where: { clientId, stripeSubscriptionId: { not: null } },
+    })
+
+    if (!subscription) {
+      return { success: false, error: 'No active subscription found' }
+    }
+
+    // 4. Cancel in Stripe at period end
+    await stripe.subscriptions.update(subscription.stripeSubscriptionId!, {
+      cancel_at_period_end: true,
+    })
+
+    // 5. Update local Subscription status
+    await prisma.subscription.update({
+      where: { id: subscription.id },
+      data: { status: 'cancelling' },
+    })
+
+    // 6. Revalidate paths
+    revalidatePath(`/admin/clients/${clientId}/invoices`)
+    revalidatePath('/dashboard/billing')
+
+    return { success: true }
+  } catch (error) {
+    console.error('cancelSubscription error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to cancel subscription',
     }
   }
 }
