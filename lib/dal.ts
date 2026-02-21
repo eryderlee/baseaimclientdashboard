@@ -1,10 +1,12 @@
 import 'server-only'
 import { cache } from 'react'
 import { redirect } from 'next/navigation'
+import { unstable_cache } from 'next/cache'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { calculateOverallProgress } from '@/lib/utils/progress'
 import { detectClientRisk } from '@/lib/utils/risk-detection'
+import { fetchFacebookInsights, type DatePreset } from '@/lib/facebook-ads'
 
 export const verifySession = cache(async () => {
   const session = await auth()
@@ -353,4 +355,69 @@ export const getAdminClientForBilling = cache(async (clientId: string) => {
   }
 
   return client
+})
+
+// ─── Facebook Ads DAL Functions ────────────────────────────────────────────────
+
+/**
+ * Get Facebook Ads Insights for the currently logged-in client.
+ * Uses unstable_cache with 6-hour TTL to avoid rate limits.
+ *
+ * CRITICAL: verifySession() is called OUTSIDE the unstable_cache boundary.
+ * unstable_cache cannot call headers() or cookies() — session must be read first.
+ *
+ * Returns null when:
+ * - Client has no adAccountId configured
+ * - Settings has no facebookAccessToken configured
+ * - Facebook API returns an error
+ * - No data exists for the requested date range
+ *
+ * CLIENT role only.
+ */
+export const getClientFbInsights = cache(async (datePreset: DatePreset = 'last_30d') => {
+  // Auth OUTSIDE the cache boundary — unstable_cache cannot access session
+  const { userId, userRole } = await verifySession()
+
+  if (userRole !== 'CLIENT') {
+    throw new Error('Unauthorized: Client access required')
+  }
+
+  // Get client's adAccountId from DB
+  const client = await prisma.client.findUnique({
+    where: { userId },
+    select: { id: true, adAccountId: true },
+  })
+
+  if (!client?.adAccountId) {
+    // Not configured yet — not an error, show "not configured" state in UI
+    return null
+  }
+
+  // Get global System User token from Settings singleton
+  const settings = await prisma.settings.findFirst({
+    select: { facebookAccessToken: true },
+  })
+
+  if (!settings?.facebookAccessToken) {
+    // Token not configured — not an error
+    return null
+  }
+
+  // Cache per (clientId, datePreset) for 6 hours
+  // Each date range gets its own cache entry
+  const cachedFetch = unstable_cache(
+    async () =>
+      fetchFacebookInsights(
+        client.adAccountId!,
+        datePreset,
+        settings.facebookAccessToken!
+      ),
+    [`fb-insights-${client.id}-${datePreset}`],
+    {
+      revalidate: 21600, // 6 hours in seconds
+      tags: [`fb-insights-${client.id}`],
+    }
+  )
+
+  return cachedFetch()
 })

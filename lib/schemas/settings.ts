@@ -19,3 +19,17 @@ export const chatSettingsSchema = z.object({
 
 // Inferred TypeScript type from schema
 export type ChatSettingsData = z.infer<typeof chatSettingsSchema>;
+
+/**
+ * Validation schema for Facebook Ads settings
+ * Used by admin to configure the Meta Business Manager System User token
+ */
+export const fbSettingsSchema = z.object({
+  facebookAccessToken: z
+    .string()
+    .min(10, 'Access token is too short to be valid')
+    .optional()
+    .or(z.literal('')),
+})
+
+export type FbSettingsData = z.infer<typeof fbSettingsSchema>
