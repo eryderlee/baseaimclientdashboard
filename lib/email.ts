@@ -6,6 +6,7 @@ import { PasswordResetEmail } from '@/emails/password-reset'
 import { InvoiceCreatedEmail } from '@/emails/invoice-created'
 import { PaymentConfirmationEmail } from '@/emails/payment-confirmation'
 import { DocumentUploadedEmail } from '@/emails/document-uploaded'
+import { CardSetupEmail } from '@/emails/card-setup-email'
 
 interface SendEmailParams {
   to: string
@@ -63,6 +64,7 @@ interface WelcomeEmailParams {
   clientName: string
   email: string
   temporaryPassword: string
+  subject?: string
 }
 
 /**
@@ -73,12 +75,13 @@ export async function sendWelcomeEmail({
   clientName,
   email,
   temporaryPassword,
+  subject = 'Welcome to BaseAim - Your Account is Ready',
 }: WelcomeEmailParams): Promise<SendEmailResult> {
   const loginUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/login`
 
   return sendEmail({
     to: email,
-    subject: 'Welcome to BaseAim - Your Account is Ready',
+    subject,
     react: WelcomeEmail({
       clientName,
       email,
@@ -193,6 +196,28 @@ interface DocumentUploadedEmailParams {
   documentName: string
   uploadedBy: string
   viewUrl: string
+}
+
+interface CardSetupEmailParams {
+  clientName: string
+  email: string
+  setupUrl: string
+}
+
+/**
+ * Send card setup request email to client
+ * Triggered by admin when client needs to add a payment method before retainer can start
+ */
+export async function sendCardSetupEmail({
+  clientName,
+  email,
+  setupUrl,
+}: CardSetupEmailParams): Promise<SendEmailResult> {
+  return sendEmail({
+    to: email,
+    subject: 'Action Required: Add Your Payment Method — BaseAim',
+    react: CardSetupEmail({ clientName, setupUrl }),
+  })
 }
 
 /**

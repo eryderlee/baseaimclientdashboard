@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { verifySession, getCurrentClientId } from '@/lib/dal'
 import { prisma } from '@/lib/prisma'
 import { stripe } from '@/lib/stripe'
-import { sendInvoiceCreatedEmail } from '@/lib/email'
+import { sendInvoiceCreatedEmail, sendCardSetupEmail } from '@/lib/email'
 
 // ─── Schemas ─────────────────────────────────────────────────────────────────
 
@@ -291,6 +291,84 @@ export async function createCardSetupLink(formData: FormData): Promise<ActionRes
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to create setup link',
+    }
+  }
+}
+
+/**
+ * Send a card setup email to a client with a Stripe Checkout setup link
+ * ADMIN role only — generates a fresh setup link and emails it directly to the client
+ */
+export async function sendSetupLinkEmail(formData: FormData): Promise<ActionResult> {
+  try {
+    const { userRole } = await verifySession()
+    if (userRole !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Admin access required' }
+    }
+
+    const clientId = formData.get('clientId') as string
+    if (!clientId) return { success: false, error: 'Client ID is required' }
+
+    const client = await prisma.client.findUnique({
+      where: { id: clientId },
+      include: {
+        user: { select: { name: true, email: true } },
+        subscriptions: { select: { id: true, stripeCustomerId: true } },
+      },
+    })
+
+    if (!client) return { success: false, error: 'Client not found' }
+
+    // Get or create Stripe customer
+    let stripeCustomerId: string
+    const existingSubscription = client.subscriptions.find(
+      (s) => s.stripeCustomerId !== null
+    )
+
+    if (existingSubscription?.stripeCustomerId) {
+      stripeCustomerId = existingSubscription.stripeCustomerId
+    } else {
+      const stripeCustomer = await stripe.customers.create({
+        email: client.user.email,
+        name: client.companyName,
+        metadata: { clientId },
+      })
+      stripeCustomerId = stripeCustomer.id
+
+      await prisma.subscription.upsert({
+        where: { id: existingSubscription?.id || '' },
+        update: { stripeCustomerId },
+        create: { clientId, stripeCustomerId, status: 'inactive' },
+      })
+    }
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+
+    const session = await stripe.checkout.sessions.create({
+      customer: stripeCustomerId,
+      mode: 'setup',
+      payment_method_types: ['card'],
+      success_url: `${appUrl}/dashboard/billing?setup=success`,
+      cancel_url: `${appUrl}/dashboard/billing`,
+    })
+
+    // Send the email — not fire-and-forget since we want to surface failures
+    const emailResult = await sendCardSetupEmail({
+      clientName: client.user.name || client.companyName,
+      email: client.user.email,
+      setupUrl: session.url!,
+    })
+
+    if (!emailResult.success) {
+      return { success: false, error: `Failed to send email: ${emailResult.error}` }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('sendSetupLinkEmail error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to send setup email',
     }
   }
 }

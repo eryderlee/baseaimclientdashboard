@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { RefreshCw, XCircle, Link2, Copy, Check } from 'lucide-react'
+import { RefreshCw, XCircle, Link2, Copy, Check, Mail } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   startSubscription,
   cancelSubscription,
   createCardSetupLink,
+  sendSetupLinkEmail,
 } from '@/app/actions/billing'
 import {
   Card,
@@ -37,6 +38,7 @@ export function SubscriptionManager({
 }: SubscriptionManagerProps) {
   const [isPending, startTransition] = useTransition()
   const [isSetupPending, startSetupTransition] = useTransition()
+  const [isEmailPending, startEmailTransition] = useTransition()
   const [monthlyAmount, setMonthlyAmount] = useState<number>(0)
   const [description, setDescription] = useState<string>('Monthly Retainer')
   const [setupLink, setSetupLink] = useState<string | null>(null)
@@ -83,6 +85,19 @@ export function SubscriptionManager({
       await navigator.clipboard.writeText(setupLink)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
+    }
+
+    const handleSendEmail = () => {
+      startEmailTransition(async () => {
+        const formData = new FormData()
+        formData.set('clientId', clientId)
+        const result = await sendSetupLinkEmail(formData)
+        if (result.success) {
+          toast.success('Setup email sent to client')
+        } else {
+          toast.error(result.error || 'Failed to send email')
+        }
+      })
     }
 
     return (
@@ -168,16 +183,28 @@ export function SubscriptionManager({
               </p>
             </div>
           ) : (
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              disabled={isSetupPending || isPending}
-              onClick={handleGenerateSetupLink}
-            >
-              <Link2 className="h-4 w-4 mr-2" />
-              {isSetupPending ? 'Generating...' : 'Generate Card Setup Link'}
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                disabled={isSetupPending || isPending || isEmailPending}
+                onClick={handleGenerateSetupLink}
+              >
+                <Link2 className="h-4 w-4 mr-2" />
+                {isSetupPending ? 'Generating...' : 'Copy Setup Link'}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                disabled={isEmailPending || isPending || isSetupPending}
+                onClick={handleSendEmail}
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                {isEmailPending ? 'Sending...' : 'Send Setup Email'}
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>
