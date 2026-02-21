@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-15)
 
 **Core value:** Clients can see exactly where their project stands without having to ask
-**Current focus:** Phase 11 - Facebook Ads Analytics
+**Current focus:** Phase 12 - Production Readiness (Phase 11 complete)
 
 ## Current Position
 
-Phase: 11 of 13 (Facebook Ads Analytics)
-Plan: 3 of 3 in current phase — Awaiting human verification checkpoint
-Status: In progress (checkpoint)
-Last activity: 2026-02-21 — Executed 11-03-PLAN.md auto tasks (client analytics page + FB metrics components)
+Phase: 11 of 13 (Facebook Ads Analytics) — COMPLETE
+Plan: 3 of 3 complete (Phase complete)
+Status: Phase complete
+Last activity: 2026-02-22 — Completed 11-03-PLAN.md (human verification approved)
 
-Progress: [████████████████████░░░░░░] 30/31 plans complete through 11-03 auto tasks
+Progress: [█████████████████████░░░░░] 31/31 plans complete through Phase 11
 
 ## Performance Metrics
 
@@ -160,11 +160,12 @@ Recent decisions affecting current work:
 - Subscription dates serialized (Date → ISO string) at server component boundary — required for React serialization
 - window.confirm for cancel confirmation — simple, no extra dialog component needed
 
-**Phase 11 - Facebook Ads Client Analytics (from 11-03):**
+**Phase 11 - Facebook Ads Client Analytics (from 11-03) — VERIFIED:**
 - Dynamic import('jspdf') inside exportPdf onClick — jspdf is browser-only, prevents SSR bundle
 - isConfigured check at page level via prisma.client.findUnique — keeps FbAdsMetrics purely presentational
 - searchParams.range defaults to '30d' when absent/invalid — most useful FB ad review window
 - rangToDatePreset() maps UI range strings ('7d'|'30d'|'all') to Facebook DatePreset values
+- Dashboard home page chart not synced with analytics page date range — noted as separate issue, not blocking
 
 **Phase 11 - Facebook Ads Admin UI (from 11-02):**
 - FbSettingsForm is a separate component in same file as ChatSettingsForm — each form submits independently
@@ -183,7 +184,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-21T12:12:00Z
-Stopped at: 11-03-PLAN.md checkpoint (Task 2 complete, awaiting human-verify of full Phase 11)
+Last session: 2026-02-22
+Stopped at: Phase 11 complete — 11-03 human verification approved
 Resume file: None
-Next: After user approves checkpoint — run /gsd:execute-phase 11 03 (continuation)
+Next: Phase 12 (Production Readiness) — run /gsd:execute-phase 12
