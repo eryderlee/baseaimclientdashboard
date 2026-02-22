@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 12 of 13 (Production Hardening) — In progress
-Plan: 1 of 3 complete
+Plan: 2 of 3 complete
 Status: In progress
-Last activity: 2026-02-22 — Completed 12-01-PLAN.md
+Last activity: 2026-02-22 — Completed 12-02-PLAN.md
 
-Progress: [█████████████████████░░░░░] 32/34 plans complete (1 of 3 in Phase 12)
+Progress: [██████████████████████░░░░] 33/34 plans complete (2 of 3 in Phase 12)
 
 ## Performance Metrics
 
@@ -190,9 +190,15 @@ Recent decisions affecting current work:
 - lib/env.ts is now single source of truth for all env vars — import instead of process.env directly
 - instrumentation.ts follows Next.js 16 pattern — no experimental.instrumentationHook needed
 
+**Phase 12 - Loading States & Error Boundaries (from 12-02):**
+- loading.tsx files are server components (no 'use client') — Next.js wraps them in Suspense automatically
+- error.tsx files must be client components — 'use client' first line, useEffect for logging, onClick for reset()
+- Skeleton layouts mirror page shape roughly (not pixel-perfect) — conveys page structure during load
+- Inline SVG in error boundaries — avoids lucide-react import overhead in error boundary context
+
 ## Session Continuity
 
 Last session: 2026-02-22
-Stopped at: Completed 12-01-PLAN.md
+Stopped at: Completed 12-02-PLAN.md
 Resume file: None
-Next: 12-02-PLAN.md (rate limiting with Upstash Redis)
+Next: 12-03-PLAN.md (final production plan in Phase 12)
