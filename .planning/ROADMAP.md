@@ -229,11 +229,12 @@ Plans:
   6. Security headers are configured (CSP, X-Frame-Options, HSTS, etc.)
   7. Error boundaries catch and display user-friendly error messages instead of crashes
   8. Environment variables are validated on startup (no test keys in production)
-**Plans:** TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 12-01: TBD
-- [ ] 12-02: TBD
+- [ ] 12-01-PLAN.md — Sentry monitoring setup, security headers, and environment variable validation (PROD-01, PROD-06, PROD-08)
+- [ ] 12-02-PLAN.md — Loading states (skeleton screens) and error boundaries for all routes (PROD-02, PROD-07)
+- [ ] 12-03-PLAN.md — Rate limiting on auth endpoints, CSRF audit, and Zod validation completion (PROD-03, PROD-04, PROD-05)
 
 #### Phase 13: UI Polish & Admin Analytics Integration
 **Goal**: Dashboard UI is polished with refined components and admin analytics shows real integration data
@@ -282,5 +283,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 9. Document Storage Migration | 4/4 | ✓ Complete | 2026-02-20 |
 | 10. Payment Processing | 3/3 | ✓ Complete | 2026-02-20 |
 | 11. Facebook Ads Analytics | 0/3 | Not started | - |
-| 12. Production Hardening | 0/TBD | Not started | - |
+| 12. Production Hardening | 0/3 | Not started | - |
 | 13. UI Polish & Admin Analytics Integration | 0/TBD | Not started | - |
