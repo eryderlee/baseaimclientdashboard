@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState } from "react"
 import Link from "next/link"
@@ -11,113 +11,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress"
 import { Milestone } from "@/lib/types/milestone"
 import { calculateOverallProgress } from "@/lib/milestone-utils"
-import { ChatButtons } from "@/components/client/chat-buttons"
 import {
   ArrowUpRight,
-  CheckCircle2,
-  Clock,
+  ArrowRight,
   CreditCard,
   FileText,
-  MessageSquare,
   Send,
   TrendingUp,
   Upload,
 } from "lucide-react"
 
-// Generate mock analytics data for the last 30 days
-function generateDailyData(baseValue: number, variance: number, days: number = 30) {
-  const data = []
-  const today = new Date()
-
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(today)
-    date.setDate(date.getDate() - i)
-    const dateStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
-
-    const randomVariance = (Math.random() - 0.5) * variance * 2
-    const trend = ((days - i) / days) * (baseValue * 0.2)
-    const value = Math.round(baseValue + randomVariance + trend)
-
-    data.push({ date: dateStr, value: Math.max(0, value) })
-  }
-
-  return data
-}
-
-// Mock data for demo (analytics, documents, notifications, activities)
-const mockData = {
-  analytics: {
-    impressions: generateDailyData(2500, 500),
-    clicks: generateDailyData(180, 40),
-    leads: generateDailyData(25, 8),
-    bookedCalls: generateDailyData(8, 3),
-    totalAdSpend: 3500,
-  },
-  stats: {
-    totalDocuments: 24,
-    unreadMessages: 3,
-    pendingPayments: 2450.0,
-  },
-  documents: [
-    {
-      id: "1",
-      title: "Project Proposal.pdf",
-      status: "APPROVED",
-      createdAt: new Date("2026-01-10"),
-    },
-    {
-      id: "2",
-      title: "Design Mockups.fig",
-      status: "APPROVED",
-      createdAt: new Date("2026-01-25"),
-    },
-    {
-      id: "3",
-      title: "Contract Agreement.pdf",
-      status: "PENDING",
-      createdAt: new Date("2026-02-01"),
-    },
-  ],
-  notifications: [
-    {
-      id: "1",
-      title: "New Message",
-      message: "Your project manager sent you a message",
-      createdAt: new Date("2026-02-04T10:30:00"),
-    },
-    {
-      id: "2",
-      title: "Document Approved",
-      message: "Design Mockups.fig has been approved",
-      createdAt: new Date("2026-02-03T15:45:00"),
-    },
-    {
-      id: "3",
-      title: "Payment Due",
-      message: "Invoice #2024-002 is due in 5 days",
-      createdAt: new Date("2026-02-02T09:00:00"),
-    },
-  ],
-  activities: [
-    {
-      id: "1",
-      user: { name: "Demo User" },
-      action: "uploaded a document",
-      createdAt: new Date("2026-02-04T11:00:00"),
-    },
-    {
-      id: "2",
-      user: { name: "Project Manager" },
-      action: "approved Design Mockups.fig",
-      createdAt: new Date("2026-02-03T15:45:00"),
-    },
-    {
-      id: "3",
-      user: { name: "Demo User" },
-      action: "updated milestone progress",
-      createdAt: new Date("2026-02-02T14:30:00"),
-    },
-  ],
+// Shape of one day's FB data passed from the server
+interface FbDayData {
+  date: string
+  impressions: number
+  clicks: number
+  spend: number
+  leads: number
+  bookedCalls: number
 }
 
 interface SerializedMilestone {
@@ -144,16 +55,38 @@ interface DashboardOverviewProps {
   }
   clientName?: string
   companyName?: string
+  fbDailyData: FbDayData[] | null
+  isFbConfigured: boolean
 }
 
 export function DashboardOverview({
   milestones: serializedMilestones,
   chatSettings,
   clientName = 'Client',
-  companyName = 'Company'
+  companyName = 'Company',
+  fbDailyData,
+  isFbConfigured,
 }: DashboardOverviewProps) {
   const [isChartExpanded, setIsChartExpanded] = useState(false)
-  const { analytics, stats, documents, notifications, activities } = mockData
+
+  // Build chart series from real FB daily data, falling back to zeros if not configured
+  const analytics = {
+    impressions: (fbDailyData ?? []).map((d) => ({ date: d.date, value: d.impressions })),
+    clicks: (fbDailyData ?? []).map((d) => ({ date: d.date, value: d.clicks })),
+    leads: (fbDailyData ?? []).map((d) => ({ date: d.date, value: d.leads })),
+    bookedCalls: (fbDailyData ?? []).map((d) => ({ date: d.date, value: d.bookedCalls })),
+    totalAdSpend: (fbDailyData ?? []).reduce((sum, d) => sum + d.spend, 0),
+  }
+
+  const stats = {
+    totalDocuments: 0,
+    unreadMessages: 0,
+    pendingPayments: 0,
+  }
+
+  const documents: { id: string; title: string; status: string; createdAt: Date }[] = []
+  const notifications: { id: string; title: string; message: string; createdAt: Date }[] = []
+  const activities: { id: string; user: { name: string }; action: string; createdAt: Date }[] = []
 
   // Convert serialized milestones back to Milestone type with Date objects
   const milestones: Milestone[] = serializedMilestones.map(m => ({
@@ -171,6 +104,9 @@ export function DashboardOverview({
   const overallProgress = calculateOverallProgress(milestones)
   const completedMilestones = milestones.filter((m) => m.status === "COMPLETED").length
   const totalMilestones = milestones.length
+  const orderedMilestones = [...milestones].sort(
+    (a, b) => (a.order ?? 0) - (b.order ?? 0)
+  )
   const totalImpressions = analytics.impressions.reduce((sum, d) => sum + d.value, 0)
   const totalClicks = analytics.clicks.reduce((sum, d) => sum + d.value, 0)
   const totalLeads = analytics.leads.reduce((sum, d) => sum + d.value, 0)
@@ -189,13 +125,17 @@ export function DashboardOverview({
     .reverse()
     .find((milestone) => milestone.status === "COMPLETED")
   const recentMilestone = inProgressMilestone || recentCompletedMilestone || sortedMilestones[0]
+  const currentPhase = inProgressMilestone || nextMilestone || orderedMilestones[0]
+  const currentPhaseNumber = currentPhase
+    ? currentPhase.order || orderedMilestones.findIndex((m) => m.id === currentPhase.id) + 1
+    : 0
 
   const workflowHighlights = [
     {
       label: "Recent Milestone",
       value: recentMilestone?.title || "Not started",
       detail: recentMilestone
-        ? `${recentMilestone.status.replace("_", " ")} · Due ${recentMilestone.dueDate?.toLocaleDateString() || "TBD"}`
+        ? `${recentMilestone.status.replace("_", " ")} ┬╖ Due ${recentMilestone.dueDate?.toLocaleDateString() || "TBD"}`
         : "Awaiting kickoff",
       accent: "from-primary/30 via-sky-200/30 to-transparent",
     },
@@ -241,6 +181,32 @@ export function DashboardOverview({
     },
   ]
 
+  const phaseThemes = {
+    COMPLETED: {
+      card: "border-emerald-200/70 bg-emerald-50/80 dark:border-emerald-500/30 dark:bg-emerald-900/20",
+      badge: "bg-emerald-100 text-emerald-700",
+      progress: "bg-emerald-500",
+    },
+    IN_PROGRESS: {
+      card: "border-sky-200/70 bg-sky-50/80 dark:border-sky-500/40 dark:bg-sky-900/20",
+      badge: "bg-sky-100 text-sky-700",
+      progress: "bg-sky-500",
+    },
+    BLOCKED: {
+      card: "border-amber-200/70 bg-amber-50/80 dark:border-amber-500/30 dark:bg-amber-900/20",
+      badge: "bg-amber-100 text-amber-700",
+      progress: "bg-amber-500",
+    },
+    DEFAULT: {
+      card: "border-slate-200/70 bg-white/80 dark:border-slate-800/60 dark:bg-slate-900/40",
+      badge: "bg-slate-100 text-slate-600",
+      progress: "bg-slate-400",
+    },
+  } as const
+
+  const getPhaseTheme = (status: string) =>
+    phaseThemes[status as keyof typeof phaseThemes] ?? phaseThemes.DEFAULT
+
   const statCards = [
     {
       title: "Client Assets",
@@ -249,14 +215,6 @@ export function DashboardOverview({
       icon: FileText,
       href: "/dashboard/documents",
       action: "Review files",
-    },
-    {
-      title: "Contact Team",
-      value: stats.unreadMessages,
-      description: "Chat via WhatsApp or Telegram",
-      icon: MessageSquare,
-      href: "/dashboard/chat",
-      action: "Contact us",
     },
     {
       title: "Client Acquisition System",
@@ -328,27 +286,16 @@ export function DashboardOverview({
                   <Upload className="h-4 w-4" />
                 </Link>
               </Button>
-              {chatSettings?.whatsappNumber || chatSettings?.telegramUsername ? (
-                <div className="flex gap-4">
-                  <ChatButtons
-                    whatsappNumber={chatSettings?.whatsappNumber}
-                    telegramUsername={chatSettings?.telegramUsername}
-                    clientName={clientName}
-                    companyName={companyName}
-                  />
-                </div>
-              ) : (
-                <Button
-                  asChild
-                  variant="ghost"
-                  className="rounded-full border border-white/70 bg-white/70 px-6 py-2 text-slate-700 shadow-sm shadow-sky-100 hover:bg-white/90 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100"
-                >
-                  <Link href="/dashboard/chat" className="inline-flex items-center gap-2">
-                    Message Project Manager
-                    <Send className="h-4 w-4" />
-                  </Link>
-                </Button>
-              )}
+              <Button
+                asChild
+                variant="ghost"
+                className="rounded-full border border-white/70 bg-white/70 px-6 py-2 text-slate-700 shadow-sm shadow-sky-100 hover:bg-white/90 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100"
+              >
+                <Link href="#milestones" className="inline-flex items-center gap-2">
+                  Review Project Phases
+                  <ArrowUpRight className="h-4 w-4" />
+                </Link>
+              </Button>
             </div>
           </div>
 
@@ -376,6 +323,126 @@ export function DashboardOverview({
             </div>
         </div>
       </section>
+
+      <div className="grid gap-6 lg:grid-cols-[1.7fr_1.3fr]" id="milestones">
+        <Card className="glass-card rounded-3xl border border-white/60 shadow-xl shadow-sky-100 dark:border-slate-800/70">
+          <CardHeader>
+            <CardTitle className="font-heading text-2xl">Acquisition Roadmap</CardTitle>
+            <CardDescription>Track each funnel phase from strategy through optimization.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-2xl border border-white/70 bg-white/70 p-4 text-slate-700 shadow-sm shadow-sky-100 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-100">
+                <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                  Phase Completion
+                </p>
+                <p className="mt-2 text-3xl font-heading text-slate-900 dark:text-white">
+                  {completedMilestones}/{totalMilestones}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {overallProgress}% complete
+                </p>
+              </div>
+              <div className="rounded-2xl border border-white/70 bg-white/70 p-4 text-slate-700 shadow-sm shadow-sky-100 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-100">
+                <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                  Current Focus
+                </p>
+                <p className="mt-2 text-3xl font-heading text-slate-900 dark:text-white">
+                  {currentPhaseNumber > 0 ? `Phase ${currentPhaseNumber}` : "Not scheduled"}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {currentPhase?.title || "Awaiting kickoff"}
+                </p>
+              </div>
+            </div>
+            {orderedMilestones.length > 0 ? (
+              <div className="overflow-x-auto pb-2">
+                <div className="flex min-w-[640px] items-stretch gap-4">
+                  {orderedMilestones.map((milestone, index) => {
+                    const phaseNumber = milestone.order || index + 1
+                    const theme = getPhaseTheme(milestone.status)
+                    return (
+                      <div key={milestone.id} className="flex items-stretch gap-4">
+                        <div
+                          className={`flex min-w-[220px] flex-1 flex-col justify-between rounded-3xl border p-4 shadow-sm ${theme.card}`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-200">
+                              Phase {phaseNumber}
+                            </span>
+                            <span className={`rounded-full px-2 py-1 text-xs font-semibold ${theme.badge}`}>
+                              {milestone.status.replace("_", " ")}
+                            </span>
+                          </div>
+                          <div className="space-y-2 pt-2">
+                            <p className="text-base font-semibold text-slate-900 dark:text-white">
+                              {milestone.title}
+                            </p>
+                            {milestone.description && (
+                              <p className="text-sm text-slate-600 dark:text-slate-300">
+                                {milestone.description}
+                              </p>
+                            )}
+                          </div>
+                          <div className="pt-4">
+                            <Progress value={milestone.progress} className="h-2 bg-white/40 dark:bg-slate-800/60" />
+                            <p className="mt-2 text-xs text-slate-500 dark:text-slate-300">
+                              {milestone.dueDate
+                                ? `Due ${milestone.dueDate.toLocaleDateString()}`
+                                : "Timeline TBD"}
+                            </p>
+                          </div>
+                        </div>
+                        {index < orderedMilestones.length - 1 && (
+                          <ArrowRight className="hidden h-6 w-6 flex-shrink-0 text-slate-400 dark:text-slate-600 md:block" />
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-white/70 bg-white/60 p-6 text-center text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-400">
+                Your project team will create phases after onboarding.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="glass-card rounded-3xl border border-white/60 shadow-xl shadow-sky-100 dark:border-slate-800/70">
+          <CardHeader>
+            <CardTitle className="font-heading text-2xl">Recent Activity</CardTitle>
+            <CardDescription>Live collaboration between your team and Baseaim.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-5">
+              {activities.map((activity) => (
+                <div
+                  key={activity.id}
+                  className="flex items-start gap-3 rounded-2xl border border-white/70 bg-white/70 p-3 shadow-sm shadow-sky-100 dark:border-slate-800 dark:bg-slate-900/60"
+                >
+                  <Avatar className="h-10 w-10 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-white">
+                    <AvatarFallback>
+                      {activity.user.name?.[0]?.toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 space-y-1">
+                    <p className="text-sm text-slate-700 dark:text-slate-100">
+                      <span className="font-semibold">{activity.user.name}</span> {activity.action}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {activity.createdAt.toLocaleString()}
+                    </p>
+                  </div>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-slate-500 hover:text-primary">
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <AnalyticsOverview
@@ -428,108 +495,6 @@ export function DashboardOverview({
             )
           })}
         </div>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-[1.7fr_1.3fr]" id="milestones">
-        <Card className="glass-card rounded-3xl border border-white/60 shadow-xl shadow-sky-100 dark:border-slate-800/70">
-          <CardHeader>
-            <CardTitle className="font-heading text-2xl">Acquisition Roadmap</CardTitle>
-            <CardDescription>Track each funnel phase from strategy through optimization.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl border border-white/70 bg-white/70 p-4 text-slate-700 shadow-sm shadow-sky-100 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-100">
-                <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                  Milestone Completion
-                </p>
-                <p className="mt-2 text-3xl font-heading text-slate-900 dark:text-white">
-                  {completedMilestones}/{totalMilestones}
-                </p>
-              </div>
-              <div className="rounded-2xl border border-white/70 bg-white/70 p-4 text-slate-700 shadow-sm shadow-sky-100 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-100">
-                <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                  Projected Launch
-                </p>
-                <p className="mt-2 text-3xl font-heading text-slate-900 dark:text-white">
-                  March 5, 2026
-                </p>
-              </div>
-            </div>
-            {milestones.map((milestone) => (
-              <div
-                key={milestone.id}
-                className="rounded-2xl border border-white/70 bg-white/80 p-4 shadow-sm shadow-sky-100 dark:border-slate-800 dark:bg-slate-900/60"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    {milestone.status === "COMPLETED" ? (
-                      <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                    ) : milestone.status === "IN_PROGRESS" ? (
-                      <Clock className="h-5 w-5 text-primary" />
-                    ) : (
-                      <div className="h-5 w-5 rounded-full border-2 border-slate-300" />
-                    )}
-                    <div>
-                      <p className="font-semibold text-slate-800 dark:text-white">{milestone.title}</p>
-                      {milestone.description && (
-                        <p className="text-sm text-slate-500 dark:text-slate-400">{milestone.description}</p>
-                      )}
-                    </div>
-                  </div>
-                  <span
-                    className={`chip-pill text-xs ${
-                      milestone.status === "COMPLETED"
-                        ? "bg-emerald-100 text-emerald-700"
-                        : milestone.status === "IN_PROGRESS"
-                        ? "bg-sky-100 text-sky-600"
-                        : "bg-slate-100 text-slate-600"
-                    }`}
-                  >
-                    {milestone.status.replace("_", " ")}
-                  </span>
-                </div>
-                <Progress value={milestone.progress} className="mt-4 h-2 bg-slate-200" />
-                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                  Due: {milestone.dueDate?.toLocaleDateString() || "TBD"}
-                </p>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        <Card className="glass-card rounded-3xl border border-white/60 shadow-xl shadow-sky-100 dark:border-slate-800/70">
-          <CardHeader>
-            <CardTitle className="font-heading text-2xl">Recent Activity</CardTitle>
-            <CardDescription>Live collaboration between your team and Baseaim.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-5">
-              {activities.map((activity) => (
-                <div
-                  key={activity.id}
-                  className="flex items-start gap-3 rounded-2xl border border-white/70 bg-white/70 p-3 shadow-sm shadow-sky-100 dark:border-slate-800 dark:bg-slate-900/60"
-                >
-                  <Avatar className="h-10 w-10 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-white">
-                    <AvatarFallback>
-                      {activity.user.name?.[0]?.toUpperCase() || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm text-slate-700 dark:text-slate-100">
-                      <span className="font-semibold">{activity.user.name}</span> {activity.action}
-                    </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {activity.createdAt.toLocaleString()}
-                    </p>
-                  </div>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-slate-500 hover:text-primary">
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

@@ -6,7 +6,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { calculateOverallProgress } from '@/lib/utils/progress'
 import { detectClientRisk } from '@/lib/utils/risk-detection'
-import { fetchFacebookInsights, type DatePreset } from '@/lib/facebook-ads'
+import { fetchFacebookInsights, fetchFacebookDailyInsights, type DatePreset } from '@/lib/facebook-ads'
 
 export const verifySession = cache(async () => {
   const session = await auth()
@@ -417,6 +417,48 @@ export const getClientFbInsights = cache(async (datePreset: DatePreset = 'last_3
       revalidate: 21600, // 6 hours in seconds
       tags: [`fb-insights-${client.id}`],
     }
+  )
+
+  return cachedFetch()
+})
+
+/**
+ * Get 30 days of daily Facebook Ads data for the home page chart.
+ * Returns impressions, clicks, leads, and booked calls per day.
+ *
+ * Lead action type: 'lead' (standard FB pixel Lead event)
+ * Booked call action type: 'offsite_conversion.fb_pixel_custom'
+ *   — custom events via fbq('trackCustom', 'BookedCall') aggregate here.
+ *   — if a dedicated Custom Conversion is created in Events Manager,
+ *     it will appear as 'offsite_conversion.custom.{id}' instead.
+ *
+ * Returns null when adAccountId or token not configured.
+ * CLIENT role only.
+ */
+export const getClientFbDailyInsights = cache(async () => {
+  const { userId, userRole } = await verifySession()
+
+  if (userRole !== 'CLIENT') {
+    throw new Error('Unauthorized: Client access required')
+  }
+
+  const client = await prisma.client.findUnique({
+    where: { userId },
+    select: { id: true, adAccountId: true },
+  })
+
+  if (!client?.adAccountId) return null
+
+  const settings = await prisma.settings.findFirst({
+    select: { facebookAccessToken: true },
+  })
+
+  if (!settings?.facebookAccessToken) return null
+
+  const cachedFetch = unstable_cache(
+    async () => fetchFacebookDailyInsights(client.adAccountId!, settings.facebookAccessToken!),
+    [`fb-daily-${client.id}`],
+    { revalidate: 21600, tags: [`fb-insights-${client.id}`] }
   )
 
   return cachedFetch()
