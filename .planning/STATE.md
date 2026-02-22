@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 
 ## Current Position
 
-Phase: 12 of 13 (Production Hardening) — In progress
-Plan: 2 of 3 complete
-Status: In progress
-Last activity: 2026-02-22 — Completed 12-02-PLAN.md
+Phase: 12 of 13 (Production Hardening) — Wave 2 complete (12-01, 12-02, 12-03 done)
+Plan: 3 of 3 complete
+Status: Phase 12 complete
+Last activity: 2026-02-22 — Completed 12-03-PLAN.md
 
-Progress: [██████████████████████░░░░] 33/34 plans complete (2 of 3 in Phase 12)
+Progress: [██████████████████████████] 34/34 plans complete (3 of 3 in Phase 12)
 
 ## Performance Metrics
 
@@ -196,9 +196,19 @@ Recent decisions affecting current work:
 - Skeleton layouts mirror page shape roughly (not pixel-perfect) — conveys page structure during load
 - Inline SVG in error boundaries — avoids lucide-react import overhead in error boundary context
 
+**Phase 12 - Rate Limiting, CSRF Audit, Zod (from 12-03):**
+- Upstash Redis selected for rate limiting — serverless HTTP client, edge-compatible, free tier sufficient
+- slidingWindow(10, '60 s') on /login, /reset-password, /api/auth — permissive for normal use, blocks brute force
+- try/catch wraps ratelimit.limit() — Upstash downtime must not lock out legitimate users
+- x-forwarded-for for IP extraction — req.ip unreliable in middleware edge runtime; Vercel always sets x-forwarded-for
+- Matcher updated to include /api/auth/:path* — original api/* negative lookahead excluded auth API routes
+- CSRF protection via Server Actions — built-in Origin/Host verification, no manual tokens needed
+- All route handler mutations verified authenticated (auth() or Stripe signature); /api/auth/register intentionally public
+- Zod parse + try/catch at top of server actions — validated copies of variables used in all DB calls
+
 ## Session Continuity
 
 Last session: 2026-02-22
-Stopped at: Completed 12-02-PLAN.md
+Stopped at: Completed 12-03-PLAN.md (Phase 12 complete)
 Resume file: None
-Next: 12-03-PLAN.md (final production plan in Phase 12)
+Next: Phase 13 (UI Polish) — pending
