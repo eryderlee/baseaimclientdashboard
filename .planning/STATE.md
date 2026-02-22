@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 
 ## Current Position
 
-Phase: 11 of 13 (Facebook Ads Analytics) — COMPLETE
-Plan: 3 of 3 complete (Phase complete)
-Status: Phase complete
-Last activity: 2026-02-22 — Completed 11-03-PLAN.md (human verification approved)
+Phase: 12 of 13 (Production Hardening) — In progress
+Plan: 1 of 3 complete
+Status: In progress
+Last activity: 2026-02-22 — Completed 12-01-PLAN.md
 
-Progress: [█████████████████████░░░░░] 31/31 plans complete through Phase 11
+Progress: [█████████████████████░░░░░] 32/34 plans complete (1 of 3 in Phase 12)
 
 ## Performance Metrics
 
@@ -182,9 +182,17 @@ Recent decisions affecting current work:
 - Returns null (not throw) when adAccountId or facebookAccessToken not configured — UI shows "not configured" state
 - prisma db push used (not migrate dev) — project uses schema-first push approach, no migrations folder exists
 
+**Phase 12 - Production Hardening (from 12-01):**
+- Static CSP with unsafe-inline chosen over nonce-based — nonce forces dynamic rendering, unjustified for internal dashboard
+- Sentry DSN is optional in env.ts — only set in production Vercel env, not locally
+- SKIP_ENV_VALIDATION flag for CI flexibility
+- Stripe key refine: production rejects sk_test_, dev passes through
+- lib/env.ts is now single source of truth for all env vars — import instead of process.env directly
+- instrumentation.ts follows Next.js 16 pattern — no experimental.instrumentationHook needed
+
 ## Session Continuity
 
 Last session: 2026-02-22
-Stopped at: Phase 11 complete — 11-03 human verification approved
+Stopped at: Completed 12-01-PLAN.md
 Resume file: None
-Next: Phase 12 (Production Readiness) — run /gsd:execute-phase 12
+Next: 12-02-PLAN.md (rate limiting with Upstash Redis)
