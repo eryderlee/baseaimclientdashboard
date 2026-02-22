@@ -60,14 +60,14 @@ Requirements for v1.0 Production Launch milestone. Each maps to roadmap phases.
 
 ### Production Hardening
 
-- [ ] **PROD-01**: Sentry error monitoring configured and tracking errors in production
-- [ ] **PROD-02**: All pages display loading states/skeleton screens during data fetching
-- [ ] **PROD-03**: Rate limiting implemented on authentication endpoints
-- [ ] **PROD-04**: CSRF protection verified on all Server Actions
-- [ ] **PROD-05**: Input validation using Zod on all user-submitted data
-- [ ] **PROD-06**: Security headers configured (CSP, X-Frame-Options, etc.)
-- [ ] **PROD-07**: Error boundaries catch and display user-friendly error messages
-- [ ] **PROD-08**: Environment variables validated on startup (no test keys in production)
+- [x] **PROD-01**: Sentry error monitoring configured and tracking errors in production
+- [x] **PROD-02**: All pages display loading states/skeleton screens during data fetching
+- [x] **PROD-03**: Rate limiting implemented on authentication endpoints
+- [x] **PROD-04**: CSRF protection verified on all Server Actions
+- [x] **PROD-05**: Input validation using Zod on all user-submitted data
+- [x] **PROD-06**: Security headers configured (CSP, X-Frame-Options, etc.)
+- [x] **PROD-07**: Error boundaries catch and display user-friendly error messages
+- [x] **PROD-08**: Environment variables validated on startup (no test keys in production)
 
 ### UI Polish
 
@@ -85,6 +85,14 @@ Requirements for v1.0 Production Launch milestone. Each maps to roadmap phases.
 - [ ] **ADMIN-03**: Admin can see aggregate Facebook Ads spend and performance across clients
 - [ ] **ADMIN-04**: Admin analytics shows risk detection based on overdue milestones
 - [ ] **ADMIN-05**: Admin analytics displays upcoming due dates within 7-day window
+
+### Deployment
+
+- [ ] **DEPLOY-01**: App deployed to production host (Vercel recommended) and accessible via public URL
+- [ ] **DEPLOY-02**: All environment variables configured in host dashboard (Sentry, Upstash, Stripe, Resend, Google Drive)
+- [ ] **DEPLOY-03**: Sentry captures errors in production — verified by triggering a test error
+- [ ] **DEPLOY-04**: Rate limiting fires at 10 req/60s on /login — verified by HTTP 429 response
+- [ ] **DEPLOY-05**: Security headers present on live HTTP responses — verified by curl -I
 
 ## Validated Requirements (Pre-v1.0)
 

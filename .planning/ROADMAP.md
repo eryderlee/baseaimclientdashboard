@@ -229,12 +229,13 @@ Plans:
   6. Security headers are configured (CSP, X-Frame-Options, HSTS, etc.)
   7. Error boundaries catch and display user-friendly error messages instead of crashes
   8. Environment variables are validated on startup (no test keys in production)
-**Plans:** 3 plans
+**Plans:** 4 plans
 
 Plans:
 - [x] 12-01-PLAN.md — Sentry monitoring setup, security headers, and environment variable validation (PROD-01, PROD-06, PROD-08)
-- [ ] 12-02-PLAN.md — Loading states (skeleton screens) and error boundaries for all routes (PROD-02, PROD-07)
-- [ ] 12-03-PLAN.md — Rate limiting on auth endpoints, CSRF audit, and Zod validation completion (PROD-03, PROD-04, PROD-05)
+- [x] 12-02-PLAN.md — Loading states (skeleton screens) and error boundaries for all routes (PROD-02, PROD-07)
+- [x] 12-03-PLAN.md — Rate limiting on auth endpoints, CSRF audit, and Zod validation completion (PROD-03, PROD-04, PROD-05)
+- [x] 12-04-PLAN.md — Zod validation gap closure: API route handlers (PROD-05 gap)
 
 #### Phase 13: UI Polish & Admin Analytics Integration
 **Goal**: Dashboard UI is polished with refined components and admin analytics shows real integration data
@@ -258,10 +259,25 @@ Plans:
 - [ ] 13-01: TBD
 - [ ] 13-02: TBD
 
+#### Phase 14: Deployment
+**Goal**: App is live on a production host with all environment variables configured, external services connected, and live verification complete
+**Depends on**: Phase 13
+**Requirements**: DEPLOY-01, DEPLOY-02, DEPLOY-03, DEPLOY-04, DEPLOY-05
+**Success Criteria** (what must be TRUE):
+  1. App is deployed to Vercel (recommended) or chosen host and accessible via public URL
+  2. All environment variables configured in host dashboard (Sentry, Upstash Redis, Stripe, Resend, Google Drive)
+  3. Sentry captures errors in production — confirmed by triggering a test error
+  4. Rate limiting fires at 10 requests/60s on /login — confirmed by HTTP 429 response
+  5. Security headers present on live HTTP responses — confirmed by curl -I
+**Plans:** TBD
+
+Plans:
+- [ ] 14-01: TBD
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14
 
 **v0.9 Foundation:**
 
@@ -283,5 +299,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 9. Document Storage Migration | 4/4 | ✓ Complete | 2026-02-20 |
 | 10. Payment Processing | 3/3 | ✓ Complete | 2026-02-20 |
 | 11. Facebook Ads Analytics | 3/3 | ✓ Complete | 2026-02-22 |
-| 12. Production Hardening | 1/3 | In progress | - |
+| 12. Production Hardening | 4/4 | ✓ Complete | 2026-02-23 |
 | 13. UI Polish & Admin Analytics Integration | 0/TBD | Not started | - |
+| 14. Deployment | 0/TBD | Not started | - |

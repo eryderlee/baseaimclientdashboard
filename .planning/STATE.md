@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-15)
 
 **Core value:** Clients can see exactly where their project stands without having to ask
-**Current focus:** Phase 12 - Production Readiness (Phase 11 complete)
+**Current focus:** Phase 13 - UI Polish & Admin Analytics Integration
 
 ## Current Position
 
-Phase: 12 of 13 (Production Hardening) — All plans complete (12-01 through 12-04 done)
-Plan: 4 of 3+1 complete (gap closure plan added)
-Status: Phase 12 fully verified
-Last activity: 2026-02-22 — Completed 12-04-PLAN.md (Zod gap closure)
+Phase: 13 of 14 (UI Polish & Admin Analytics Integration) — not started
+Plan: 0 of TBD
+Status: Phase 12 complete — ready for Phase 13
+Last activity: 2026-02-23 — Completed Phase 12 (4/4 plans, all PROD requirements verified)
 
 Progress: [██████████████████████████] 35/35 plans complete (4 of 4 in Phase 12)
 
@@ -212,9 +212,15 @@ Recent decisions affecting current work:
 - companyName: optional only (not nullable) — Prisma Client.companyName is String (non-nullable), null is rejected by generated type
 - All 7 Server Actions + 2 API route handlers = 100% Zod coverage; PROD-05 fully verified
 
+**Deployment (Phase 14 - planned):**
+- Phase 14 added to roadmap — deployment is last phase after UI Polish (Phase 13)
+- Vercel recommended over Netlify for Next.js (better middleware, server actions, instrumentation support)
+- User has not created hosting account yet — Phase 14 will cover account setup + env var configuration
+- Human verification items from Phase 12 (Sentry live, rate limit live, security headers) to be completed in Phase 14
+
 ## Session Continuity
 
-Last session: 2026-02-22
-Stopped at: Completed 12-04-PLAN.md (Phase 12 gap closure — 100% Zod coverage)
+Last session: 2026-02-23
+Stopped at: Completed Phase 12 — all PROD requirements verified, Phase 14 (Deployment) added to roadmap
 Resume file: None
-Next: Phase 13 (UI Polish) — pending
+Next: Phase 13 (UI Polish & Admin Analytics Integration) — ready to plan
