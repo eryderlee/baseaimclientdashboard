@@ -9,6 +9,16 @@ import { redirect } from 'next/navigation'
 import { STANDARD_MILESTONES } from '@/prisma/seed-milestones'
 import { sendWelcomeEmail } from '@/lib/email'
 import { createClientDriveFolder } from '@/lib/google-drive'
+import { z } from 'zod'
+
+const resetPasswordSchema = z.object({
+  clientId: z.string().cuid(),
+  newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+})
+
+const toggleClientStatusSchema = z.object({
+  clientId: z.string().cuid(),
+})
 
 /**
  * Create a new client with User account, Client profile, and standard milestones
@@ -215,10 +225,19 @@ export async function toggleClientStatus(clientId: string) {
     return { error: 'Unauthorized' }
   }
 
+  // Validate input
+  let validId: string
+  try {
+    const parsed = toggleClientStatusSchema.parse({ clientId })
+    validId = parsed.clientId
+  } catch {
+    return { error: 'Invalid client ID' }
+  }
+
   try {
     // Fetch current status
     const currentClient = await prisma.client.findUnique({
-      where: { id: clientId },
+      where: { id: validId },
       select: { isActive: true },
     })
 
@@ -228,7 +247,7 @@ export async function toggleClientStatus(clientId: string) {
 
     // Toggle status
     const updatedClient = await prisma.client.update({
-      where: { id: clientId },
+      where: { id: validId },
       data: { isActive: !currentClient.isActive },
     })
 
@@ -253,15 +272,21 @@ export async function resetClientPassword(clientId: string, newPassword: string)
     return { error: 'Unauthorized' }
   }
 
-  // Validate password
-  if (!newPassword || newPassword.length < 8) {
-    return { error: 'Password must be at least 8 characters' }
+  // Validate inputs with Zod
+  let validClientId: string
+  let validPassword: string
+  try {
+    const parsed = resetPasswordSchema.parse({ clientId, newPassword })
+    validClientId = parsed.clientId
+    validPassword = parsed.newPassword
+  } catch {
+    return { error: 'Invalid input' }
   }
 
   try {
     // Get client and user details for email
     const client = await prisma.client.findUnique({
-      where: { id: clientId },
+      where: { id: validClientId },
       include: { user: { select: { id: true, name: true, email: true } } },
     })
 
@@ -270,7 +295,7 @@ export async function resetClientPassword(clientId: string, newPassword: string)
     }
 
     // Hash password BEFORE updating (avoid slow CPU-bound ops in transaction)
-    const hashedPassword = await bcrypt.hash(newPassword, 10)
+    const hashedPassword = await bcrypt.hash(validPassword, 10)
 
     // Update user password
     await prisma.user.update({
@@ -282,7 +307,7 @@ export async function resetClientPassword(clientId: string, newPassword: string)
     sendWelcomeEmail({
       clientName: client.user.name || client.companyName,
       email: client.user.email,
-      temporaryPassword: newPassword,
+      temporaryPassword: validPassword,
       subject: 'Your BaseAim Password Has Been Updated',
     }).catch((err) => console.error('Password reset email failed:', err))
 

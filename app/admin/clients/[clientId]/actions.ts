@@ -6,6 +6,23 @@ import { verifySession } from '@/lib/dal'
 import { prisma } from '@/lib/prisma'
 import { calculateMilestoneProgress } from '@/lib/utils/progress'
 
+const updateNoteSchema = z.object({
+  clientId: z.string().cuid(),
+  milestoneId: z.string().cuid(),
+  noteId: z.string().min(1),
+  newContent: z.string().min(1, 'Note content cannot be empty').trim(),
+})
+
+const deleteClientSchema = z.object({
+  clientId: z.string().cuid(),
+})
+
+const deleteNoteSchema = z.object({
+  clientId: z.string().cuid(),
+  milestoneId: z.string().cuid(),
+  noteId: z.string().min(1),
+})
+
 const MilestoneUpdateSchema = z.object({
   milestones: z.array(
     z.object({
@@ -148,15 +165,25 @@ export async function updateNote(
     return { error: 'Unauthorized' }
   }
 
-  // 2. Validate input
-  if (!newContent.trim()) {
-    return { error: 'Note content cannot be empty' }
+  // 2. Validate input with Zod
+  let validClientId: string
+  let validMilestoneId: string
+  let validNoteId: string
+  let validContent: string
+  try {
+    const parsed = updateNoteSchema.parse({ clientId, milestoneId, noteId, newContent })
+    validClientId = parsed.clientId
+    validMilestoneId = parsed.milestoneId
+    validNoteId = parsed.noteId
+    validContent = parsed.newContent
+  } catch {
+    return { error: 'Invalid input' }
   }
 
   try {
     // 3. Fetch current milestone
     const milestone = await prisma.milestone.findUnique({
-      where: { id: milestoneId },
+      where: { id: validMilestoneId },
       select: { notes: true, clientId: true },
     })
 
@@ -164,7 +191,7 @@ export async function updateNote(
       return { error: 'Milestone not found' }
     }
 
-    if (milestone.clientId !== clientId) {
+    if (milestone.clientId !== validClientId) {
       return { error: 'Milestone does not belong to this client' }
     }
 
@@ -173,18 +200,18 @@ export async function updateNote(
     const notesArray = Array.isArray(milestone.notes) ? milestone.notes : []
     const updatedNotes = notesArray.map((note: any) => {
       // New format: object with id property
-      if (note && typeof note === 'object' && 'id' in note && note.id === noteId) {
+      if (note && typeof note === 'object' && 'id' in note && note.id === validNoteId) {
         return {
           ...note,
-          content: newContent.trim(),
+          content: validContent,
           editedAt: new Date().toISOString(),
         }
       }
       // Old format: plain string - match by content and convert to new format
-      if (typeof note === 'string' && note === noteId) {
+      if (typeof note === 'string' && note === validNoteId) {
         return {
           id: crypto.randomUUID(),
-          content: newContent.trim(),
+          content: validContent,
           createdAt: new Date().toISOString(),
           createdBy: 'Admin',
           editedAt: new Date().toISOString(),
@@ -195,18 +222,63 @@ export async function updateNote(
 
     // 5. Save updated notes array
     await prisma.milestone.update({
-      where: { id: milestoneId },
+      where: { id: validMilestoneId },
       data: { notes: updatedNotes },
     })
 
     // 6. Revalidate paths
     revalidatePath('/dashboard/progress')
-    revalidatePath(`/admin/clients/${clientId}`)
+    revalidatePath(`/admin/clients/${validClientId}`)
 
     return { success: true }
   } catch (error) {
     console.error('Failed to update note:', error)
     return { error: 'Failed to update note' }
+  }
+}
+
+/**
+ * Delete a client and all associated data
+ * Deleting the User cascades to Client, Milestones, Documents, etc.
+ */
+export async function deleteClient(clientId: string) {
+  try {
+    const { userRole } = await verifySession()
+    if (userRole !== 'ADMIN') {
+      return { error: 'Unauthorized' }
+    }
+  } catch {
+    return { error: 'Unauthorized' }
+  }
+
+  // Validate input with Zod
+  let validClientId: string
+  try {
+    const parsed = deleteClientSchema.parse({ clientId })
+    validClientId = parsed.clientId
+  } catch {
+    return { error: 'Invalid client ID' }
+  }
+
+  try {
+    // Find the userId from the client record
+    const client = await prisma.client.findUnique({
+      where: { id: validClientId },
+      select: { userId: true },
+    })
+
+    if (!client) {
+      return { error: 'Client not found' }
+    }
+
+    // Deleting the User cascades to Client, Milestones, Documents, Invoices, etc.
+    await prisma.user.delete({ where: { id: client.userId } })
+
+    revalidatePath('/admin')
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to delete client:', error)
+    return { error: 'Failed to delete client' }
   }
 }
 
@@ -228,10 +300,23 @@ export async function deleteNote(
     return { error: 'Unauthorized' }
   }
 
+  // 2. Validate input with Zod
+  let validClientId: string
+  let validMilestoneId: string
+  let validNoteId: string
   try {
-    // 2. Fetch current milestone
+    const parsed = deleteNoteSchema.parse({ clientId, milestoneId, noteId })
+    validClientId = parsed.clientId
+    validMilestoneId = parsed.milestoneId
+    validNoteId = parsed.noteId
+  } catch {
+    return { error: 'Invalid input' }
+  }
+
+  try {
+    // 3. Fetch current milestone
     const milestone = await prisma.milestone.findUnique({
-      where: { id: milestoneId },
+      where: { id: validMilestoneId },
       select: { notes: true, clientId: true },
     })
 
@@ -239,35 +324,35 @@ export async function deleteNote(
       return { error: 'Milestone not found' }
     }
 
-    if (milestone.clientId !== clientId) {
+    if (milestone.clientId !== validClientId) {
       return { error: 'Milestone does not belong to this client' }
     }
 
-    // 3. Filter out the note to delete
+    // 4. Filter out the note to delete
     // Handle both old format (strings) and new format (objects with id)
     const notesArray = Array.isArray(milestone.notes) ? milestone.notes : []
     const updatedNotes = notesArray.filter((note: any) => {
       // New format: object with id property
       if (note && typeof note === 'object' && 'id' in note) {
-        return note.id !== noteId
+        return note.id !== validNoteId
       }
       // Old format: plain string - match by content
       // (noteId is actually the content for old notes)
       if (typeof note === 'string') {
-        return note !== noteId
+        return note !== validNoteId
       }
       return true
     })
 
-    // 4. Save updated notes array
+    // 5. Save updated notes array
     await prisma.milestone.update({
-      where: { id: milestoneId },
+      where: { id: validMilestoneId },
       data: { notes: updatedNotes },
     })
 
-    // 5. Revalidate paths
+    // 6. Revalidate paths
     revalidatePath('/dashboard/progress')
-    revalidatePath(`/admin/clients/${clientId}`)
+    revalidatePath(`/admin/clients/${validClientId}`)
 
     return { success: true }
   } catch (error) {
