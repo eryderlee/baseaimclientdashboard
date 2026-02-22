@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+
+const createMessageSchema = z.object({
+  content: z.string().min(1, "Message content is required").max(5000).trim(),
+  receiverId: z.string().cuid().optional(),
+})
 
 export async function GET(req: NextRequest) {
   try {
@@ -46,18 +52,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { content, receiverId } = await req.json()
-
-    if (!content || !content.trim()) {
-      return NextResponse.json(
-        { error: "Message content is required" },
-        { status: 400 }
-      )
+    const body = await req.json()
+    const parsed = createMessageSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid input" }, { status: 400 })
     }
+    const { content, receiverId } = parsed.data
 
     const message = await prisma.message.create({
       data: {
-        content: content.trim(),
+        content: content,
         senderId: session.user.id,
         receiverId: receiverId || null,
       },
