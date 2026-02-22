@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 
 ## Current Position
 
-Phase: 12 of 13 (Production Hardening) — Wave 2 complete (12-01, 12-02, 12-03 done)
-Plan: 3 of 3 complete
-Status: Phase 12 complete
-Last activity: 2026-02-22 — Completed 12-03-PLAN.md
+Phase: 12 of 13 (Production Hardening) — All plans complete (12-01 through 12-04 done)
+Plan: 4 of 3+1 complete (gap closure plan added)
+Status: Phase 12 fully verified
+Last activity: 2026-02-22 — Completed 12-04-PLAN.md (Zod gap closure)
 
-Progress: [██████████████████████████] 34/34 plans complete (3 of 3 in Phase 12)
+Progress: [██████████████████████████] 35/35 plans complete (4 of 4 in Phase 12)
 
 ## Performance Metrics
 
@@ -206,9 +206,15 @@ Recent decisions affecting current work:
 - All route handler mutations verified authenticated (auth() or Stripe signature); /api/auth/register intentionally public
 - Zod parse + try/catch at top of server actions — validated copies of variables used in all DB calls
 
+**Phase 12 - Zod Gap Closure (from 12-04):**
+- updateSettingsSchema added to app/api/user/settings/route.ts — 6 user profile fields validated before prisma.user.update()
+- createMessageSchema added to app/api/messages/route.ts — content min1/max5000/trim, receiverId z.string().cuid().optional()
+- companyName: optional only (not nullable) — Prisma Client.companyName is String (non-nullable), null is rejected by generated type
+- All 7 Server Actions + 2 API route handlers = 100% Zod coverage; PROD-05 fully verified
+
 ## Session Continuity
 
 Last session: 2026-02-22
-Stopped at: Completed 12-03-PLAN.md (Phase 12 complete)
+Stopped at: Completed 12-04-PLAN.md (Phase 12 gap closure — 100% Zod coverage)
 Resume file: None
 Next: Phase 13 (UI Polish) — pending
