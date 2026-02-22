@@ -212,6 +212,19 @@ Recent decisions affecting current work:
 - companyName: optional only (not nullable) — Prisma Client.companyName is String (non-nullable), null is rejected by generated type
 - All 7 Server Actions + 2 API route handlers = 100% Zod coverage; PROD-05 fully verified
 
+**Manual UI Changes (2026-02-21 — pre-Phase 13):**
+- Phase labels added to milestone checklist and items — `components/dashboard/milestone-checklist.tsx` + `milestone-item.tsx`
+- Hero CTA now links to "Review Project Phases" instead of chat shortcuts — `components/dashboard/dashboard-overview.tsx`
+- Growth Roadmap redesigned as horizontal timeline with arrows between phase cards, pulled above analytics widgets — `dashboard-overview.tsx`
+- "Contact Team" stat card removed; chat lives exclusively at `/dashboard/chat` — `app/dashboard/page.tsx`
+- Analytics page: "Messages Sent" metric and all `<AnalyticsCharts>` visualizations removed — `app/dashboard/analytics/page.tsx`
+- "Notifications" card on overview replaced with compact "Recent Activity" feed — `dashboard-overview.tsx`
+- Secondary "Recent Activity" card beside Growth Roadmap removed so timeline owns the full row
+- Arrow centering fix applied to connect phase cards linearly
+- Settings page updated (unknown change) — `app/dashboard/settings/page.tsx`
+- Admin components updated: `create-invoice-form.tsx`, `client-analytics-table.tsx`
+- New untracked components: `components/admin/delete-client-section.tsx`, `components/dashboard/change-password-form.tsx`
+
 **Deployment (Phase 14 - planned):**
 - Phase 14 added to roadmap — deployment is last phase after UI Polish (Phase 13)
 - Vercel recommended over Netlify for Next.js (better middleware, server actions, instrumentation support)
