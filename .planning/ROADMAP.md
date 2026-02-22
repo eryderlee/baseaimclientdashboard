@@ -253,11 +253,12 @@ Plans:
   9. Admin can see aggregate Facebook Ads spend and performance metrics across all clients
   10. Admin analytics shows risk detection based on overdue milestones (from Phase 6)
   11. Admin analytics displays upcoming milestone due dates within 7-day window (from Phase 6)
-**Plans:** TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 13-01: TBD
-- [ ] 13-02: TBD
+- [ ] 13-01-PLAN.md — Notification bell dropdown + mobile hamburger nav (UI-02, UI-03, UI-04)
+- [ ] 13-02-PLAN.md — Admin Stripe revenue + Facebook Ads aggregation in analytics (ADMIN-01, ADMIN-02, ADMIN-03)
+- [ ] 13-03-PLAN.md — Empty states for dashboard list views + transition polish (UI-05, UI-06)
 
 #### Phase 14: Deployment
 **Goal**: App is live on a production host with all environment variables configured, external services connected, and live verification complete
@@ -300,5 +301,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 10. Payment Processing | 3/3 | ✓ Complete | 2026-02-20 |
 | 11. Facebook Ads Analytics | 3/3 | ✓ Complete | 2026-02-22 |
 | 12. Production Hardening | 4/4 | ✓ Complete | 2026-02-23 |
-| 13. UI Polish & Admin Analytics Integration | 0/TBD | Not started | - |
+| 13. UI Polish & Admin Analytics Integration | 0/3 | Not started | - |
 | 14. Deployment | 0/TBD | Not started | - |
