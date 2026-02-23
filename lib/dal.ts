@@ -6,7 +6,8 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { calculateOverallProgress } from '@/lib/utils/progress'
 import { detectClientRisk } from '@/lib/utils/risk-detection'
-import { fetchFacebookInsights, fetchFacebookDailyInsights, type DatePreset } from '@/lib/facebook-ads'
+import { fetchFacebookInsights, fetchFacebookDailyInsights, getActionValue, type DatePreset } from '@/lib/facebook-ads'
+import { stripe } from '@/lib/stripe'
 
 export const verifySession = cache(async () => {
   const session = await auth()
@@ -462,4 +463,128 @@ export const getClientFbDailyInsights = cache(async () => {
   )
 
   return cachedFetch()
+})
+
+// ─── Admin Revenue Analytics ────────────────────────────────────────────────
+
+/**
+ * Aggregate Stripe revenue data across all clients.
+ * Total revenue: sum of all PAID invoices from local DB (no Stripe API needed).
+ * MRR: sum of active Stripe subscriptions' monthly amounts (cached 1 hour).
+ *
+ * verifySession() called BEFORE unstable_cache boundary.
+ * ADMIN role only.
+ */
+export const getAdminRevenueAnalytics = cache(async () => {
+  const { userRole } = await verifySession()
+  if (userRole !== 'ADMIN') throw new Error('Unauthorized: Admin access required')
+
+  // Total revenue from local Invoice records — no Stripe API call needed
+  const paidInvoices = await prisma.invoice.findMany({
+    where: { status: 'PAID' },
+    select: { amount: true, currency: true, clientId: true },
+  })
+
+  const totalRevenue = paidInvoices.reduce((sum, inv) => sum + inv.amount, 0)
+  const payingClientCount = new Set(paidInvoices.map(i => i.clientId)).size
+
+  // MRR from active subscriptions — requires Stripe API for live price data
+  const activeSubscriptions = await prisma.subscription.findMany({
+    where: {
+      status: 'active',
+      stripeSubscriptionId: { not: null },
+    },
+    select: { stripeSubscriptionId: true },
+  })
+
+  // Cache Stripe API calls with 1-hour TTL
+  const mrr = await unstable_cache(
+    async () => {
+      if (activeSubscriptions.length === 0) return 0
+
+      const results = await Promise.allSettled(
+        activeSubscriptions.map(sub =>
+          stripe.subscriptions.retrieve(sub.stripeSubscriptionId!)
+        )
+      )
+
+      return results.reduce((sum, r) => {
+        if (r.status === 'fulfilled') {
+          const amount = r.value.items.data[0]?.price?.unit_amount ?? 0
+          return sum + amount / 100 // cents to dollars
+        }
+        return sum
+      }, 0)
+    },
+    ['admin-mrr-v1'],
+    { revalidate: 3600 } // 1 hour
+  )()
+
+  return {
+    totalRevenue,
+    mrr,
+    payingClientCount,
+    activeSubscriptionCount: activeSubscriptions.length,
+  }
+})
+
+/**
+ * Aggregate Facebook Ads data across all clients with configured ad accounts.
+ * Uses Promise.allSettled for parallel fetching — individual failures don't block others.
+ * Cached with 6-hour TTL matching per-client FB cache.
+ *
+ * verifySession() called BEFORE unstable_cache boundary.
+ * ADMIN role only.
+ */
+export const getAdminFbAggregation = cache(async () => {
+  const { userRole } = await verifySession()
+  if (userRole !== 'ADMIN') throw new Error('Unauthorized: Admin access required')
+
+  const settings = await prisma.settings.findFirst({
+    select: { facebookAccessToken: true },
+  })
+
+  if (!settings?.facebookAccessToken) {
+    return { totalSpend: 0, totalLeads: 0, totalImpressions: 0, configuredClients: 0 }
+  }
+
+  const clients = await prisma.client.findMany({
+    where: { adAccountId: { not: null } },
+    select: { id: true, adAccountId: true },
+  })
+
+  if (clients.length === 0) {
+    return { totalSpend: 0, totalLeads: 0, totalImpressions: 0, configuredClients: 0 }
+  }
+
+  const accessToken = settings.facebookAccessToken
+
+  // Cache FB API calls with 6-hour TTL
+  const aggregated = await unstable_cache(
+    async () => {
+      const results = await Promise.allSettled(
+        clients.map(c =>
+          fetchFacebookInsights(c.adAccountId!, 'last_30d', accessToken)
+        )
+      )
+
+      let totalSpend = 0
+      let totalLeads = 0
+      let totalImpressions = 0
+
+      for (const result of results) {
+        if (result.status === 'fulfilled' && result.value) {
+          totalSpend += parseFloat(result.value.spend || '0')
+          totalImpressions += parseFloat(result.value.impressions || '0')
+          totalLeads += getActionValue(result.value.actions, 'lead')
+        }
+      }
+
+      return { totalSpend, totalLeads, totalImpressions }
+    },
+    ['admin-fb-aggregation-v1'],
+    { revalidate: 21600 } // 6 hours
+  )()
+
+  return { ...aggregated, configuredClients: clients.length }
 })
