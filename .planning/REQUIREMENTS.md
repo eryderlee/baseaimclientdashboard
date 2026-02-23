@@ -71,20 +71,20 @@ Requirements for v1.0 Production Launch milestone. Each maps to roadmap phases.
 
 ### UI Polish
 
-- [ ] **UI-01**: Chat widget replaced with WhatsApp/Telegram click-to-chat buttons
-- [ ] **UI-02**: Notification panel displays real notifications in header dropdown
-- [ ] **UI-03**: Notification panel allows marking notifications as read
-- [ ] **UI-04**: Mobile/tablet responsive design refined across all pages
-- [ ] **UI-05**: Loading animations and transitions polished throughout dashboard
-- [ ] **UI-06**: Empty states designed for all list views (no documents, no invoices, etc.)
+- [x] **UI-01**: Chat widget replaced with WhatsApp/Telegram click-to-chat buttons
+- [x] **UI-02**: Notification panel displays real notifications in header dropdown
+- [x] **UI-03**: Notification panel allows marking notifications as read
+- [x] **UI-04**: Mobile/tablet responsive design refined across all pages
+- [x] **UI-05**: Loading animations and transitions polished throughout dashboard
+- [x] **UI-06**: Empty states designed for all list views (no documents, no invoices, etc.)
 
 ### Admin Analytics
 
-- [ ] **ADMIN-01**: Admin analytics dashboard populated with real client data (not mock)
-- [ ] **ADMIN-02**: Admin can see total revenue and MRR across all clients (from Stripe)
-- [ ] **ADMIN-03**: Admin can see aggregate Facebook Ads spend and performance across clients
-- [ ] **ADMIN-04**: Admin analytics shows risk detection based on overdue milestones
-- [ ] **ADMIN-05**: Admin analytics displays upcoming due dates within 7-day window
+- [x] **ADMIN-01**: Admin analytics dashboard populated with real client data (not mock)
+- [x] **ADMIN-02**: Admin can see total revenue and MRR across all clients (from Stripe)
+- [x] **ADMIN-03**: Admin can see aggregate Facebook Ads spend and performance across clients
+- [x] **ADMIN-04**: Admin analytics shows risk detection based on overdue milestones
+- [x] **ADMIN-05**: Admin analytics displays upcoming due dates within 7-day window
 
 ### Deployment
 
@@ -247,17 +247,17 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PROD-06 | Phase 12 | Pending |
 | PROD-07 | Phase 12 | Pending |
 | PROD-08 | Phase 12 | Pending |
-| UI-01 | Phase 13 | Pending |
-| UI-02 | Phase 13 | Pending |
-| UI-03 | Phase 13 | Pending |
-| UI-04 | Phase 13 | Pending |
-| UI-05 | Phase 13 | Pending |
-| UI-06 | Phase 13 | Pending |
-| ADMIN-01 | Phase 13 | Pending |
-| ADMIN-02 | Phase 13 | Pending |
-| ADMIN-03 | Phase 13 | Pending |
-| ADMIN-04 | Phase 13 | Pending |
-| ADMIN-05 | Phase 13 | Pending |
+| UI-01 | Phase 13 | Complete |
+| UI-02 | Phase 13 | Complete |
+| UI-03 | Phase 13 | Complete |
+| UI-04 | Phase 13 | Complete |
+| UI-05 | Phase 13 | Complete |
+| UI-06 | Phase 13 | Complete |
+| ADMIN-01 | Phase 13 | Complete |
+| ADMIN-02 | Phase 13 | Complete |
+| ADMIN-03 | Phase 13 | Complete |
+| ADMIN-04 | Phase 13 | Complete |
+| ADMIN-05 | Phase 13 | Complete |
 
 **Coverage:**
 - v0.9 Foundation requirements: 22 total (all complete)
