@@ -1,5 +1,6 @@
 import { DashboardNav } from "@/components/dashboard/dashboard-nav"
 import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
 
 export default async function DashboardLayout({
   children,
@@ -21,10 +22,23 @@ export default async function DashboardLayout({
         role: "CLIENT"
       }
 
+  const rawNotifications = session?.user?.id
+    ? await prisma.notification.findMany({
+        where: { userId: session.user.id },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+      })
+    : []
+
+  const notifications = rawNotifications.map(n => ({
+    ...n,
+    createdAt: n.createdAt.toISOString(),
+  }))
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-transparent">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(79,195,247,0.25),_transparent_60%)] blur-3xl opacity-70" />
-      <DashboardNav user={user} />
+      <DashboardNav user={user} notifications={notifications} />
       <main className="relative z-10 w-full px-4 py-8 md:px-8 lg:px-12 lg:py-12">
         {children}
       </main>

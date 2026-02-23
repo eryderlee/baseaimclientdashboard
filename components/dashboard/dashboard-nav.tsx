@@ -13,6 +13,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
 import {
   Home,
@@ -24,7 +30,19 @@ import {
   Bell,
   TrendingUp,
   LogOut,
+  Menu,
 } from "lucide-react"
+import { NotificationCenter } from "@/components/dashboard/notification-center"
+
+interface SerializedNotification {
+  id: string
+  title: string
+  message: string
+  type: string
+  isRead: boolean
+  link: string | null
+  createdAt: string // ISO string from server
+}
 
 interface DashboardNavProps {
   user: {
@@ -33,6 +51,7 @@ interface DashboardNavProps {
     image?: string | null
     role?: string
   }
+  notifications?: SerializedNotification[]
 }
 
 const navItems = [
@@ -45,8 +64,11 @@ const navItems = [
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ]
 
-export function DashboardNav({ user }: DashboardNavProps) {
+export function DashboardNav({ user, notifications: propNotifications }: DashboardNavProps) {
   const pathname = usePathname()
+
+  const notifications = propNotifications ?? []
+  const unreadCount = notifications.filter(n => !n.isRead).length
 
   return (
     <nav className="sticky top-0 z-50 border-b border-white/70 bg-white/80 shadow-[0_10px_60px_rgba(37,99,235,0.15)] backdrop-blur-2xl dark:border-slate-800 dark:bg-slate-900/80">
@@ -72,6 +94,46 @@ export function DashboardNav({ user }: DashboardNavProps) {
         </div>
 
         <div className="flex flex-1 items-center justify-end gap-6">
+          {/* Mobile hamburger nav — hidden at md+ */}
+          <div className="md:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-full border border-white/70 bg-white/70 text-slate-600 shadow-sm hover:bg-white/90 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
+                >
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Open menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-72">
+                <SheetTitle className="text-lg font-heading">Navigation</SheetTitle>
+                <nav className="mt-6 flex flex-col gap-2">
+                  {navItems.map((item) => {
+                    const Icon = item.icon
+                    const isActive = pathname === item.href
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
+                          isActive
+                            ? "bg-primary/10 text-primary"
+                            : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                        }`}
+                      >
+                        <Icon className="h-4 w-4" />
+                        {item.label}
+                      </Link>
+                    )
+                  })}
+                </nav>
+              </SheetContent>
+            </Sheet>
+          </div>
+
+          {/* Desktop pill nav — hidden below md */}
           <div className="hidden md:flex items-center gap-1 rounded-full border border-white/60 bg-white/70 p-1 shadow-inner shadow-sky-100 dark:border-slate-800 dark:bg-slate-900/70">
               {navItems.map((item) => {
                 const Icon = item.icon
@@ -94,16 +156,40 @@ export function DashboardNav({ user }: DashboardNavProps) {
             </div>
 
           <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative rounded-full border border-white/70 bg-white/70 text-slate-600 shadow-sm shadow-sky-100 hover:bg-white/90 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
-            >
-              <Bell className="h-5 w-5" />
-              <Badge className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-r from-[#e11d48] via-[#f97316] to-[#eab308] p-0 text-[10px] text-white shadow-sm">
-                3
-              </Badge>
-            </Button>
+            {/* Notification bell with dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative rounded-full border border-white/70 bg-white/70 text-slate-600 shadow-sm shadow-sky-100 hover:bg-white/90 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
+                >
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <Badge className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-r from-[#e11d48] via-[#f97316] to-[#eab308] p-0 text-[10px] text-white shadow-sm">
+                      {unreadCount}
+                    </Badge>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="w-96 p-0"
+                onCloseAutoFocus={(e) => e.preventDefault()}
+              >
+                <div className="border-b p-4">
+                  <h3 className="text-sm font-semibold">Notifications</h3>
+                </div>
+                <div className="max-h-80 overflow-y-auto p-2">
+                  <NotificationCenter
+                    notifications={notifications.map(n => ({
+                      ...n,
+                      createdAt: new Date(n.createdAt),
+                    }))}
+                  />
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
