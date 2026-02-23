@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Users, TrendingUp, AlertTriangle, Calendar } from 'lucide-react'
+import { Users, TrendingUp, AlertTriangle, Calendar, DollarSign, Megaphone } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
 
 interface AnalyticsSummaryProps {
@@ -12,6 +12,15 @@ interface AnalyticsSummaryProps {
     milestoneTitle: string
     dueDate: string // ISO string for server-to-client transport
   }>
+  // Revenue data
+  totalRevenue: number
+  mrr: number
+  payingClientCount: number
+  activeSubscriptionCount: number
+  // Facebook Ads data
+  totalFbSpend: number
+  totalFbLeads: number
+  fbConfiguredClients: number
 }
 
 export function AnalyticsSummary({
@@ -20,6 +29,13 @@ export function AnalyticsSummary({
   averageProgress,
   atRiskClients,
   upcomingDueDates,
+  totalRevenue,
+  mrr,
+  payingClientCount,
+  activeSubscriptionCount,
+  totalFbSpend,
+  totalFbLeads,
+  fbConfiguredClients,
 }: AnalyticsSummaryProps) {
   return (
     <div className="space-y-6">
@@ -86,6 +102,76 @@ export function AnalyticsSummary({
             </p>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Revenue & Marketing Section */}
+      <div>
+        <h3 className="text-sm font-medium text-neutral-500 mb-3">Revenue & Marketing</h3>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {/* Total Revenue Card */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              <DollarSign className="h-4 w-4 text-neutral-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                ${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <p className="text-xs text-neutral-500 mt-1">
+                From {payingClientCount} paying client{payingClientCount === 1 ? '' : 's'}
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* MRR Card */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Monthly Recurring</CardTitle>
+              <TrendingUp className="h-4 w-4 text-neutral-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                ${mrr.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <p className="text-xs text-neutral-500 mt-1">
+                {activeSubscriptionCount} active subscription{activeSubscriptionCount === 1 ? '' : 's'}
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* FB Ad Spend Card */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Ad Spend (30d)</CardTitle>
+              <Megaphone className="h-4 w-4 text-neutral-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                ${totalFbSpend.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <p className="text-xs text-neutral-500 mt-1">
+                Across {fbConfiguredClients} client{fbConfiguredClients === 1 ? '' : 's'}
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* FB Leads Card */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Leads (30d)</CardTitle>
+              <Users className="h-4 w-4 text-neutral-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalFbLeads}</div>
+              <p className="text-xs text-neutral-500 mt-1">
+                {fbConfiguredClients > 0
+                  ? `${(totalFbLeads / fbConfiguredClients).toFixed(1)} avg per client`
+                  : 'No FB accounts configured'}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Upcoming Due Dates List */}

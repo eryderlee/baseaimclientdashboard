@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { UserPlus } from 'lucide-react'
-import { verifySession, getAllClientsWithMilestones, getAdminAnalytics } from '@/lib/dal'
+import { verifySession, getAllClientsWithMilestones, getAdminAnalytics, getAdminRevenueAnalytics, getAdminFbAggregation } from '@/lib/dal'
 import { calculateOverallProgress } from '@/lib/utils/progress'
 import { detectClientRisk } from '@/lib/utils/risk-detection'
 import { AnalyticsSummary } from '@/components/admin/analytics-summary'
@@ -12,11 +12,13 @@ import { ClientFilters } from '@/components/admin/client-filters'
 import { ClientAnalyticsTable } from '@/components/admin/client-analytics-table'
 
 async function getAdminData() {
-  // Get analytics summary
-  const analytics = await getAdminAnalytics()
-
-  // Get all clients with milestones
-  const clients = await getAllClientsWithMilestones()
+  // Fetch all data in parallel — cached DAL functions deduplicate internal calls
+  const [analytics, clients, revenue, fbAggregation] = await Promise.all([
+    getAdminAnalytics(),
+    getAllClientsWithMilestones(),
+    getAdminRevenueAnalytics(),
+    getAdminFbAggregation(),
+  ])
 
   // Process each client to prepare data for analytics table
   const processedClients = clients.map((client) => {
@@ -65,6 +67,8 @@ async function getAdminData() {
       upcomingDueDates,
     },
     clients: processedClients,
+    revenue,
+    fbAggregation,
   }
 }
 
@@ -103,6 +107,13 @@ export default async function AdminPage() {
         averageProgress={adminData.analytics.averageProgress}
         atRiskClients={adminData.analytics.atRiskClients}
         upcomingDueDates={adminData.analytics.upcomingDueDates}
+        totalRevenue={adminData.revenue.totalRevenue}
+        mrr={adminData.revenue.mrr}
+        payingClientCount={adminData.revenue.payingClientCount}
+        activeSubscriptionCount={adminData.revenue.activeSubscriptionCount}
+        totalFbSpend={adminData.fbAggregation.totalSpend}
+        totalFbLeads={adminData.fbAggregation.totalLeads}
+        fbConfiguredClients={adminData.fbAggregation.configuredClients}
       />
 
       {/* Clients Table with Filters */}
