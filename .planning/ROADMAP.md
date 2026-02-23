@@ -260,9 +260,26 @@ Plans:
 - [x] 13-02-PLAN.md — Admin Stripe revenue + Facebook Ads aggregation in analytics (ADMIN-01, ADMIN-02, ADMIN-03)
 - [x] 13-03-PLAN.md — Empty states for dashboard list views + transition polish (UI-05, UI-06)
 
-#### Phase 14: Deployment
-**Goal**: App is live on a production host with all environment variables configured, external services connected, and live verification complete
+#### Phase 14: Enhanced Facebook Analytics & Branded Reporting
+**Goal**: Analytics page shows the full picture of campaign performance — leads, reach, spend trends, quality scores, campaign and platform breakdown — with a professional branded PDF report clients can share with stakeholders.
 **Depends on**: Phase 13
+**Requirements**: FBADS-EXT-01, FBADS-EXT-02, FBADS-EXT-03, FBADS-EXT-04, FBADS-EXT-05
+**Success Criteria** (what must be TRUE):
+  1. Analytics page shows 12 metric cards including Reach, Frequency, Leads, Cost Per Lead, Outbound Clicks, Landing Page Views
+  2. Quality score pills (Quality, Engagement Rate, Conversion Rate) display with emerald/amber/red colour coding
+  3. 30-day spend + leads trend chart renders with real daily data from Facebook API
+  4. Top 5 campaign breakdown table and platform split (Facebook/Instagram/etc.) visible
+  5. PDF export has branded BaseAim header, all metrics, campaign table, platform split — CSV includes all new fields
+**Plans:** 3 plans
+
+Plans:
+- [ ] 14-01-PLAN.md — Expand FB API fields, new DAL functions for campaigns, platform breakdown, daily trend
+- [ ] 14-02-PLAN.md — Analytics UI: 12 metric cards, quality pills, trend chart, campaign table, platform breakdown
+- [ ] 14-03-PLAN.md — Branded PDF (BaseAim header, all sections) + updated CSV export
+
+#### Phase 15: Deployment
+**Goal**: App is live on a production host with all environment variables configured, external services connected, and live verification complete
+**Depends on**: Phase 14
 **Requirements**: DEPLOY-01, DEPLOY-02, DEPLOY-03, DEPLOY-04, DEPLOY-05
 **Success Criteria** (what must be TRUE):
   1. App is deployed to Vercel (recommended) or chosen host and accessible via public URL
@@ -273,7 +290,7 @@ Plans:
 **Plans:** TBD
 
 Plans:
-- [ ] 14-01: TBD
+- [ ] 15-01: TBD
 
 ## Progress
 
@@ -302,4 +319,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 11. Facebook Ads Analytics | 3/3 | ✓ Complete | 2026-02-22 |
 | 12. Production Hardening | 4/4 | ✓ Complete | 2026-02-23 |
 | 13. UI Polish & Admin Analytics Integration | 3/3 | ✓ Complete | 2026-02-23 |
-| 14. Deployment | 0/TBD | Not started | - |
+| 14. Enhanced Facebook Analytics & Branded Reporting | 0/3 | Not started | - |
+| 15. Deployment | 0/TBD | Not started | - |

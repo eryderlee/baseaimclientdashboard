@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-15)
 
 **Core value:** Clients can see exactly where their project stands without having to ask
-**Current focus:** Phase 14 - Deployment
+**Current focus:** Phase 14 - Enhanced Facebook Analytics & Branded Reporting
 
 ## Current Position
 
-Phase: 14 of 14 (Deployment) — not started
-Plan: 0 of TBD
+Phase: 14 of 15 (Enhanced Facebook Analytics & Branded Reporting) — not started
+Plan: 0 of 3
 Status: Phase 13 complete — ready for Phase 14
-Last activity: 2026-02-23 — Completed Phase 13 (3/3 plans, all UI and admin analytics requirements verified)
+Last activity: 2026-02-24 — Added Phase 14 (Enhanced FB Analytics), pushed Deployment to Phase 15. Wired in-app notifications to all key events (billing, webhooks, documents, milestones, onboarding).
 
 Progress: [████████████████████████████] 38/38 plans complete (3 of 3 in Phase 13)
 
@@ -232,11 +232,20 @@ Recent decisions affecting current work:
 - Admin components updated: `create-invoice-form.tsx`, `client-analytics-table.tsx`
 - New untracked components: `components/admin/delete-client-section.tsx`, `components/dashboard/change-password-form.tsx`
 
-**Deployment (Phase 14 - planned):**
-- Phase 14 added to roadmap — deployment is last phase after UI Polish (Phase 13)
+**Phase 14 - Enhanced Facebook Analytics & Branded Reporting (planned):**
+- 3 plans, 2 waves: Plan 1 (API+DAL) → Plans 2+3 parallel (UI + PDF)
+- New FB fields: reach, frequency, outbound_clicks, landing_page_views, quality_ranking, engagement_rate_ranking, conversion_rate_ranking
+- Leads derived from actions array (lead + offsite_conversion.fb_pixel_lead); CPL = spend/leads; shows 0 if no pixel
+- New DAL functions: getClientFbCampaigns (top 5 by spend), getClientFbPlatformBreakdown (facebook/instagram/etc.), getClientFbDailyTrend (30d daily)
+- All new DAL functions use 6-hour unstable_cache TTL
+- PDF: branded #2563eb header bar, "BASEAIM" text logo in white, all metric sections, campaign table, platform split
+- Brand tokens: primary #2563eb, quality pills emerald/amber/red, glass-card style on UI cards
+- recharts ComposedChart for spend+leads trend (already installed)
+
+**Deployment (Phase 15 - planned):**
 - Vercel recommended over Netlify for Next.js (better middleware, server actions, instrumentation support)
-- User has not created hosting account yet — Phase 14 will cover account setup + env var configuration
-- Human verification items from Phase 12 (Sentry live, rate limit live, security headers) to be completed in Phase 14
+- User has not created hosting account yet — Phase 15 will cover account setup + env var configuration
+- Human verification items from Phase 12 (Sentry live, rate limit live, security headers) to be completed in Phase 15
 
 ## Session Continuity
 
