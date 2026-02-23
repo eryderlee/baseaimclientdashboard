@@ -14,6 +14,7 @@ import { calculateOverallProgress } from "@/lib/milestone-utils"
 import {
   ArrowUpRight,
   ArrowRight,
+  Clock,
   CreditCard,
   FileText,
   Send,
@@ -135,7 +136,7 @@ export function DashboardOverview({
       label: "Recent Milestone",
       value: recentMilestone?.title || "Not started",
       detail: recentMilestone
-        ? `${recentMilestone.status.replace("_", " ")} ┬╖ Due ${recentMilestone.dueDate?.toLocaleDateString() || "TBD"}`
+        ? `${recentMilestone.status.replace("_", " ")} -> Due ${recentMilestone.dueDate?.toLocaleDateString() || "TBD"}`
         : "Awaiting kickoff",
       accent: "from-primary/30 via-sky-200/30 to-transparent",
     },
@@ -207,37 +208,6 @@ export function DashboardOverview({
   const getPhaseTheme = (status: string) =>
     phaseThemes[status as keyof typeof phaseThemes] ?? phaseThemes.DEFAULT
 
-  const statCards = [
-    {
-      title: "Client Assets",
-      value: stats.totalDocuments,
-      description: "Proposals, creative & approvals",
-      icon: FileText,
-      href: "/dashboard/documents",
-      action: "Review files",
-    },
-    {
-      title: "Client Acquisition System",
-      value: `${overallProgress}%`,
-      description: `${completedMilestones}/${totalMilestones} steps done`,
-      icon: TrendingUp,
-      href: "#milestones",
-      action: "View roadmap",
-    },
-    {
-      title: "Pending Media Budget",
-      value: stats.pendingPayments.toLocaleString("en-US", {
-        style: "currency",
-        currency: "USD",
-        maximumFractionDigits: 0,
-      }),
-      description: "Due this week",
-      icon: CreditCard,
-      href: "/dashboard/billing",
-      action: "Manage billing",
-    },
-  ]
-
   return (
     <div className="space-y-10 pb-16">
       <section className="relative overflow-hidden rounded-[32px] border border-white/60 bg-white/90 px-6 py-10 shadow-[0_35px_140px_rgba(37,99,235,0.2)] dark:border-slate-800/70 dark:bg-slate-900/80">
@@ -303,7 +273,7 @@ export function DashboardOverview({
               {heroStats.map((item) => (
                 <div
                   key={item.label}
-                  className="relative overflow-hidden rounded-2xl border border-white/70 bg-gradient-to-br from-white via-white/90 to-slate-50 p-5 text-slate-700 shadow-[0_28px_90px_rgba(15,23,42,0.2)] ring-1 ring-white/70 dark:border-slate-800/60 dark:bg-slate-900/70 dark:ring-slate-800/70"
+                  className="relative overflow-hidden rounded-2xl border border-white/70 bg-gradient-to-br from-white via-white/90 to-slate-50 p-5 text-slate-700 shadow-[0_28px_90px_rgba(15,23,42,0.2)] ring-1 ring-white/70 transition-all duration-200 hover:shadow-lg dark:border-slate-800/60 dark:bg-slate-900/70 dark:ring-slate-800/70"
                 >
                   <div className="pointer-events-none absolute inset-0 -z-10 opacity-[0.45]" aria-hidden="true">
                     <div className="absolute inset-y-0 left-[-10%] w-2/3 bg-gradient-to-br from-primary/25 via-sky-200/35 to-transparent blur-3xl" />
@@ -324,10 +294,10 @@ export function DashboardOverview({
         </div>
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-[1.7fr_1.3fr]" id="milestones">
+      <div className="space-y-6" id="milestones">
         <Card className="glass-card rounded-3xl border border-white/60 shadow-xl shadow-sky-100 dark:border-slate-800/70">
           <CardHeader>
-            <CardTitle className="font-heading text-2xl">Acquisition Roadmap</CardTitle>
+            <CardTitle className="font-heading text-2xl">Growth Roadmap</CardTitle>
             <CardDescription>Track each funnel phase from strategy through optimization.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -364,7 +334,7 @@ export function DashboardOverview({
                     return (
                       <div key={milestone.id} className="flex items-stretch gap-4">
                         <div
-                          className={`flex min-w-[220px] flex-1 flex-col justify-between rounded-3xl border p-4 shadow-sm ${theme.card}`}
+                          className={`flex min-w-[220px] flex-1 flex-col justify-between rounded-3xl border p-4 shadow-sm transition-all duration-200 hover:shadow-md ${theme.card}`}
                         >
                           <div className="flex items-center justify-between gap-2">
                             <span className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-200">
@@ -394,7 +364,9 @@ export function DashboardOverview({
                           </div>
                         </div>
                         {index < orderedMilestones.length - 1 && (
-                          <ArrowRight className="hidden h-6 w-6 flex-shrink-0 text-slate-400 dark:text-slate-600 md:block" />
+                          <div className="hidden h-full items-center justify-center md:flex">
+                            <ArrowRight className="h-6 w-6 flex-shrink-0 text-slate-400 dark:text-slate-600" />
+                          </div>
                         )}
                       </div>
                     )
@@ -408,20 +380,84 @@ export function DashboardOverview({
             )}
           </CardContent>
         </Card>
+      </div>
 
-        <Card className="glass-card rounded-3xl border border-white/60 shadow-xl shadow-sky-100 dark:border-slate-800/70">
+      <AnalyticsOverview
+        impressionsData={analytics.impressions}
+        clicksData={analytics.clicks}
+        leadsData={analytics.leads}
+        bookedCallsData={analytics.bookedCalls}
+        totalAdSpend={analytics.totalAdSpend}
+        isExpanded={isChartExpanded}
+        setIsExpanded={setIsChartExpanded}
+      />
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card className="glass-card rounded-3xl border border-white/60 shadow-lg shadow-sky-100 dark:border-slate-800/70">
+          <CardHeader>
+            <CardTitle className="font-heading text-2xl">Recent Documents</CardTitle>
+            <CardDescription>Creative assets, proposals, and compliance docs shared this week.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {documents.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-white/70 bg-white/60 p-6 text-center dark:border-slate-800 dark:bg-slate-900/50">
+                <FileText className="mx-auto mb-3 h-10 w-10 text-slate-300 dark:text-slate-600" />
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">No documents yet</p>
+                <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+                  Your team will share files here once your project kicks off.
+                </p>
+              </div>
+            ) : (
+              documents.map((doc) => (
+                <div
+                  key={doc.id}
+                  className="flex items-center justify-between rounded-2xl border border-white/70 bg-white/80 p-4 text-slate-700 shadow-sm shadow-sky-100 transition-colors hover:border-primary/40 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-100"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-2xl border border-white/70 bg-white/90 p-3 shadow-sm shadow-sky-100 dark:border-slate-800 dark:bg-slate-900/70">
+                      <FileText className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">{doc.title}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {doc.createdAt.toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge
+                    className={`rounded-full px-3 ${
+                      doc.status === "APPROVED" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                    }`}
+                  >
+                    {doc.status}
+                  </Badge>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="glass-card rounded-3xl border border-white/60 shadow-lg shadow-sky-100 dark:border-slate-800/70">
           <CardHeader>
             <CardTitle className="font-heading text-2xl">Recent Activity</CardTitle>
-            <CardDescription>Live collaboration between your team and Baseaim.</CardDescription>
+            <CardDescription>Quick snapshot of what your Baseaim crew just touched.</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-5">
-              {activities.map((activity) => (
+          <CardContent className="space-y-3">
+            {activities.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-white/70 bg-white/60 p-6 text-center dark:border-slate-800 dark:bg-slate-900/50">
+                <Clock className="mx-auto mb-3 h-10 w-10 text-slate-300 dark:text-slate-600" />
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">No recent activity</p>
+                <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+                  Activity updates will appear here as your project progresses.
+                </p>
+              </div>
+            ) : (
+              activities.slice(0, 4).map((activity) => (
                 <div
                   key={activity.id}
-                  className="flex items-start gap-3 rounded-2xl border border-white/70 bg-white/70 p-3 shadow-sm shadow-sky-100 dark:border-slate-800 dark:bg-slate-900/60"
+                  className="flex items-center gap-3 rounded-2xl border border-white/70 bg-white/80 p-4 shadow-sm shadow-sky-100 dark:border-slate-800 dark:bg-slate-900/60"
                 >
-                  <Avatar className="h-10 w-10 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-white">
+                  <Avatar className="h-10 w-10 bg-primary/10 text-primary dark:bg-primary/20">
                     <AvatarFallback>
                       {activity.user.name?.[0]?.toUpperCase() || "U"}
                     </AvatarFallback>
@@ -434,122 +470,9 @@ export function DashboardOverview({
                       {activity.createdAt.toLocaleString()}
                     </p>
                   </div>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-slate-500 hover:text-primary">
-                    <Send className="h-4 w-4" />
-                  </Button>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <AnalyticsOverview
-          impressionsData={analytics.impressions}
-          clicksData={analytics.clicks}
-          leadsData={analytics.leads}
-          bookedCallsData={analytics.bookedCalls}
-          totalAdSpend={analytics.totalAdSpend}
-          isExpanded={isChartExpanded}
-          setIsExpanded={setIsChartExpanded}
-        />
-
-        <div
-          className={`grid gap-4 ${isChartExpanded ? "lg:col-span-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" : "lg:col-span-1 grid-cols-2 sm:grid-cols-2 lg:grid-cols-1"}`}
-        >
-          {statCards.map((card) => {
-            const Icon = card.icon
-            return (
-              <Card
-                key={card.title}
-                className="glass-card rounded-2xl border border-white/70 p-0 px-4 py-5 shadow-lg shadow-sky-100 transition-all hover:-translate-y-1 dark:border-slate-800/70"
-              >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <div>
-                    <CardTitle className="text-sm font-semibold text-slate-700 dark:text-white">
-                      {card.title}
-                    </CardTitle>
-                    <CardDescription className="text-xs text-slate-500 dark:text-slate-400">
-                      {card.description}
-                    </CardDescription>
-                  </div>
-                  <div className="rounded-full bg-gradient-to-br from-primary/10 to-cyan-100/40 p-2 text-primary">
-                    <Icon className="h-4 w-4" />
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3 px-0">
-                  <div className="text-3xl font-heading text-slate-900 dark:text-white">
-                    {card.value}
-                  </div>
-                  {card.title === "Acquisition Progress" && (
-                    <Progress value={overallProgress} className="h-2 bg-slate-200" />
-                  )}
-                  <Button asChild variant="link" className="px-0 text-sm font-semibold text-primary">
-                    <Link href={card.href}>
-                      {card.action} <ArrowUpRight className="ml-1 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            )
-          })}
-        </div>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="glass-card rounded-3xl border border-white/60 shadow-lg shadow-sky-100 dark:border-slate-800/70">
-          <CardHeader>
-            <CardTitle className="font-heading text-2xl">Recent Documents</CardTitle>
-            <CardDescription>Creative assets, proposals, and compliance docs shared this week.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {documents.map((doc) => (
-              <div
-                key={doc.id}
-                className="flex items-center justify-between rounded-2xl border border-white/70 bg-white/80 p-4 text-slate-700 shadow-sm shadow-sky-100 transition-colors hover:border-primary/40 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-100"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="rounded-2xl border border-white/70 bg-white/90 p-3 shadow-sm shadow-sky-100 dark:border-slate-800 dark:bg-slate-900/70">
-                    <FileText className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-semibold">{doc.title}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {doc.createdAt.toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-                <Badge
-                  className={`rounded-full px-3 ${
-                    doc.status === "APPROVED" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
-                  }`}
-                >
-                  {doc.status}
-                </Badge>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        <Card className="glass-card rounded-3xl border border-white/60 shadow-lg shadow-sky-100 dark:border-slate-800/70">
-          <CardHeader>
-            <CardTitle className="font-heading text-2xl">Notifications</CardTitle>
-            <CardDescription>Important updates and reminders from your Baseaim team.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {notifications.map((notification) => (
-              <div
-                key={notification.id}
-                className="rounded-2xl border border-white/70 bg-white/80 p-4 shadow-sm shadow-sky-100 dark:border-slate-800 dark:bg-slate-900/60"
-              >
-                <p className="text-sm font-semibold text-slate-800 dark:text-white">{notification.title}</p>
-                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{notification.message}</p>
-                <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">
-                  {notification.createdAt.toLocaleString()}
-                </p>
-              </div>
-            ))}
+              ))
+            )}
           </CardContent>
         </Card>
       </div>
