@@ -241,6 +241,14 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 13-03-PLAN.md — empty states + hover transitions in dashboard-overview.tsx
+Stopped at: Re-executed 13-01-PLAN.md — notification bell dropdown + mobile hamburger nav (commit 5c006ec)
 Resume file: None
-Next: Phase 13 plan 04 (next UI polish plan)
+Next: Phase 13 plan 02 (next UI polish plan)
+
+**Phase 13 - UI Polish (from 13-01):**
+- DashboardNav stays "use client" — all notification data fetched in layout server component, passed as serialized props
+- createdAt serialized as ISO string before crossing server→client boundary (Date not serializable)
+- unreadCount derived from props in client component — avoids useEffect/fetch complexity
+- onCloseAutoFocus preventDefault on bell DropdownMenuContent — prevents focus jumping after close
+- Mobile Sheet side="left" with md:hidden wrapper — canonical hamburger nav pattern
+- Notification bell todo from v0.9 is now resolved via Phase 13-01
