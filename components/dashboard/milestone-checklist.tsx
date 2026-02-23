@@ -57,7 +57,7 @@ export function MilestoneChecklist({ milestones }: MilestoneChecklistProps) {
       {/* Milestones Timeline Card */}
       <Card>
         <CardHeader>
-          <CardTitle>Project Milestones</CardTitle>
+          <CardTitle>Project Phases</CardTitle>
           <CardDescription>
             Track your project progress step by step
           </CardDescription>
@@ -83,6 +83,7 @@ export function MilestoneChecklist({ milestones }: MilestoneChecklistProps) {
                   milestone={milestone}
                   isActive={milestone.id === activeMilestone?.id}
                   isLast={index === milestones.length - 1}
+                  phaseNumber={milestone.order || index + 1}
                 />
               ))}
             </div>

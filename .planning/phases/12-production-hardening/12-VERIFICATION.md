@@ -1,8 +1,15 @@
 ---
 phase: 12-production-hardening
 verified: 2026-02-22T00:00:00Z
-status: verified
+status: human_needed
 score: 8/8 must-haves verified
+re_verification:
+  previous_status: gaps_found
+  previous_score: 7/8
+  gaps_closed:
+    - "Truth 5: Zod on all user-submitted data — updateSettingsSchema in app/api/user/settings/route.ts and createMessageSchema in app/api/messages/route.ts, both safeParse wired before DB calls"
+  gaps_remaining: []
+  regressions: []
 gaps: []
 human_verification:
   - test: Sentry error capture in production
@@ -20,7 +27,7 @@ human_verification:
 
 **Phase Goal:** Dashboard is secure, reliable, and production-ready with proper error handling and monitoring
 **Verified:** 2026-02-22
-**Status:** verified (code gaps closed; 3 human verification items remain)
+**Status:** human_needed — all code gaps closed; 3 items require live infrastructure to test
 **Re-verification:** 2026-02-22 — Plan 12-04 closed the two API route handler gaps
 
 ---
@@ -91,6 +98,8 @@ human_verification:
 | next.config.ts | Sentry SDK | withSentryConfig() wrapper on export | WIRED | Source map upload and Sentry build-time config |
 | middleware.ts | Upstash Redis | new Redis() + ratelimit.limit() | WIRED | try/catch for graceful degradation on Upstash outage |
 | middleware.ts | auth routes | AUTH_ROUTES_TO_RATE_LIMIT + pathname.startsWith() | WIRED | Covers /login, /reset-password, /api/auth |
+| app/api/user/settings/route.ts | updateSettingsSchema | updateSettingsSchema.safeParse(body) line 23 | WIRED | Parsed data destructured line 27; DB call uses parsed.data only |
+| app/api/messages/route.ts | createMessageSchema | createMessageSchema.safeParse(body) line 56 | WIRED | Parsed data destructured line 60; prisma.message.create uses content + receiverId from parsed.data |
 
 ---
 

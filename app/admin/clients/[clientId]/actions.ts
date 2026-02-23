@@ -59,6 +59,7 @@ export async function updateMilestones(clientId: string, rawData: unknown) {
       where: { clientId },
       select: {
         id: true,
+        title: true,
         status: true,
         startDate: true,
         notes: true,
@@ -70,6 +71,7 @@ export async function updateMilestones(clientId: string, rawData: unknown) {
     )
 
     // 4-6. Build transaction updates
+    const newlyCompletedTitles: string[] = []
     const updates = milestones.map((milestone) => {
       const current = currentMilestonesMap.get(milestone.id)
       if (!current) {
@@ -98,6 +100,7 @@ export async function updateMilestones(clientId: string, rawData: unknown) {
       if (milestone.status === 'COMPLETED' && current.status !== 'COMPLETED') {
         // Transitioning TO COMPLETED
         updateData.completedAt = new Date()
+        newlyCompletedTitles.push(current.title)
       }
 
       // Handle notes - append to existing JSON array with proper structure
@@ -133,6 +136,27 @@ export async function updateMilestones(clientId: string, rawData: unknown) {
 
     // Execute transaction
     await prisma.$transaction(updates)
+
+    // Fire-and-forget notifications for newly completed milestones
+    if (newlyCompletedTitles.length > 0) {
+      const clientRecord = await prisma.client.findUnique({
+        where: { id: clientId },
+        select: { userId: true },
+      })
+      if (clientRecord) {
+        for (const title of newlyCompletedTitles) {
+          prisma.notification.create({
+            data: {
+              userId: clientRecord.userId,
+              title: 'Milestone Completed',
+              message: `"${title}" has been marked as complete. Great progress!`,
+              type: 'milestone',
+              link: '/dashboard/progress',
+            },
+          }).catch((err) => console.error('Failed to create milestone notification:', err))
+        }
+      }
+    }
 
     // 7. Revalidate paths
     revalidatePath('/dashboard/progress')

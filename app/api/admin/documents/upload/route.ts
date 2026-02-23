@@ -103,6 +103,17 @@ export async function POST(req: NextRequest) {
       console.error("Document uploaded email failed:", err)
     )
 
+    // Fire and forget: in-app notification for new document
+    prisma.notification.create({
+      data: {
+        userId: client.user.id,
+        title: "New Document Available",
+        message: `"${file.name}" has been uploaded to your account.`,
+        type: "document",
+        link: "/dashboard/documents",
+      },
+    }).catch((err) => console.error("Failed to create document notification:", err))
+
     return NextResponse.json(document, { status: 201 })
   } catch (error) {
     console.error("Admin document upload error:", error)

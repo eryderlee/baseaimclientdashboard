@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { SettingsForm } from "@/components/dashboard/settings-form"
+import { ChangePasswordForm } from "@/components/dashboard/change-password-form"
 
 async function getUserSettings(userId: string) {
   const user = await prisma.user.findUnique({
@@ -36,6 +37,18 @@ export default async function SettingsPage() {
         </CardHeader>
         <CardContent>
           <SettingsForm user={user} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Change Password</CardTitle>
+          <CardDescription>
+            Update your password. You'll need your current password to confirm.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ChangePasswordForm />
         </CardContent>
       </Card>
     </div>

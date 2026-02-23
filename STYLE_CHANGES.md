@@ -4,6 +4,19 @@ This is the authoritative reference for how the Baseaim dashboard is currently s
 
 ---
 
+## Recent Code Changes (2026-02-21)
+
+> This section tracks code-level tweaks made during our ongoing collaboration. I’ll keep it updated every time you request new adjustments.
+
+- **Phase-first milestones:** Added explicit `Phase N` labels to both the checklist (`components/dashboard/milestone-checklist.tsx`) and individual items (`components/dashboard/milestone-item.tsx`) so the naming matches the client roadmap copy.
+- **Hero CTA cleanup:** Removed chat shortcuts from the dashboard hero and replaced them with a “Review Project Phases” link so the top CTA mirrors the new roadmap focus (`components/dashboard/dashboard-overview.tsx`).
+- **Linear roadmap redesign:** Replaced the stacked “Growth Roadmap” cards (formerly called “Acquisition Roadmap”) with a horizontal timeline of cards connected by arrows, added phase completion/current focus stats, and pulled that section above the analytics widgets. The new layout uses `orderedMilestones` plus a `getPhaseTheme` helper for consistent color treatment.
+- **Stat & CTA adjustments:** Dropped the “Contact Team” stat card since chat now lives exclusively on `/dashboard/chat`, and removed chat-settings props from `app/dashboard/page.tsx` because the overview no longer consumes them.
+- **Analytics trims:** In `app/dashboard/analytics/page.tsx` the “Messages Sent” metric and all of the `<AnalyticsCharts>` visualizations were removed, leaving a lighter three-card grid plus Facebook Ads metrics.
+- **Notifications → activity:** Swapped the bottom “Notifications” card on the dashboard overview for a compact “Recent Activity” feed so the section mirrors the updated roadmap emphasis (`components/dashboard/dashboard-overview.tsx`).
+- **Roadmap layout cleanup:** Removed the secondary “Recent Activity” card that sat beside the Growth Roadmap so the timeline owns that row and keeps focus on phase progression (`components/dashboard/dashboard-overview.tsx`).
+- **Arrow alignment tweak:** Centered the connecting arrows between phase cards so the Growth Roadmap timeline reads more linearly (`components/dashboard/dashboard-overview.tsx`).
+
 ## 1. Global Foundations
 
 ### 1.1 Typography
@@ -115,12 +128,7 @@ Dark-theme overrides live under `.dark { ... }`.
 ### 4.3 Stat Cards Adjacent to Chart
 See table below for copy and icons. Each card uses `glass-card rounded-2xl` styling with gradient icon backgrounds and `Button variant="link"` CTA.
 
-| Card | Icon | Primary Value | CTA |
-| --- | --- | --- | --- |
-| Client Assets | `FileText` | `stats.totalDocuments` | Link `/dashboard/documents` |
-| Unread Messages | `MessageSquare` | `stats.unreadMessages` | Link `/dashboard/chat` |
-| Client Acquisition System | `TrendingUp` | `${overallProgress}%` + progress bar | Link `#milestones` |
-| Pending Media Budget | `CreditCard` | `$${pendingPayments}` | Link `/dashboard/billing` |
+> Stat tiles removed per latest design update; the Growth Roadmap + analytics chart now span the width of the dashboard.
 
 ---
 

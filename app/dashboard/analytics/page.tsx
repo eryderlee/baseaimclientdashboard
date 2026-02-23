@@ -2,11 +2,9 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getClientFbInsights } from "@/lib/dal"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { AnalyticsCharts } from "@/components/dashboard/analytics-charts"
 import { FbAdsMetrics } from "@/components/dashboard/fb-ads-metrics"
 import {
   FileText,
-  MessageSquare,
   TrendingUp,
   Activity,
 } from "lucide-react"
@@ -33,9 +31,6 @@ async function getAnalyticsData(userId: string) {
           invoices: true,
         },
       },
-      messages: {
-        orderBy: { createdAt: "asc" },
-      },
       activities: {
         orderBy: { createdAt: "desc" },
         take: 50,
@@ -45,7 +40,6 @@ async function getAnalyticsData(userId: string) {
 
   // Calculate metrics
   const totalDocuments = user?.clientProfile?.documents.length || 0
-  const totalMessages = user?.messages.length || 0
   const completedMilestones = user?.clientProfile?.milestones.filter(
     (m) => m.status === "COMPLETED"
   ).length || 0
@@ -87,7 +81,6 @@ async function getAnalyticsData(userId: string) {
 
   return {
     totalDocuments,
-    totalMessages,
     completedMilestones,
     totalMilestones,
     progressRate,
@@ -152,7 +145,7 @@ export default async function AnalyticsPage({
       {/* Project Metrics */}
       <div className="space-y-4">
         <h2 className="text-xl font-semibold tracking-tight">Project Metrics</h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Documents</CardTitle>
@@ -162,19 +155,6 @@ export default async function AnalyticsPage({
               <div className="text-2xl font-bold">{analytics.totalDocuments}</div>
               <p className="text-xs text-neutral-500 mt-1">
                 Uploaded to date
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Messages Sent</CardTitle>
-              <MessageSquare className="h-4 w-4 text-neutral-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{analytics.totalMessages}</div>
-              <p className="text-xs text-neutral-500 mt-1">
-                Total communications
               </p>
             </CardContent>
           </Card>
@@ -209,12 +189,6 @@ export default async function AnalyticsPage({
         </div>
       </div>
 
-      {/* Charts */}
-      <AnalyticsCharts
-        documentsData={analytics.documentsData}
-        activityData={analytics.activityData.slice(0, 14)}
-        milestoneData={analytics.milestoneData}
-      />
     </div>
   )
 }

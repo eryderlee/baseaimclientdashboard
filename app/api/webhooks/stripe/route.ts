@@ -124,7 +124,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           // Send payment confirmation email
           const subClient = await prisma.client.findUnique({
             where: { id: localSubscription.clientId },
-            include: { user: { select: { email: true, name: true } } },
+            include: { user: { select: { id: true, email: true, name: true } } },
           })
 
           if (subClient) {
@@ -138,6 +138,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             }).catch((err) => {
               console.error('Failed to send payment confirmation email:', err)
             })
+
+            prisma.notification.create({
+              data: {
+                userId: subClient.user.id,
+                title: 'Payment Received',
+                message: `Your payment for invoice ${invoiceNumber} has been received. Thank you!`,
+                type: 'payment',
+                link: '/dashboard/billing',
+              },
+            }).catch((err) => console.error('Failed to create payment notification:', err))
           }
 
           revalidatePath(`/admin/clients/${localSubscription.clientId}/invoices`)
@@ -172,6 +182,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           include: {
             user: {
               select: {
+                id: true,
                 email: true,
                 name: true,
               },
@@ -191,6 +202,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           }).catch((err) => {
             console.error('Failed to send payment confirmation email:', err)
           })
+
+          prisma.notification.create({
+            data: {
+              userId: client.user.id,
+              title: 'Payment Received',
+              message: `Your payment for invoice ${localInvoice.invoiceNumber} has been received. Thank you!`,
+              type: 'payment',
+              link: '/dashboard/billing',
+            },
+          }).catch((err) => console.error('Failed to create payment notification:', err))
         }
 
         console.info(
@@ -228,6 +249,23 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           where: { id: localInvoice.id },
           data: { status: 'OVERDUE' },
         })
+
+        // Notify client of payment failure
+        const failedClient = await prisma.client.findUnique({
+          where: { id: localInvoice.clientId },
+          select: { userId: true },
+        })
+        if (failedClient) {
+          prisma.notification.create({
+            data: {
+              userId: failedClient.userId,
+              title: 'Payment Failed',
+              message: `Payment for invoice ${localInvoice.invoiceNumber} could not be processed. Please update your payment method.`,
+              type: 'payment_failed',
+              link: '/dashboard/billing',
+            },
+          }).catch((err) => console.error('Failed to create payment failed notification:', err))
+        }
 
         console.info(
           `Stripe webhook: invoice.payment_failed — updated to OVERDUE (invoiceId=${localInvoice.id})`

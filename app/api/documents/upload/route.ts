@@ -83,6 +83,23 @@ export async function POST(req: NextRequest) {
       },
     })
 
+    // Fire and forget: notify admin of pending document review
+    const adminUser = await prisma.user.findFirst({
+      where: { role: "ADMIN" },
+      select: { id: true },
+    })
+    if (adminUser) {
+      prisma.notification.create({
+        data: {
+          userId: adminUser.id,
+          title: "Document Pending Review",
+          message: `${session.user.name || "A client"} uploaded "${file.name}" and it is awaiting review.`,
+          type: "document_review",
+          link: `/admin/clients/${clientProfile.id}/documents`,
+        },
+      }).catch((err) => console.error("Failed to create document review notification:", err))
+    }
+
     return NextResponse.json(document, { status: 201 })
   } catch (error) {
     console.error("Upload error:", error)

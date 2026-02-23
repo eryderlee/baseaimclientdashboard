@@ -12,6 +12,7 @@ interface MilestoneItemProps {
   milestone: Milestone;
   isActive: boolean;
   isLast: boolean;
+  phaseNumber: number;
 }
 
 const iconMap = {
@@ -25,9 +26,11 @@ export function MilestoneItem({
   milestone,
   isActive,
   isLast,
+  phaseNumber,
 }: MilestoneItemProps) {
   const config = getStatusConfig(milestone.status);
   const IconComponent = iconMap[config.icon as keyof typeof iconMap];
+  const phaseLabel = `Phase ${phaseNumber}`;
 
   return (
     <div
@@ -64,7 +67,12 @@ export function MilestoneItem({
       <div className="flex-1 pb-8">
         {/* Title and status badge */}
         <div className="flex items-start justify-between gap-3 mb-2">
-          <h3 className="font-semibold text-foreground">{milestone.title}</h3>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              {phaseLabel}
+            </p>
+            <h3 className="font-semibold text-foreground">{milestone.title}</h3>
+          </div>
           <MilestoneStatusBadge status={milestone.status} />
         </div>
 

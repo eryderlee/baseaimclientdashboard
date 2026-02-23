@@ -30,9 +30,9 @@ export const env = createEnv({
     GOOGLE_OAUTH_REFRESH_TOKEN: z.string().min(1),
     GOOGLE_DRIVE_ROOT_FOLDER_ID: z.string().min(1),
 
-    // Upstash Redis (rate limiting)
-    UPSTASH_REDIS_REST_URL: z.string().url(),
-    UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
+    // Upstash Redis (rate limiting — required in production, optional locally)
+    UPSTASH_REDIS_REST_URL: z.string().url().optional(),
+    UPSTASH_REDIS_REST_TOKEN: z.string().min(1).optional(),
 
     // Sentry (optional — only set in production)
     SENTRY_DSN: z.string().url().optional(),

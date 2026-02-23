@@ -136,6 +136,17 @@ export async function createClient(formData: FormData) {
       temporaryPassword: password
     }).catch((err) => console.error('Welcome email failed:', err))
 
+    // Fire and forget - welcome notification in dashboard
+    prisma.notification.create({
+      data: {
+        userId: client.userId,
+        title: 'Welcome to BaseAim',
+        message: 'Your client dashboard is ready. Log in to track your project progress.',
+        type: 'welcome',
+        link: '/dashboard',
+      },
+    }).catch((err) => console.error('Welcome notification failed:', err))
+
     // Revalidate admin page for fresh data
     revalidatePath('/admin')
 

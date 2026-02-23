@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { sendPasswordResetEmail } from '@/lib/email'
+import { auth } from '@/lib/auth'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
@@ -22,6 +23,68 @@ interface ActionResult {
   success?: boolean
   error?: string
   message?: string
+}
+
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required'),
+  newPassword: z.string().min(8, 'New password must be at least 8 characters'),
+  confirmPassword: z.string(),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ['confirmPassword'],
+})
+
+/**
+ * Change password for the currently logged-in user
+ * Requires current password verification
+ */
+export async function changePassword(
+  prevState: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  try {
+    const session = await auth()
+    if (!session?.user?.id) {
+      return { error: 'Not authenticated' }
+    }
+
+    const result = changePasswordSchema.safeParse({
+      currentPassword: formData.get('currentPassword'),
+      newPassword: formData.get('newPassword'),
+      confirmPassword: formData.get('confirmPassword'),
+    })
+
+    if (!result.success) {
+      return { error: result.error.issues[0].message }
+    }
+
+    const { currentPassword, newPassword } = result.data
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { password: true },
+    })
+
+    if (!user?.password) {
+      return { error: 'User not found' }
+    }
+
+    const isValid = await bcrypt.compare(currentPassword, user.password)
+    if (!isValid) {
+      return { error: 'Current password is incorrect' }
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10)
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { password: hashedPassword },
+    })
+
+    return { success: true, message: 'Password updated successfully' }
+  } catch (error) {
+    console.error('Change password error:', error)
+    return { error: 'Failed to update password. Please try again.' }
+  }
 }
 
 /**

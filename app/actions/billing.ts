@@ -86,6 +86,7 @@ export async function createInvoice(formData: FormData): Promise<ActionResult> {
       include: {
         user: {
           select: {
+            id: true,
             name: true,
             email: true,
           },
@@ -210,6 +211,17 @@ export async function createInvoice(formData: FormData): Promise<ActionResult> {
     }).catch((err) => {
       console.error('Failed to send invoice created email:', err)
     })
+
+    // Fire-and-forget: in-app notification for new invoice
+    prisma.notification.create({
+      data: {
+        userId: client.user.id,
+        title: 'New Invoice',
+        message: `Invoice ${invoiceNumber} has been created and is ready to view.`,
+        type: 'invoice',
+        link: '/dashboard/billing',
+      },
+    }).catch((err) => console.error('Failed to create invoice notification:', err))
 
     // 14. Revalidate paths
     revalidatePath(`/admin/clients/${clientId}/invoices`)

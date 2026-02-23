@@ -65,7 +65,7 @@ export function CreateInvoiceForm({ clientId }: CreateInvoiceFormProps) {
     defaultValues: {
       description: '',
       dueDate: getDefaultDueDate(),
-      currency: 'usd',
+      currency: 'aud',
       items: [{ description: '', amount: 0 }],
     },
   })
@@ -165,13 +165,14 @@ export function CreateInvoiceForm({ clientId }: CreateInvoiceFormProps) {
             <div>
               <Label htmlFor="currency">Currency</Label>
               <Select
-                defaultValue="usd"
+                defaultValue="aud"
                 onValueChange={(val) => setValue('currency', val)}
               >
                 <SelectTrigger className="mt-1 w-full" id="currency">
                   <SelectValue placeholder="Select currency" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="aud">AUD — Australian Dollar</SelectItem>
                   <SelectItem value="usd">USD — US Dollar</SelectItem>
                   <SelectItem value="eur">EUR — Euro</SelectItem>
                   <SelectItem value="gbp">GBP — British Pound</SelectItem>
@@ -218,7 +219,7 @@ export function CreateInvoiceForm({ clientId }: CreateInvoiceFormProps) {
                   <Label className="mb-1 block">Amount ({currency.toUpperCase()})</Label>
                 )}
                 <Input
-                  {...register(`items.${index}.amount`)}
+                  {...register(`items.${index}.amount`, { valueAsNumber: true })}
                   type="number"
                   step="0.01"
                   min="0.01"
