@@ -1,5 +1,7 @@
 "use client"
 
+import { useState } from "react"
+import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -10,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { FileText, Download, Trash2 } from "lucide-react"
+import { FileText, Download, Trash2, Check, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 interface Document {
@@ -30,10 +32,19 @@ interface DocumentListProps {
 
 export function DocumentList({ documents }: DocumentListProps) {
   const router = useRouter()
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [loadingId, setLoadingId] = useState<string | null>(null)
 
   const deleteDocument = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this document?")) return
+    // First click: arm confirmation
+    if (deletingId !== id) {
+      setDeletingId(id)
+      return
+    }
 
+    // Second click: confirmed
+    setDeletingId(null)
+    setLoadingId(id)
     try {
       const response = await fetch(`/api/documents/${id}`, {
         method: "DELETE",
@@ -41,10 +52,13 @@ export function DocumentList({ documents }: DocumentListProps) {
 
       if (!response.ok) throw new Error("Delete failed")
 
+      toast.success("Document deleted")
       router.refresh()
     } catch (error) {
       console.error("Delete error:", error)
-      alert("Failed to delete document")
+      toast.error("Failed to delete document. Please try again.")
+    } finally {
+      setLoadingId(null)
     }
   }
 
@@ -99,7 +113,7 @@ export function DocumentList({ documents }: DocumentListProps) {
               {new Date(doc.createdAt).toLocaleDateString()}
             </TableCell>
             <TableCell className="text-right">
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end items-center gap-2">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -107,13 +121,37 @@ export function DocumentList({ documents }: DocumentListProps) {
                 >
                   <Download className="h-4 w-4" />
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => deleteDocument(doc.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                {deletingId === doc.id ? (
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs text-red-600 whitespace-nowrap">Delete?</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-red-600 hover:text-red-700"
+                      onClick={() => deleteDocument(doc.id)}
+                      disabled={loadingId === doc.id}
+                    >
+                      <Check className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => setDeletingId(null)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => deleteDocument(doc.id)}
+                    disabled={loadingId === doc.id}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </TableCell>
           </TableRow>

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -36,10 +37,10 @@ export function SettingsForm({ user }: SettingsFormProps) {
       if (!response.ok) throw new Error("Failed to update settings")
 
       router.refresh()
-      alert("Settings updated successfully!")
+      toast.success("Settings updated successfully")
     } catch (error) {
       console.error("Update error:", error)
-      alert("Failed to update settings")
+      toast.error("Failed to update settings. Please try again.")
     } finally {
       setLoading(false)
     }

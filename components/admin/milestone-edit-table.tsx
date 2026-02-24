@@ -16,7 +16,8 @@ import {
 import { updateMilestones, deleteNote, updateNote } from "@/app/admin/clients/[clientId]/actions"
 import { calculateMilestoneProgress } from "@/lib/utils/progress"
 import { MilestoneStatus } from "@prisma/client"
-import { X, Edit2, ChevronDown, ChevronUp } from "lucide-react"
+import { toast } from "sonner"
+import { X, Check, Edit2, ChevronDown, ChevronUp } from "lucide-react"
 
 type MilestoneData = {
   id: string
@@ -50,6 +51,7 @@ export function MilestoneEditTable({
   const [success, setSuccess] = useState(false)
   const [expandedNotes, setExpandedNotes] = useState<Record<string, boolean>>({})
   const [editingNote, setEditingNote] = useState<{ milestoneId: string; noteId: string; content: string } | null>(null)
+  const [deletingNoteId, setDeletingNoteId] = useState<{ milestoneId: string; noteId: string } | null>(null)
 
   const handleStatusChange = (milestoneId: string, newStatus: MilestoneStatus) => {
     setMilestones((prev) =>
@@ -126,9 +128,26 @@ export function MilestoneEditTable({
 
       if (result.error) {
         setError(result.error)
+        toast.error(result.error)
       } else {
+        // Update local state so the edited content shows immediately
+        setMilestones((prev) =>
+          prev.map((m) => {
+            if (m.id !== editingNote.milestoneId) return m
+            const notes = Array.isArray(m.notes) ? m.notes : []
+            return {
+              ...m,
+              notes: notes.map((note: any) => {
+                const id = note?.id ?? note
+                if (id !== editingNote.noteId) return note
+                return typeof note === 'object' ? { ...note, content: editingNote.content } : editingNote.content
+              }),
+            }
+          })
+        )
         setEditingNote(null)
-        window.location.reload()
+        toast.success("Note updated")
+        router.refresh()
       }
     })
   }
@@ -138,15 +157,34 @@ export function MilestoneEditTable({
   }
 
   const handleDeleteNote = async (milestoneId: string, noteId: string) => {
-    if (!confirm('Are you sure you want to delete this note?')) return
+    // First click: arm the confirmation
+    if (deletingNoteId?.noteId !== noteId) {
+      setDeletingNoteId({ milestoneId, noteId })
+      return
+    }
 
+    // Second click: confirmed — execute deletion
+    setDeletingNoteId(null)
     startTransition(async () => {
       const result = await deleteNote(clientId, milestoneId, noteId)
 
       if (result.error) {
         setError(result.error)
+        toast.error(result.error)
       } else {
-        window.location.reload()
+        // Remove from local state so it disappears immediately
+        setMilestones((prev) =>
+          prev.map((m) => {
+            if (m.id !== milestoneId) return m
+            const notes = Array.isArray(m.notes) ? m.notes : []
+            return {
+              ...m,
+              notes: notes.filter((note: any) => (note?.id ?? note) !== noteId),
+            }
+          })
+        )
+        toast.success("Note deleted")
+        router.refresh()
       }
     })
   }
@@ -169,13 +207,13 @@ export function MilestoneEditTable({
 
       if (result.error) {
         setError(result.error)
+        toast.error(result.error)
       } else {
         setHasChanges(false)
         setSuccess(true)
-        // Clear all new notes
         setNewNotes(Object.fromEntries(milestones.map((m) => [m.id, ""])))
-        // Refresh the page to show updated notes
-        window.location.reload()
+        toast.success("Milestones saved")
+        router.refresh()
       }
     })
   }
@@ -371,23 +409,47 @@ export function MilestoneEditTable({
                                       <>
                                         <div className="flex items-start justify-between gap-2">
                                           <p className="flex-1 text-neutral-700">{content}</p>
-                                          <div className="flex gap-1 shrink-0">
-                                            <button
-                                              type="button"
-                                              onClick={() => handleEditNote(milestone.id, noteId, content)}
-                                              className="text-neutral-500 hover:text-blue-600"
-                                              title="Edit note"
-                                            >
-                                              <Edit2 className="h-3 w-3" />
-                                            </button>
-                                            <button
-                                              type="button"
-                                              onClick={() => handleDeleteNote(milestone.id, noteId)}
-                                              className="text-neutral-500 hover:text-red-600"
-                                              title="Delete note"
-                                            >
-                                              <X className="h-3 w-3" />
-                                            </button>
+                                          <div className="flex gap-1 shrink-0 items-center">
+                                            {deletingNoteId?.noteId === noteId ? (
+                                              <>
+                                                <span className="text-xs text-red-600">Delete?</span>
+                                                <button
+                                                  type="button"
+                                                  onClick={() => handleDeleteNote(milestone.id, noteId)}
+                                                  className="text-red-600 hover:text-red-800"
+                                                  title="Confirm delete"
+                                                >
+                                                  <Check className="h-3 w-3" />
+                                                </button>
+                                                <button
+                                                  type="button"
+                                                  onClick={() => setDeletingNoteId(null)}
+                                                  className="text-neutral-500 hover:text-neutral-700"
+                                                  title="Cancel"
+                                                >
+                                                  <X className="h-3 w-3" />
+                                                </button>
+                                              </>
+                                            ) : (
+                                              <>
+                                                <button
+                                                  type="button"
+                                                  onClick={() => handleEditNote(milestone.id, noteId, content)}
+                                                  className="text-neutral-500 hover:text-blue-600"
+                                                  title="Edit note"
+                                                >
+                                                  <Edit2 className="h-3 w-3" />
+                                                </button>
+                                                <button
+                                                  type="button"
+                                                  onClick={() => handleDeleteNote(milestone.id, noteId)}
+                                                  className="text-neutral-500 hover:text-red-600"
+                                                  title="Delete note"
+                                                >
+                                                  <X className="h-3 w-3" />
+                                                </button>
+                                              </>
+                                            )}
                                           </div>
                                         </div>
                                         {(createdAt || createdBy) && (
