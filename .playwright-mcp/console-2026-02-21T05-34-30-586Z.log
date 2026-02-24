@@ -1,0 +1,20 @@
+[   10100ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/admin:0
+[   10221ms] PrismaClientKnownRequestError: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["prisma"].client.findMany()` invocation in
+E:\websites\baseaimclientdashboard\.next\dev\server\chunks\ssr\[root-of-the-server]__28e6868c._.js:200:154
+
+  197 if (userRole !== 'ADMIN') {
+  198     throw new Error('Unauthorized: Admin access required');
+  199 }
+→ 200 const clients = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["prisma"].client.findMany(
+Timed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 17)
+    at <anonymous> (about://React/Server/E:%5Cwebsites%5Cbaseaimclientdashboard%5C.next%5Cdev%5Cserver%5Cchunks%5Cssr%5C%5Broot-of-the-server%5D__28e6868c._.js?18:200:21)
+    at <anonymous> (about://React/Server/E:%5Cwebsites%5Cbaseaimclientdashboard%5C.next%5Cdev%5Cserver%5Cchunks%5Cssr%5C%5Broot-of-the-server%5D__28e6868c._.js?19:277:21)
+    at  getAdminData (about://React/Server/E:%5Cwebsites%5Cbaseaimclientdashboard%5C.next%5Cdev%5Cserver%5Cchunks%5Cssr%5C%5Broot-of-the-server%5D__bfe6e2dc._.js?20:698:23)
+    at  AdminPage (about://React/Server/E:%5Cwebsites%5Cbaseaimclientdashboard%5C.next%5Cdev%5Cserver%5Cchunks%5Cssr%5C%5Broot-of-the-server%5D__bfe6e2dc._.js?21:750:23)
+    at resolveErrorDev (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_9212ccad._.js:1894:148)
+    at processFullStringRow (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_9212ccad._.js:2402:29)
+    at processFullBinaryRow (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_9212ccad._.js:2361:9)
+    at processBinaryChunk (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_9212ccad._.js:2470:221)
+    at progress (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_9212ccad._.js:2640:13)
+[   13239ms] [WARNING] The resource http://localhost:3000/_next/static/chunks/%5Broot-of-the-server%5D__52944bd8._.css was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3000/admin:0

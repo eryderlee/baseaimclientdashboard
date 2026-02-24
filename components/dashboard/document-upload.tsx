@@ -2,10 +2,14 @@
 
 import { useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Progress } from "@/components/ui/progress"
 import { Upload, X, File } from "lucide-react"
+
+const MAX_FILE_SIZE_MB = 50
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
 
 export function DocumentUpload() {
   const router = useRouter()
@@ -13,16 +17,24 @@ export function DocumentUpload() {
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
 
+  const validateAndSetFiles = (incoming: File[]) => {
+    const oversized = incoming.filter((f) => f.size > MAX_FILE_SIZE_BYTES)
+    if (oversized.length > 0) {
+      toast.error(`Files must be under ${MAX_FILE_SIZE_MB}MB. Removed: ${oversized.map((f) => f.name).join(", ")}`)
+    }
+    setFiles(incoming.filter((f) => f.size <= MAX_FILE_SIZE_BYTES))
+  }
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setFiles(Array.from(e.target.files))
+      validateAndSetFiles(Array.from(e.target.files))
     }
   }
 
   const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     if (e.dataTransfer.files) {
-      setFiles(Array.from(e.dataTransfer.files))
+      validateAndSetFiles(Array.from(e.dataTransfer.files))
     }
   }, [])
 
@@ -59,10 +71,11 @@ export function DocumentUpload() {
       }
 
       setFiles([])
+      toast.success(`${files.length} file${files.length !== 1 ? "s" : ""} uploaded successfully`)
       router.refresh()
     } catch (error) {
       console.error("Upload error:", error)
-      alert("Failed to upload files. Please try again.")
+      toast.error("Failed to upload files. Please try again.")
     } finally {
       setUploading(false)
       setProgress(0)

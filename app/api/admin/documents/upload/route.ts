@@ -23,6 +23,12 @@ export async function POST(req: NextRequest) {
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 })
     }
+
+    const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json({ error: "File exceeds 50MB limit" }, { status: 413 })
+    }
+
     if (!clientId) {
       return NextResponse.json(
         { error: "clientId is required" },

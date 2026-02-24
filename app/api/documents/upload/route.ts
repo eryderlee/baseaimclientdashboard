@@ -17,6 +17,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 })
     }
 
+    const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json({ error: "File exceeds 50MB limit" }, { status: 413 })
+    }
+
     // Get user's client profile, including their Drive folder ID
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },

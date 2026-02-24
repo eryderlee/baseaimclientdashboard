@@ -15,27 +15,42 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const messages = await prisma.message.findMany({
-      where: {
-        OR: [
-          { senderId: session.user.id },
-          { receiverId: session.user.id },
-        ],
-      },
-      orderBy: { createdAt: "asc" },
-      include: {
-        sender: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            image: true,
+    const { searchParams } = new URL(req.url)
+    const limit = Math.min(parseInt(searchParams.get("limit") ?? "50", 10), 100)
+    const page = Math.max(parseInt(searchParams.get("page") ?? "1", 10), 1)
+    const skip = (page - 1) * limit
+
+    const where = {
+      OR: [
+        { senderId: session.user.id },
+        { receiverId: session.user.id },
+      ],
+    }
+
+    const [messages, total] = await Promise.all([
+      prisma.message.findMany({
+        where,
+        orderBy: { createdAt: "asc" },
+        take: limit,
+        skip,
+        include: {
+          sender: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              image: true,
+            },
           },
         },
-      },
-    })
+      }),
+      prisma.message.count({ where }),
+    ])
 
-    return NextResponse.json({ messages })
+    return NextResponse.json({
+      messages,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    })
   } catch (error) {
     console.error("Get messages error:", error)
     return NextResponse.json(
