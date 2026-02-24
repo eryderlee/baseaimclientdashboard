@@ -6,7 +6,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { calculateOverallProgress } from '@/lib/utils/progress'
 import { detectClientRisk } from '@/lib/utils/risk-detection'
-import { fetchFacebookInsights, fetchFacebookDailyInsights, getActionValue, type DatePreset } from '@/lib/facebook-ads'
+import { fetchFacebookInsights, fetchFacebookDailyInsights, fetchFacebookCampaignInsights, fetchFacebookPlatformBreakdown, getActionValue, type DatePreset, type FbCampaignInsight, type FbPlatformRow, type FbDailyInsight } from '@/lib/facebook-ads'
 import { stripe } from '@/lib/stripe'
 
 export const verifySession = cache(async () => {
@@ -460,6 +460,146 @@ export const getClientFbDailyInsights = cache(async () => {
     async () => fetchFacebookDailyInsights(client.adAccountId!, settings.facebookAccessToken!),
     [`fb-daily-${client.id}`],
     { revalidate: 21600, tags: [`fb-insights-${client.id}`] }
+  )
+
+  return cachedFetch()
+})
+
+/**
+ * Get top 5 Facebook campaigns sorted by spend for the currently logged-in client.
+ * Uses unstable_cache with 6-hour TTL to avoid rate limits.
+ *
+ * CRITICAL: verifySession() is called OUTSIDE the unstable_cache boundary.
+ * unstable_cache cannot call headers() or cookies() — session must be read first.
+ *
+ * Returns empty array when adAccountId or token not configured.
+ * CLIENT role only.
+ */
+export const getClientFbCampaigns = cache(async (datePreset: DatePreset = 'last_30d'): Promise<FbCampaignInsight[]> => {
+  // Auth OUTSIDE the cache boundary — unstable_cache cannot access session
+  const { userId, userRole } = await verifySession()
+
+  if (userRole !== 'CLIENT') {
+    throw new Error('Unauthorized: Client access required')
+  }
+
+  const client = await prisma.client.findUnique({
+    where: { userId },
+    select: { id: true, adAccountId: true },
+  })
+
+  if (!client?.adAccountId) return []
+
+  const settings = await prisma.settings.findFirst({
+    select: { facebookAccessToken: true },
+  })
+
+  if (!settings?.facebookAccessToken) return []
+
+  const cachedFetch = unstable_cache(
+    async () =>
+      fetchFacebookCampaignInsights(
+        client.adAccountId!,
+        datePreset,
+        settings.facebookAccessToken!
+      ),
+    [`fb-campaigns-${client.id}-${datePreset}`],
+    {
+      revalidate: 21600, // 6 hours in seconds
+      tags: [`fb-insights-${client.id}`],
+    }
+  )
+
+  return cachedFetch()
+})
+
+/**
+ * Get Facebook Ads performance breakdown by publisher platform (facebook/instagram/etc.)
+ * for the currently logged-in client.
+ * Uses unstable_cache with 6-hour TTL to avoid rate limits.
+ *
+ * CRITICAL: verifySession() is called OUTSIDE the unstable_cache boundary.
+ * Note: reach is excluded from platform breakdown — API restriction (June 2025).
+ *
+ * Returns empty array when adAccountId or token not configured.
+ * CLIENT role only.
+ */
+export const getClientFbPlatformBreakdown = cache(async (datePreset: DatePreset = 'last_30d'): Promise<FbPlatformRow[]> => {
+  // Auth OUTSIDE the cache boundary — unstable_cache cannot access session
+  const { userId, userRole } = await verifySession()
+
+  if (userRole !== 'CLIENT') {
+    throw new Error('Unauthorized: Client access required')
+  }
+
+  const client = await prisma.client.findUnique({
+    where: { userId },
+    select: { id: true, adAccountId: true },
+  })
+
+  if (!client?.adAccountId) return []
+
+  const settings = await prisma.settings.findFirst({
+    select: { facebookAccessToken: true },
+  })
+
+  if (!settings?.facebookAccessToken) return []
+
+  const cachedFetch = unstable_cache(
+    async () =>
+      fetchFacebookPlatformBreakdown(
+        client.adAccountId!,
+        datePreset,
+        settings.facebookAccessToken!
+      ),
+    [`fb-platform-${client.id}-${datePreset}`],
+    {
+      revalidate: 21600, // 6 hours in seconds
+      tags: [`fb-insights-${client.id}`],
+    }
+  )
+
+  return cachedFetch()
+})
+
+/**
+ * Get 30 days of daily Facebook Ads trend data for the currently logged-in client.
+ * Includes extended fields: reach, actions, and outbound_clicks per day.
+ *
+ * CRITICAL: verifySession() is called OUTSIDE the unstable_cache boundary.
+ *
+ * Returns null when adAccountId or token not configured (not an empty array —
+ * null signals "not configured" vs "configured but no data").
+ * CLIENT role only.
+ */
+export const getClientFbDailyTrend = cache(async (): Promise<FbDailyInsight[] | null> => {
+  // Auth OUTSIDE the cache boundary — unstable_cache cannot access session
+  const { userId, userRole } = await verifySession()
+
+  if (userRole !== 'CLIENT') {
+    throw new Error('Unauthorized: Client access required')
+  }
+
+  const client = await prisma.client.findUnique({
+    where: { userId },
+    select: { id: true, adAccountId: true },
+  })
+
+  if (!client?.adAccountId) return null
+
+  const settings = await prisma.settings.findFirst({
+    select: { facebookAccessToken: true },
+  })
+
+  if (!settings?.facebookAccessToken) return null
+
+  const cachedFetch = unstable_cache(
+    async () => fetchFacebookDailyInsights(client.adAccountId!, settings.facebookAccessToken!),
+    [`fb-daily-trend-${client.id}`],
+    {
+      revalidate: 21600, // 6 hours in seconds
+      tags: [`fb-insights-${client.id}`],
+    }
   )
 
   return cachedFetch()
