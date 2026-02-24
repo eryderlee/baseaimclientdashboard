@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-15)
 
 **Core value:** Clients can see exactly where their project stands without having to ask
-**Current focus:** Phase 14 - Enhanced Facebook Analytics & Branded Reporting
+**Current focus:** Phase 15 - Production Deployment
 
 ## Current Position
 
-Phase: 14 of 15 (Enhanced Facebook Analytics & Branded Reporting) — in progress
-Plan: 2 of 3
-Status: Plan 14-02 complete — Plan 14-03 (Branded PDF/CSV Export) remaining
-Last activity: 2026-02-24 — Completed 14-02-PLAN.md: 12-card metrics grid, QualityPills, trend chart, campaign table, platform split, analytics page parallel fetching.
+Phase: 14 of 15 (Enhanced Facebook Analytics & Branded Reporting) — COMPLETE
+Plan: 3 of 3
+Status: Phase 14 COMPLETE — All 3 plans done
+Last activity: 2026-02-24 — Completed 14-03-PLAN.md: branded PDF with #2563eb header, BASEAIM logo, 12-metric two-column layout, campaign/platform autoTable tables, extended 17-row CSV export
 
-Progress: [██████████████████████████████░] 40/41 plans complete (2 of 3 in Phase 14)
+Progress: [████████████████████████████████] 41/41 plans complete (Phase 14 done)
 
 ## Performance Metrics
 
@@ -256,6 +256,15 @@ Recent decisions affecting current work:
 - Trend/campaigns/platform sections guarded by isConfigured && fbInsights (trend always shows last_30d regardless of range selector)
 - ExportButtons now accepts campaigns/platforms as optional props — forwarding ready for Plan 03 PDF enhancement
 
+**Phase 14 - Branded PDF/CSV Export (from 14-03):**
+- autoTable(doc, opts) named export pattern for jspdf-autotable v5 — NOT doc.autoTable() method (doesn't exist in v5)
+- (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY for next Y after table — avoids TypeScript any
+- setFillColor(37, 99, 235) uses RGB numbers — jsPDF does not accept hex strings
+- Dynamic import inside exportPdf function body — jspdf and jspdf-autotable are browser-only, must not enter SSR bundle
+- Helper functions (getLeads, getOutboundClicks, getCplValue) duplicated in export-buttons.tsx — acceptable for standalone client component
+- baseaim-fb-report-{dateRange}-{date} filename prefix on both CSV and PDF exports (was facebook-ads-)
+- PDF layout: full-width blue rect at y=0 h=22, metrics two-column at y=38 spacing 8mm, rankings at y=92, tables below
+
 **Deployment (Phase 15 - planned):**
 - Vercel recommended over Netlify for Next.js (better middleware, server actions, instrumentation support)
 - User has not created hosting account yet — Phase 15 will cover account setup + env var configuration
@@ -264,9 +273,9 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 14-02-PLAN.md — 12-card metrics grid with QualityPills, FbTrendChart (ComposedChart), FbCampaignTable, FbPlatformSplit, analytics page updated with Promise.all parallel fetching
+Stopped at: Completed 14-03-PLAN.md — branded PDF export with BASEAIM header, 12 metrics, autoTable campaign/platform tables, extended CSV with 17 rows. Phase 14 COMPLETE.
 Resume file: None
-Next: Plan 14-03 (Branded PDF/CSV Export) — ExportButtons already has campaigns/platforms props wired in
+Next: Phase 15 - Production Deployment (Vercel setup, env vars, domain, verification of all production features)
 
 **Phase 13 - UI Polish (from 13-01):**
 - DashboardNav stays "use client" — all notification data fetched in layout server component, passed as serialized props
