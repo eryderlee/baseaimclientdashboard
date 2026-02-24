@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 
 ## Current Position
 
-Phase: 14 of 15 (Enhanced Facebook Analytics & Branded Reporting) — not started
-Plan: 0 of 3
-Status: Phase 13 complete — ready for Phase 14
-Last activity: 2026-02-24 — Added Phase 14 (Enhanced FB Analytics), pushed Deployment to Phase 15. Wired in-app notifications to all key events (billing, webhooks, documents, milestones, onboarding).
+Phase: 14 of 15 (Enhanced Facebook Analytics & Branded Reporting) — in progress
+Plan: 1 of 3
+Status: Plan 14-01 complete — ready for Plans 14-02 and 14-03 (parallel, Wave 2)
+Last activity: 2026-02-24 — Completed 14-01-PLAN.md: extended facebook-ads.ts with new types/fetch functions, added 3 DAL functions, installed jspdf-autotable.
 
-Progress: [████████████████████████████] 38/38 plans complete (3 of 3 in Phase 13)
+Progress: [█████████████████████████████░] 39/41 plans complete (1 of 3 in Phase 14)
 
 ## Performance Metrics
 
@@ -232,12 +232,16 @@ Recent decisions affecting current work:
 - Admin components updated: `create-invoice-form.tsx`, `client-analytics-table.tsx`
 - New untracked components: `components/admin/delete-client-section.tsx`, `components/dashboard/change-password-form.tsx`
 
-**Phase 14 - Enhanced Facebook Analytics & Branded Reporting (planned):**
+**Phase 14 - Enhanced Facebook Analytics & Branded Reporting (from 14-01):**
 - 3 plans, 2 waves: Plan 1 (API+DAL) → Plans 2+3 parallel (UI + PDF)
-- New FB fields: reach, frequency, outbound_clicks, landing_page_views, quality_ranking, engagement_rate_ranking, conversion_rate_ranking
-- Leads derived from actions array (lead + offsite_conversion.fb_pixel_lead); CPL = spend/leads; shows 0 if no pixel
-- New DAL functions: getClientFbCampaigns (top 5 by spend), getClientFbPlatformBreakdown (facebook/instagram/etc.), getClientFbDailyTrend (30d daily)
-- All new DAL functions use 6-hour unstable_cache TTL
+- Extended FbInsights: reach, frequency, outbound_clicks (FbAction[] not string), quality_ranking, engagement_rate_ranking, conversion_rate_ranking
+- Extended FbDailyInsight: reach and outbound_clicks added to DAILY_FIELDS
+- New fetch functions: fetchFacebookCampaignInsights (top 5 by spend, level=campaign), fetchFacebookPlatformBreakdown (publisher_platform breakdown)
+- FbPlatformRow does NOT include reach — June 2025 API restriction: reach cannot combine with publisher_platform breakdown
+- New DAL functions: getClientFbCampaigns, getClientFbPlatformBreakdown, getClientFbDailyTrend — all verifySession-outside-cache, 6h TTL
+- getClientFbDailyTrend returns null (not configured) vs getClientFbCampaigns/getClientFbPlatformBreakdown return [] (not configured)
+- Cache keys: fb-campaigns-{id}-{preset}, fb-platform-{id}-{preset}, fb-daily-trend-{id} — all tagged fb-insights-{id}
+- jspdf-autotable@5.0.7 installed for Plan 03 PDF export
 - PDF: branded #2563eb header bar, "BASEAIM" text logo in white, all metric sections, campaign table, platform split
 - Brand tokens: primary #2563eb, quality pills emerald/amber/red, glass-card style on UI cards
 - recharts ComposedChart for spend+leads trend (already installed)
@@ -249,10 +253,10 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-23
-Stopped at: Completed Phase 13 — all 3 plans executed, 14/14 must-haves verified, 6 human browser tests pending (mobile nav, notification dropdown, admin revenue/ads cards, client empty states)
+Last session: 2026-02-24
+Stopped at: Completed 14-01-PLAN.md — extended facebook-ads.ts with new types/fetch functions, added 3 DAL functions (getClientFbCampaigns, getClientFbPlatformBreakdown, getClientFbDailyTrend), installed jspdf-autotable
 Resume file: None
-Next: Phase 14 (Deployment) — ready to plan
+Next: Plans 14-02 (Enhanced FB Analytics UI) and 14-03 (Branded PDF/CSV Export) — can run in parallel (Wave 2)
 
 **Phase 13 - UI Polish (from 13-01):**
 - DashboardNav stays "use client" — all notification data fetched in layout server component, passed as serialized props
