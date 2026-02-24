@@ -15,8 +15,31 @@ export default async function DashboardPage() {
   // Fetch client profile for company name and FB config status
   const client = await prisma.client.findUnique({
     where: { userId: session!.user!.id },
-    select: { companyName: true, adAccountId: true },
+    select: { id: true, companyName: true, adAccountId: true },
   })
+
+  // Fetch recent documents and activities in parallel
+  const [documents, activities] = await Promise.all([
+    client
+      ? prisma.document.findMany({
+          where: { clientId: client.id },
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+          select: { id: true, title: true, status: true, createdAt: true },
+        })
+      : [],
+    prisma.activity.findMany({
+      where: { userId: session!.user!.id },
+      orderBy: { createdAt: 'desc' },
+      take: 4,
+      select: {
+        id: true,
+        action: true,
+        createdAt: true,
+        user: { select: { name: true } },
+      },
+    }),
+  ])
 
   // Transform daily FB insights into chart-ready format
   const fbDailyData = dailyInsights?.map((day) => ({
@@ -46,6 +69,16 @@ export default async function DashboardPage() {
       : [],
   }))
 
+  const serializedDocuments = documents.map((d) => ({
+    ...d,
+    createdAt: d.createdAt.toISOString(),
+  }))
+
+  const serializedActivities = activities.map((a) => ({
+    ...a,
+    createdAt: a.createdAt.toISOString(),
+  }))
+
   return (
     <DashboardOverview
       milestones={serializedMilestones}
@@ -57,6 +90,8 @@ export default async function DashboardPage() {
       companyName={client?.companyName || 'Company'}
       fbDailyData={fbDailyData}
       isFbConfigured={!!client?.adAccountId}
+      documents={serializedDocuments}
+      activities={serializedActivities}
     />
   )
 }

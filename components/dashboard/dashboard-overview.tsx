@@ -48,6 +48,20 @@ interface SerializedMilestone {
   updatedAt: string
 }
 
+interface SerializedDocument {
+  id: string
+  title: string
+  status: string
+  createdAt: string
+}
+
+interface SerializedActivity {
+  id: string
+  action: string
+  createdAt: string
+  user: { name: string | null }
+}
+
 interface DashboardOverviewProps {
   milestones: SerializedMilestone[]
   chatSettings?: {
@@ -58,6 +72,8 @@ interface DashboardOverviewProps {
   companyName?: string
   fbDailyData: FbDayData[] | null
   isFbConfigured: boolean
+  documents: SerializedDocument[]
+  activities: SerializedActivity[]
 }
 
 export function DashboardOverview({
@@ -67,6 +83,8 @@ export function DashboardOverview({
   companyName = 'Company',
   fbDailyData,
   isFbConfigured,
+  documents,
+  activities,
 }: DashboardOverviewProps) {
   const [isChartExpanded, setIsChartExpanded] = useState(false)
 
@@ -80,14 +98,9 @@ export function DashboardOverview({
   }
 
   const stats = {
-    totalDocuments: 0,
+    totalDocuments: documents.length,
     unreadMessages: 0,
-    pendingPayments: 0,
   }
-
-  const documents: { id: string; title: string; status: string; createdAt: Date }[] = []
-  const notifications: { id: string; title: string; message: string; createdAt: Date }[] = []
-  const activities: { id: string; user: { name: string }; action: string; createdAt: Date }[] = []
 
   // Convert serialized milestones back to Milestone type with Date objects
   const milestones: Milestone[] = serializedMilestones.map(m => ({
@@ -150,12 +163,14 @@ export function DashboardOverview({
     },
     {
       label: "Media Budget",
-      value: stats.pendingPayments.toLocaleString("en-US", {
-        style: "currency",
-        currency: "USD",
-        maximumFractionDigits: 0,
-      }),
-      detail: "Awaiting payment release",
+      value: isFbConfigured
+        ? analytics.totalAdSpend.toLocaleString("en-US", {
+            style: "currency",
+            currency: "USD",
+            maximumFractionDigits: 0,
+          })
+        : "—",
+      detail: isFbConfigured ? "Total ad spend (30d)" : "Ad account not connected",
       accent: "from-[#f97316]/20 via-[#fb923c]/30 to-transparent",
     },
   ]
@@ -420,7 +435,7 @@ export function DashboardOverview({
                     <div>
                       <p className="font-semibold">{doc.title}</p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {doc.createdAt.toLocaleDateString()}
+                        {new Date(doc.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
@@ -467,7 +482,7 @@ export function DashboardOverview({
                       <span className="font-semibold">{activity.user.name}</span> {activity.action}
                     </p>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {activity.createdAt.toLocaleString()}
+                      {new Date(activity.createdAt).toLocaleString()}
                     </p>
                   </div>
                 </div>

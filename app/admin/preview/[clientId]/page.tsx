@@ -81,6 +81,8 @@ export default async function AdminPreviewPage({
           companyName={client.companyName}
           fbDailyData={null}
           isFbConfigured={false}
+          documents={[]}
+          activities={[]}
         />
       </div>
     </div>
