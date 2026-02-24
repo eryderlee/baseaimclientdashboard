@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 14 of 15 (Enhanced Facebook Analytics & Branded Reporting) — in progress
-Plan: 1 of 3
-Status: Plan 14-01 complete — ready for Plans 14-02 and 14-03 (parallel, Wave 2)
-Last activity: 2026-02-24 — Completed 14-01-PLAN.md: extended facebook-ads.ts with new types/fetch functions, added 3 DAL functions, installed jspdf-autotable.
+Plan: 2 of 3
+Status: Plan 14-02 complete — Plan 14-03 (Branded PDF/CSV Export) remaining
+Last activity: 2026-02-24 — Completed 14-02-PLAN.md: 12-card metrics grid, QualityPills, trend chart, campaign table, platform split, analytics page parallel fetching.
 
-Progress: [█████████████████████████████░] 39/41 plans complete (1 of 3 in Phase 14)
+Progress: [██████████████████████████████░] 40/41 plans complete (2 of 3 in Phase 14)
 
 ## Performance Metrics
 
@@ -246,6 +246,16 @@ Recent decisions affecting current work:
 - Brand tokens: primary #2563eb, quality pills emerald/amber/red, glass-card style on UI cards
 - recharts ComposedChart for spend+leads trend (already installed)
 
+**Phase 14 - Enhanced Facebook Analytics UI (from 14-02):**
+- FbAdsMetrics expanded to 12 cards: 6 existing + Reach, Frequency, Leads, CPL, Outbound Clicks, Landing Page Views
+- QualityPill component: ABOVE_AVERAGE→emerald, AVERAGE→amber, BELOW_AVERAGE*→red, UNKNOWN→hidden (returns null)
+- outbound_clicks summed via FbAction[] reduce — NOT parseFloat on the array
+- landing_page_view extracted from actions array via getActionValue — NOT a top-level field
+- recharts Tooltip custom formatter removed — causes TypeScript incompatibility with Formatter<V,N> overload; default tooltip sufficient
+- Promise.all parallel fetch in analytics page: fbInsights + campaigns + platforms + dailyTrend
+- Trend/campaigns/platform sections guarded by isConfigured && fbInsights (trend always shows last_30d regardless of range selector)
+- ExportButtons now accepts campaigns/platforms as optional props — forwarding ready for Plan 03 PDF enhancement
+
 **Deployment (Phase 15 - planned):**
 - Vercel recommended over Netlify for Next.js (better middleware, server actions, instrumentation support)
 - User has not created hosting account yet — Phase 15 will cover account setup + env var configuration
@@ -254,9 +264,9 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 14-01-PLAN.md — extended facebook-ads.ts with new types/fetch functions, added 3 DAL functions (getClientFbCampaigns, getClientFbPlatformBreakdown, getClientFbDailyTrend), installed jspdf-autotable
+Stopped at: Completed 14-02-PLAN.md — 12-card metrics grid with QualityPills, FbTrendChart (ComposedChart), FbCampaignTable, FbPlatformSplit, analytics page updated with Promise.all parallel fetching
 Resume file: None
-Next: Plans 14-02 (Enhanced FB Analytics UI) and 14-03 (Branded PDF/CSV Export) — can run in parallel (Wave 2)
+Next: Plan 14-03 (Branded PDF/CSV Export) — ExportButtons already has campaigns/platforms props wired in
 
 **Phase 13 - UI Polish (from 13-01):**
 - DashboardNav stays "use client" — all notification data fetched in layout server component, passed as serialized props
