@@ -8,8 +8,16 @@ import { Input } from "@/components/ui/input"
 import { Progress } from "@/components/ui/progress"
 import { Upload, X, File } from "lucide-react"
 
-const MAX_FILE_SIZE_MB = 50
-const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
+const MAX_VIDEO_SIZE_BYTES = 500 * 1024 * 1024  // 500MB for videos
+const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024    // 50MB for everything else
+
+function getFileSizeLimit(file: File): number {
+  return file.type.startsWith("video/") ? MAX_VIDEO_SIZE_BYTES : MAX_FILE_SIZE_BYTES
+}
+
+function getFileSizeLimitLabel(file: File): string {
+  return file.type.startsWith("video/") ? "500MB" : "50MB"
+}
 
 export function DocumentUpload() {
   const router = useRouter()
@@ -18,11 +26,13 @@ export function DocumentUpload() {
   const [progress, setProgress] = useState(0)
 
   const validateAndSetFiles = (incoming: File[]) => {
-    const oversized = incoming.filter((f) => f.size > MAX_FILE_SIZE_BYTES)
+    const oversized = incoming.filter((f) => f.size > getFileSizeLimit(f))
     if (oversized.length > 0) {
-      toast.error(`Files must be under ${MAX_FILE_SIZE_MB}MB. Removed: ${oversized.map((f) => f.name).join(", ")}`)
+      toast.error(
+        `File too large (limit: ${oversized.map((f) => getFileSizeLimitLabel(f)).join(", ")}). Removed: ${oversized.map((f) => f.name).join(", ")}`
+      )
     }
-    setFiles(incoming.filter((f) => f.size <= MAX_FILE_SIZE_BYTES))
+    setFiles(incoming.filter((f) => f.size <= getFileSizeLimit(f)))
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

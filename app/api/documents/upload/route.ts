@@ -17,9 +17,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 })
     }
 
-    const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
+    const isVideo = file.type.startsWith("video/")
+    const MAX_FILE_SIZE = isVideo ? 500 * 1024 * 1024 : 50 * 1024 * 1024
     if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json({ error: "File exceeds 50MB limit" }, { status: 413 })
+      return NextResponse.json(
+        { error: `File exceeds ${isVideo ? "500MB" : "50MB"} limit` },
+        { status: 413 }
+      )
     }
 
     // Get user's client profile, including their Drive folder ID
