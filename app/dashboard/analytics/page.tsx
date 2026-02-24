@@ -1,8 +1,11 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { getClientFbInsights } from "@/lib/dal"
+import { getClientFbInsights, getClientFbCampaigns, getClientFbPlatformBreakdown, getClientFbDailyTrend } from "@/lib/dal"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FbAdsMetrics } from "@/components/dashboard/fb-ads-metrics"
+import { FbTrendChart, buildTrendData } from "@/components/dashboard/fb-trend-chart"
+import { FbCampaignTable } from "@/components/dashboard/fb-campaign-table"
+import { FbPlatformSplit } from "@/components/dashboard/fb-platform-split"
 import {
   FileText,
   TrendingUp,
@@ -49,7 +52,7 @@ async function getAnalyticsData(userId: string) {
     : 0
 
   // Documents over time
-  const documentsData = user?.clientProfile?.documents.reduce((acc: any[], doc) => {
+  const documentsData = user?.clientProfile?.documents.reduce((acc: Array<{ month: string; count: number }>, doc) => {
     const month = new Date(doc.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
     const existing = acc.find(item => item.month === month)
     if (existing) {
@@ -61,7 +64,7 @@ async function getAnalyticsData(userId: string) {
   }, []) || []
 
   // Activity over time
-  const activityData = user?.activities.reduce((acc: any[], activity) => {
+  const activityData = user?.activities.reduce((acc: Array<{ date: string; count: number }>, activity) => {
     const date = new Date(activity.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     const existing = acc.find(item => item.date === date)
     if (existing) {
@@ -117,8 +120,13 @@ export default async function AnalyticsPage({
   })
   const isConfigured = !!clientProfile?.adAccountId
 
-  // Fetch FB insights (returns null when not configured or no data)
-  const fbInsights = await getClientFbInsights(datePreset)
+  // Fetch all FB data in parallel — existing insights + new campaign/platform/trend data
+  const [fbInsights, campaigns, platforms, dailyTrend] = await Promise.all([
+    getClientFbInsights(datePreset),
+    getClientFbCampaigns(datePreset),
+    getClientFbPlatformBreakdown(datePreset),
+    getClientFbDailyTrend(),
+  ])
 
   // Fetch existing project analytics data
   const analytics = await getAnalyticsData(userId)
@@ -139,7 +147,32 @@ export default async function AnalyticsPage({
           insights={fbInsights}
           dateRange={dateRange}
           isConfigured={isConfigured}
+          campaigns={campaigns}
+          platforms={platforms}
         />
+
+        {/* Extended sections — only shown when FB is configured and has data */}
+        {isConfigured && fbInsights && (
+          <>
+            {/* Spend & Leads Trend */}
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">30-Day Spend & Leads Trend</h3>
+              <FbTrendChart data={dailyTrend ? buildTrendData(dailyTrend) : []} />
+            </div>
+
+            {/* Top Campaigns */}
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">Top Campaigns</h3>
+              <FbCampaignTable campaigns={campaigns} />
+            </div>
+
+            {/* Platform Breakdown */}
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">Platform Breakdown</h3>
+              <FbPlatformSplit platforms={platforms} />
+            </div>
+          </>
+        )}
       </div>
 
       {/* Project Metrics */}
