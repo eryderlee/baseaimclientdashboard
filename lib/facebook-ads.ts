@@ -17,22 +17,51 @@ export interface FbInsights {
   actions?: FbAction[]
   date_start: string   // e.g. "2026-01-22"
   date_stop: string    // e.g. "2026-02-21"
+  reach: string        // e.g. "12000" — unique people reached
+  frequency: string    // e.g. "3.75" — avg impressions per unique person
+  outbound_clicks?: FbAction[]  // list of AdsActionStats (NOT a string) — use getActionValue
+  quality_ranking?: string      // ABOVE_AVERAGE | AVERAGE | BELOW_AVERAGE_35 | BELOW_AVERAGE_20 | BELOW_AVERAGE_10 | UNKNOWN
+  engagement_rate_ranking?: string  // same enum as quality_ranking
+  conversion_rate_ranking?: string  // same enum as quality_ranking
 }
 
 export interface FbDailyInsight {
   spend: string
   impressions: string
   clicks: string
+  reach?: string
   actions?: FbAction[]
+  outbound_clicks?: FbAction[]
   date_start: string
   date_stop: string
 }
 
 export type DatePreset = 'last_7d' | 'last_30d' | 'maximum'
 
+export interface FbCampaignInsight {
+  campaign_id: string
+  campaign_name: string
+  spend: string
+  impressions: string
+  clicks: string
+  reach: string
+  actions?: FbAction[]
+  date_start: string
+  date_stop: string
+}
+
+export interface FbPlatformRow {
+  publisher_platform: string
+  impressions: string
+  spend: string
+  clicks: string
+  date_start: string
+  date_stop: string
+}
+
 const GRAPH_API_VERSION = 'v22.0'
-const INSIGHTS_FIELDS = 'spend,impressions,clicks,ctr,cpc,cpm,actions'
-const DAILY_FIELDS = 'spend,impressions,clicks,actions'
+const INSIGHTS_FIELDS = 'spend,impressions,clicks,ctr,cpc,cpm,actions,reach,frequency,outbound_clicks,quality_ranking,engagement_rate_ranking,conversion_rate_ranking'
+const DAILY_FIELDS = 'spend,impressions,clicks,reach,actions,outbound_clicks'
 
 /**
  * Extract a numeric value from a FB actions array by action_type.
@@ -96,7 +125,7 @@ export async function fetchFacebookInsights(
 /**
  * Fetch daily Facebook Ads Insights for the last 30 days.
  * Uses time_increment=1 to get one record per day.
- * Includes actions so leads and booked calls can be extracted per day.
+ * Includes actions and outbound_clicks so leads and clicks can be extracted per day.
  * Returns empty array on error.
  */
 export async function fetchFacebookDailyInsights(
@@ -128,4 +157,92 @@ export async function fetchFacebookDailyInsights(
   }
 
   return (json.data as FbDailyInsight[]) ?? []
+}
+
+/**
+ * Fetch top 5 Facebook campaigns sorted by spend (descending).
+ * Returns campaign-level breakdown for the given date preset.
+ * Returns empty array on API error or when no campaign data exists.
+ *
+ * @param adAccountId - Must include act_ prefix, e.g. "act_123456789"
+ * @param datePreset  - 'last_7d' | 'last_30d' | 'maximum' (all-time)
+ * @param accessToken - System User token from Meta Business Manager (no expiry)
+ */
+export async function fetchFacebookCampaignInsights(
+  adAccountId: string,
+  datePreset: DatePreset,
+  accessToken: string
+): Promise<FbCampaignInsight[]> {
+  const url = new URL(
+    `https://graph.facebook.com/${GRAPH_API_VERSION}/${adAccountId}/insights`
+  )
+  url.searchParams.set('fields', 'campaign_id,campaign_name,spend,impressions,clicks,reach,actions')
+  url.searchParams.set('date_preset', datePreset)
+  url.searchParams.set('level', 'campaign')
+  url.searchParams.set('sort', 'spend_descending')
+  url.searchParams.set('limit', '5')
+  url.searchParams.set('access_token', accessToken)
+
+  let res: Response
+  try {
+    res = await fetch(url.toString(), { cache: 'no-store' })
+  } catch (err) {
+    console.error('[facebook-ads] Network error fetching campaign insights:', err)
+    return []
+  }
+
+  const json = await res.json()
+
+  if (!res.ok) {
+    console.error('[facebook-ads] API error (campaigns):', json.error ?? json)
+    return []
+  }
+
+  return (json.data as FbCampaignInsight[]) ?? []
+}
+
+/**
+ * Fetch Facebook Ads performance broken down by publisher platform (facebook/instagram/etc.).
+ * Uses breakdowns=publisher_platform at account level.
+ *
+ * NOTE: 'reach' is intentionally excluded from fields — June 2025 API restriction
+ * prevents combining reach with publisher_platform breakdown.
+ *
+ * Returns empty array on API error.
+ *
+ * @param adAccountId - Must include act_ prefix, e.g. "act_123456789"
+ * @param datePreset  - 'last_7d' | 'last_30d' | 'maximum' (all-time)
+ * @param accessToken - System User token from Meta Business Manager (no expiry)
+ */
+export async function fetchFacebookPlatformBreakdown(
+  adAccountId: string,
+  datePreset: DatePreset,
+  accessToken: string
+): Promise<FbPlatformRow[]> {
+  const url = new URL(
+    `https://graph.facebook.com/${GRAPH_API_VERSION}/${adAccountId}/insights`
+  )
+  // NOTE: Do NOT add 'reach' here — API restriction: reach cannot be combined with publisher_platform breakdown
+  url.searchParams.set('fields', 'publisher_platform,impressions,spend,clicks')
+  url.searchParams.set('date_preset', datePreset)
+  url.searchParams.set('level', 'account')
+  url.searchParams.set('breakdowns', 'publisher_platform')
+  url.searchParams.set('access_token', accessToken)
+
+  let res: Response
+  try {
+    res = await fetch(url.toString(), { cache: 'no-store' })
+  } catch (err) {
+    console.error('[facebook-ads] Network error fetching platform breakdown:', err)
+    return []
+  }
+
+  const json = await res.json()
+
+  if (!res.ok) {
+    console.error('[facebook-ads] API error (platform breakdown):', json.error ?? json)
+    return []
+  }
+
+  return (json.data as FbPlatformRow[]) ?? []
 }
