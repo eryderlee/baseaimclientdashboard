@@ -3,14 +3,29 @@
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { DollarSign, Eye, MousePointer, TrendingUp, Activity, BarChart2 } from 'lucide-react'
+import {
+  DollarSign,
+  Eye,
+  MousePointer,
+  TrendingUp,
+  Activity,
+  BarChart2,
+  Users,
+  Repeat,
+  UserPlus,
+  ExternalLink,
+  Globe,
+} from 'lucide-react'
 import { ExportButtons } from '@/app/dashboard/analytics/export-buttons'
-import type { FbInsights } from '@/lib/facebook-ads'
+import { getActionValue } from '@/lib/facebook-ads'
+import type { FbInsights, FbAction, FbCampaignInsight, FbPlatformRow } from '@/lib/facebook-ads'
 
 interface FbAdsMetricsProps {
   insights: FbInsights | null
   dateRange: '7d' | '30d' | 'all'
   isConfigured: boolean
+  campaigns?: FbCampaignInsight[]
+  platforms?: FbPlatformRow[]
 }
 
 const DATE_RANGES = [
@@ -18,6 +33,45 @@ const DATE_RANGES = [
   { label: 'Last 30 Days', value: '30d' },
   { label: 'All Time', value: 'all' },
 ] as const
+
+// ─── Quality Pill ──────────────────────────────────────────────────────────────
+
+interface QualityPillProps {
+  label: string
+  value?: string
+}
+
+function QualityPill({ label, value }: QualityPillProps) {
+  if (!value || value === 'UNKNOWN') return null
+
+  let colorClass = 'bg-slate-100 text-slate-700'
+  let text = value
+
+  if (value === 'ABOVE_AVERAGE') {
+    colorClass = 'bg-emerald-100 text-emerald-800'
+    text = 'Above Avg'
+  } else if (value === 'AVERAGE') {
+    colorClass = 'bg-amber-100 text-amber-800'
+    text = 'Average'
+  } else if (
+    value === 'BELOW_AVERAGE_35' ||
+    value === 'BELOW_AVERAGE_20'
+  ) {
+    colorClass = 'bg-red-100 text-red-800'
+    text = 'Below Avg'
+  } else if (value === 'BELOW_AVERAGE_10') {
+    colorClass = 'bg-red-200 text-red-900'
+    text = 'Below Avg'
+  }
+
+  return (
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colorClass}`}>
+      {label}: {text}
+    </span>
+  )
+}
+
+// ─── Helper Functions ──────────────────────────────────────────────────────────
 
 function formatCurrency(value: string): string {
   return `$${parseFloat(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -31,7 +85,33 @@ function formatPercent(value: string): string {
   return `${parseFloat(value).toFixed(2)}%`
 }
 
-export function FbAdsMetrics({ insights, dateRange, isConfigured }: FbAdsMetricsProps) {
+function getLeads(actions?: FbAction[]): number {
+  return (
+    getActionValue(actions, 'lead') +
+    getActionValue(actions, 'offsite_conversion.fb_pixel_lead')
+  )
+}
+
+function getCpl(spend: string, actions?: FbAction[]): string {
+  const leads = getLeads(actions)
+  if (leads === 0) return '--'
+  return `$${(parseFloat(spend) / leads).toFixed(2)}`
+}
+
+function getOutboundClicks(outboundClicks?: FbAction[]): number {
+  if (!outboundClicks) return 0
+  return outboundClicks.reduce((sum, a) => sum + parseFloat(a.value || '0'), 0)
+}
+
+// ─── Component ─────────────────────────────────────────────────────────────────
+
+export function FbAdsMetrics({
+  insights,
+  dateRange,
+  isConfigured,
+  campaigns,
+  platforms,
+}: FbAdsMetricsProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -74,7 +154,12 @@ export function FbAdsMetrics({ insights, dateRange, isConfigured }: FbAdsMetrics
         ))}
         {insights && (
           <div className="ml-auto">
-            <ExportButtons insights={insights} dateRange={dateRange} />
+            <ExportButtons
+              insights={insights}
+              dateRange={dateRange}
+              campaigns={campaigns}
+              platforms={platforms}
+            />
           </div>
         )}
       </div>
@@ -94,9 +179,10 @@ export function FbAdsMetrics({ insights, dateRange, isConfigured }: FbAdsMetrics
           </CardContent>
         </Card>
       ) : (
-        /* State 3: Metrics grid — 6 cards */
+        /* State 3: Metrics grid — 12 cards */
         <>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {/* Card 1: Ad Spend */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Ad Spend</CardTitle>
@@ -108,6 +194,7 @@ export function FbAdsMetrics({ insights, dateRange, isConfigured }: FbAdsMetrics
               </CardContent>
             </Card>
 
+            {/* Card 2: Impressions */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Impressions</CardTitle>
@@ -119,6 +206,7 @@ export function FbAdsMetrics({ insights, dateRange, isConfigured }: FbAdsMetrics
               </CardContent>
             </Card>
 
+            {/* Card 3: Clicks */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Clicks</CardTitle>
@@ -130,6 +218,7 @@ export function FbAdsMetrics({ insights, dateRange, isConfigured }: FbAdsMetrics
               </CardContent>
             </Card>
 
+            {/* Card 4: CTR */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">CTR</CardTitle>
@@ -141,6 +230,7 @@ export function FbAdsMetrics({ insights, dateRange, isConfigured }: FbAdsMetrics
               </CardContent>
             </Card>
 
+            {/* Card 5: CPC */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">CPC</CardTitle>
@@ -152,6 +242,7 @@ export function FbAdsMetrics({ insights, dateRange, isConfigured }: FbAdsMetrics
               </CardContent>
             </Card>
 
+            {/* Card 6: CPM */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">CPM</CardTitle>
@@ -162,6 +253,89 @@ export function FbAdsMetrics({ insights, dateRange, isConfigured }: FbAdsMetrics
                 <p className="text-xs text-neutral-500 mt-1">Cost per 1,000 impressions</p>
               </CardContent>
             </Card>
+
+            {/* Card 7: Reach */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Reach</CardTitle>
+                <Users className="h-4 w-4 text-neutral-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{formatNumber(insights.reach)}</div>
+                <p className="text-xs text-neutral-500 mt-1">Unique people reached</p>
+              </CardContent>
+            </Card>
+
+            {/* Card 8: Frequency */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Frequency</CardTitle>
+                <Repeat className="h-4 w-4 text-neutral-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{parseFloat(insights.frequency).toFixed(2)}</div>
+                <p className="text-xs text-neutral-500 mt-1">Average times seen per person</p>
+              </CardContent>
+            </Card>
+
+            {/* Card 9: Leads */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Leads</CardTitle>
+                <UserPlus className="h-4 w-4 text-neutral-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{String(getLeads(insights.actions))}</div>
+                <p className="text-xs text-neutral-500 mt-1">Total lead conversions</p>
+              </CardContent>
+            </Card>
+
+            {/* Card 10: Cost Per Lead */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Cost Per Lead</CardTitle>
+                <DollarSign className="h-4 w-4 text-neutral-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{getCpl(insights.spend, insights.actions)}</div>
+                <p className="text-xs text-neutral-500 mt-1">Average cost per lead</p>
+              </CardContent>
+            </Card>
+
+            {/* Card 11: Outbound Clicks */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Outbound Clicks</CardTitle>
+                <ExternalLink className="h-4 w-4 text-neutral-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {formatNumber(String(getOutboundClicks(insights.outbound_clicks)))}
+                </div>
+                <p className="text-xs text-neutral-500 mt-1">Clicks to external site</p>
+              </CardContent>
+            </Card>
+
+            {/* Card 12: Landing Page Views */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Landing Page Views</CardTitle>
+                <Globe className="h-4 w-4 text-neutral-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {formatNumber(String(getActionValue(insights.actions, 'landing_page_view')))}
+                </div>
+                <p className="text-xs text-neutral-500 mt-1">Landing page loads (requires pixel)</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Quality Score Pills — hidden when all are UNKNOWN */}
+          <div className="flex flex-wrap gap-2">
+            <QualityPill label="Quality" value={insights.quality_ranking} />
+            <QualityPill label="Engagement" value={insights.engagement_rate_ranking} />
+            <QualityPill label="Conversion" value={insights.conversion_rate_ranking} />
           </div>
 
           <p className="text-xs text-neutral-400">

@@ -2,11 +2,13 @@
 
 import { Button } from '@/components/ui/button'
 import { Download, FileText } from 'lucide-react'
-import type { FbInsights } from '@/lib/facebook-ads'
+import type { FbInsights, FbCampaignInsight, FbPlatformRow } from '@/lib/facebook-ads'
 
 interface ExportButtonsProps {
   insights: FbInsights
   dateRange: string
+  campaigns?: FbCampaignInsight[]
+  platforms?: FbPlatformRow[]
 }
 
 function exportCsv(insights: FbInsights, dateRange: string) {
@@ -75,7 +77,10 @@ async function exportPdf(insights: FbInsights, dateRange: string) {
   doc.save(`facebook-ads-${dateRange}-${new Date().toISOString().slice(0, 10)}.pdf`)
 }
 
-export function ExportButtons({ insights, dateRange }: ExportButtonsProps) {
+export function ExportButtons({ insights, dateRange, campaigns, platforms }: ExportButtonsProps) {
+  // campaigns and platforms will be used in Plan 03 for enhanced PDF/CSV export
+  void campaigns
+  void platforms
   return (
     <div className="flex gap-2">
       <Button
