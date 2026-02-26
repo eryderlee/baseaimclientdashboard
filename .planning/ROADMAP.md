@@ -273,9 +273,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 14-01-PLAN.md — Expand FB API fields, new DAL functions for campaigns, platform breakdown, daily trend
-- [ ] 14-02-PLAN.md — Analytics UI: 12 metric cards, quality pills, trend chart, campaign table, platform breakdown
-- [ ] 14-03-PLAN.md — Branded PDF (BaseAim header, all sections) + updated CSV export
+- [x] 14-01-PLAN.md — Expand FB API fields, new DAL functions for campaigns, platform breakdown, daily trend
+- [x] 14-02-PLAN.md — Analytics UI: 12 metric cards, quality pills, trend chart, campaign table, platform breakdown
+- [x] 14-03-PLAN.md — Branded PDF (BaseAim header, all sections) + updated CSV export
 
 #### Phase 15: Deployment
 **Goal**: App is live on a production host with all environment variables configured, external services connected, and live verification complete

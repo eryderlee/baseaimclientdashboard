@@ -9,10 +9,10 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 
 ## Current Position
 
-Phase: 14 of 15 (Enhanced Facebook Analytics & Branded Reporting) — COMPLETE
+Phase: 14 of 15 (Enhanced Facebook Analytics & Branded Reporting) — VERIFIED COMPLETE
 Plan: 3 of 3
-Status: Phase 14 COMPLETE — All 3 plans done
-Last activity: 2026-02-24 — Completed 14-03-PLAN.md: branded PDF with #2563eb header, BASEAIM logo, 12-metric two-column layout, campaign/platform autoTable tables, extended 17-row CSV export
+Status: Phase 14 COMPLETE — human verified ✓, ready for Phase 15
+Last activity: 2026-02-27 — Phase 14 verified. Added 7D/30D/90D/All range selector to both trend charts (analytics page + home page). Daily fetch extended to 90 days.
 
 Progress: [████████████████████████████████] 41/41 plans complete (Phase 14 done)
 

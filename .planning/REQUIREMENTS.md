@@ -258,11 +258,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ADMIN-03 | Phase 13 | Complete |
 | ADMIN-04 | Phase 13 | Complete |
 | ADMIN-05 | Phase 13 | Complete |
+| FBADS-EXT-01 | Phase 14 | Complete |
+| FBADS-EXT-02 | Phase 14 | Complete |
+| FBADS-EXT-03 | Phase 14 | Complete |
+| FBADS-EXT-04 | Phase 14 | Complete |
+| FBADS-EXT-05 | Phase 14 | Complete |
 
 **Coverage:**
 - v0.9 Foundation requirements: 22 total (all complete)
-- v1.0 Production Launch requirements: 52 total
-- Mapped to phases: 52/52 ✓
+- v1.0 Production Launch requirements: 57 total
+- Mapped to phases: 57/57 ✓
 - Unmapped: 0 ✓
 
 **Phase Distribution:**
@@ -273,6 +278,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 - Phase 11 (Facebook Ads Analytics): 7 requirements
 - Phase 12 (Production Hardening): 8 requirements
 - Phase 13 (UI Polish & Admin Analytics Integration): 12 requirements (6 UI + 5 ADMIN + 1 EMAIL)
+- Phase 14 (Enhanced Facebook Analytics & Branded Reporting): 5 requirements
 
 ---
 *Requirements defined: 2026-02-11*
