@@ -11,37 +11,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts'
-import { getActionValue } from '@/lib/facebook-ads'
-import type { FbDailyInsight } from '@/lib/facebook-ads'
-
-// ─── Types ─────────────────────────────────────────────────────────────────────
-
-export interface TrendDataPoint {
-  date: string
-  spend: number
-  leads: number
-}
-
-// ─── Data Builder ──────────────────────────────────────────────────────────────
-
-/**
- * Transform FbDailyInsight[] from the DAL into chart-ready TrendDataPoint[].
- * - date formatted as "Jan 5" style
- * - spend parsed from string to number
- * - leads = lead + offsite_conversion.fb_pixel_lead action values
- */
-export function buildTrendData(daily: FbDailyInsight[]): TrendDataPoint[] {
-  return daily.map((d) => ({
-    date: new Date(d.date_start).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-    }),
-    spend: parseFloat(d.spend),
-    leads:
-      getActionValue(d.actions, 'lead') +
-      getActionValue(d.actions, 'offsite_conversion.fb_pixel_lead'),
-  }))
-}
+import type { TrendDataPoint } from '@/lib/facebook-ads'
+export type { TrendDataPoint }
 
 // ─── Component ─────────────────────────────────────────────────────────────────
 

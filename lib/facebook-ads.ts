@@ -246,3 +246,26 @@ export async function fetchFacebookPlatformBreakdown(
 
   return (json.data as FbPlatformRow[]) ?? []
 }
+
+// ─── Chart Helpers ─────────────────────────────────────────────────────────────
+// Kept here (not in the 'use client' chart component) so server components
+// can call buildTrendData before passing the result as a prop.
+
+export interface TrendDataPoint {
+  date: string
+  spend: number
+  leads: number
+}
+
+export function buildTrendData(daily: FbDailyInsight[]): TrendDataPoint[] {
+  return daily.map((d) => ({
+    date: new Date(d.date_start).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+    }),
+    spend: parseFloat(d.spend),
+    leads:
+      getActionValue(d.actions, 'lead') +
+      getActionValue(d.actions, 'offsite_conversion.fb_pixel_lead'),
+  }))
+}
