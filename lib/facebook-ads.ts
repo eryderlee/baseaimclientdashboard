@@ -36,7 +36,7 @@ export interface FbDailyInsight {
   date_stop: string
 }
 
-export type DatePreset = 'last_7d' | 'last_30d' | 'maximum'
+export type DatePreset = 'last_7d' | 'last_30d' | 'last_90d' | 'maximum'
 
 export interface FbCampaignInsight {
   campaign_id: string
@@ -130,13 +130,14 @@ export async function fetchFacebookInsights(
  */
 export async function fetchFacebookDailyInsights(
   adAccountId: string,
-  accessToken: string
+  accessToken: string,
+  datePreset: DatePreset = 'last_90d'
 ): Promise<FbDailyInsight[]> {
   const url = new URL(
     `https://graph.facebook.com/${GRAPH_API_VERSION}/${adAccountId}/insights`
   )
   url.searchParams.set('fields', DAILY_FIELDS)
-  url.searchParams.set('date_preset', 'last_30d')
+  url.searchParams.set('date_preset', datePreset)
   url.searchParams.set('time_increment', '1')
   url.searchParams.set('level', 'account')
   url.searchParams.set('access_token', accessToken)

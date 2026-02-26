@@ -457,8 +457,8 @@ export const getClientFbDailyInsights = cache(async () => {
   if (!settings?.facebookAccessToken) return null
 
   const cachedFetch = unstable_cache(
-    async () => fetchFacebookDailyInsights(client.adAccountId!, settings.facebookAccessToken!),
-    [`fb-daily-${client.id}`],
+    async () => fetchFacebookDailyInsights(client.adAccountId!, settings.facebookAccessToken!, 'last_90d'),
+    [`fb-daily-90d-${client.id}`],
     { revalidate: 21600, tags: [`fb-insights-${client.id}`] }
   )
 
@@ -594,8 +594,8 @@ export const getClientFbDailyTrend = cache(async (): Promise<FbDailyInsight[] | 
   if (!settings?.facebookAccessToken) return null
 
   const cachedFetch = unstable_cache(
-    async () => fetchFacebookDailyInsights(client.adAccountId!, settings.facebookAccessToken!),
-    [`fb-daily-trend-${client.id}`],
+    async () => fetchFacebookDailyInsights(client.adAccountId!, settings.facebookAccessToken!, 'last_90d'),
+    [`fb-daily-trend-90d-${client.id}`],
     {
       revalidate: 21600, // 6 hours in seconds
       tags: [`fb-insights-${client.id}`],

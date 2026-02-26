@@ -55,6 +55,20 @@ interface AnalyticsOverviewProps {
   setIsExpanded: (expanded: boolean) => void
 }
 
+type ChartRange = '7d' | '30d' | '90d' | 'all'
+
+const CHART_RANGES: { label: string; value: ChartRange }[] = [
+  { label: '7D', value: '7d' },
+  { label: '30D', value: '30d' },
+  { label: '90D', value: '90d' },
+  { label: 'All', value: 'all' },
+]
+
+function sliceRange(data: DailyMetric[], range: ChartRange): DailyMetric[] {
+  if (range === 'all') return data
+  return data.slice(-parseInt(range))
+}
+
 export function AnalyticsOverview({
   impressionsData,
   clicksData,
@@ -65,6 +79,7 @@ export function AnalyticsOverview({
   setIsExpanded,
 }: AnalyticsOverviewProps) {
   const [activeTab, setActiveTab] = useState("impressions")
+  const [chartRange, setChartRange] = useState<ChartRange>('30d')
 
   // Calculate totals
   const totalImpressions = impressionsData.reduce((sum, d) => sum + d.value, 0)
@@ -256,15 +271,33 @@ export function AnalyticsOverview({
 
               {/* Line Chart */}
               <Card>
-                <CardHeader>
-                  <CardTitle>{metric.name} Trend</CardTitle>
-                  <CardDescription>
-                    Daily performance over the last 30 days
-                  </CardDescription>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle>{metric.name} Trend</CardTitle>
+                    <CardDescription>
+                      Daily performance over the selected range
+                    </CardDescription>
+                  </div>
+                  <div className="flex gap-1">
+                    {CHART_RANGES.map((r) => (
+                      <button
+                        key={r.value}
+                        onClick={() => setChartRange(r.value)}
+                        className={cn(
+                          'rounded px-2.5 py-1 text-xs font-medium transition-colors',
+                          chartRange === r.value
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        )}
+                      >
+                        {r.label}
+                      </button>
+                    ))}
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={350}>
-                    <LineChart data={metric.dailyData}>
+                    <LineChart data={sliceRange(metric.dailyData, chartRange)}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-neutral-200 dark:stroke-neutral-800" />
                       <XAxis
                         dataKey="date"

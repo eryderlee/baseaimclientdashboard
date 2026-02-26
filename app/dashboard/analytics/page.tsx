@@ -157,7 +157,7 @@ export default async function AnalyticsPage({
           <>
             {/* Spend & Leads Trend */}
             <div className="mt-6">
-              <h3 className="text-sm font-semibold text-slate-700 mb-3">30-Day Spend & Leads Trend</h3>
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">Spend & Leads Trend</h3>
               <FbTrendChart data={dailyTrend ? buildTrendData(dailyTrend) : []} />
             </div>
 
