@@ -287,15 +287,18 @@ Plans:
   3. Sentry captures errors in production — confirmed by triggering a test error
   4. Rate limiting fires at 10 requests/60s on /login — confirmed by HTTP 429 response
   5. Security headers present on live HTTP responses — confirmed by curl -I
-**Plans:** TBD
+**Plans:** 4 plans
 
 Plans:
-- [ ] 15-01: TBD
+- [ ] 15-01-PLAN.md — Add postinstall prisma generate to package.json
+- [ ] 15-02-PLAN.md — Provision Neon database, create Vercel project, configure env vars, first deploy
+- [ ] 15-03-PLAN.md — Configure Upstash Redis, Sentry, Stripe webhook, Google OAuth production mode
+- [ ] 15-04-PLAN.md — Final verification pass: Sentry, rate limiting, security headers
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15
 
 **v0.9 Foundation:**
 
@@ -319,5 +322,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 11. Facebook Ads Analytics | 3/3 | ✓ Complete | 2026-02-22 |
 | 12. Production Hardening | 4/4 | ✓ Complete | 2026-02-23 |
 | 13. UI Polish & Admin Analytics Integration | 3/3 | ✓ Complete | 2026-02-23 |
-| 14. Enhanced Facebook Analytics & Branded Reporting | 0/3 | Not started | - |
-| 15. Deployment | 0/TBD | Not started | - |
+| 14. Enhanced Facebook Analytics & Branded Reporting | 3/3 | ✓ Complete | 2026-02-27 |
+| 15. Deployment | 0/4 | Not started | - |
