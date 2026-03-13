@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 
 ## Current Position
 
-Phase: 14 of 15 (Enhanced Facebook Analytics & Branded Reporting) — VERIFIED COMPLETE
-Plan: 3 of 3
-Status: Phase 14 COMPLETE — human verified ✓, ready for Phase 15
-Last activity: 2026-02-27 — Phase 14 verified. Added 7D/30D/90D/All range selector to both trend charts (analytics page + home page). Daily fetch extended to 90 days.
+Phase: 15 of 15 (Production Deployment)
+Plan: 1 of 4
+Status: In progress
+Last activity: 2026-03-13 — Completed 15-01-PLAN.md: added postinstall prisma generate to package.json, committed and pushed to main.
 
-Progress: [████████████████████████████████] 41/41 plans complete (Phase 14 done)
+Progress: [████████████████████████████████░] 42/45 plans complete (Phase 15 in progress, 1/4 done)
 
 ## Performance Metrics
 
@@ -272,10 +272,10 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-24
-Stopped at: Completed 14-03-PLAN.md — branded PDF export with BASEAIM header, 12 metrics, autoTable campaign/platform tables, extended CSV with 17 rows. Phase 14 COMPLETE.
+Last session: 2026-03-13
+Stopped at: Completed 15-01-PLAN.md — added postinstall prisma generate to package.json, committed and pushed to main.
 Resume file: None
-Next: Phase 15 - Production Deployment (Vercel setup, env vars, domain, verification of all production features)
+Next: Phase 15 Plan 02 - Vercel project setup, env vars, and initial deploy
 
 **Phase 13 - UI Polish (from 13-01):**
 - DashboardNav stays "use client" — all notification data fetched in layout server component, passed as serialized props
