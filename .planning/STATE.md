@@ -266,7 +266,8 @@ Recent decisions affecting current work:
 - PDF layout: full-width blue rect at y=0 h=22, metrics two-column at y=38 spacing 8mm, rankings at y=92, tables below
 
 **Deployment (Phase 15 - planned):**
-- Vercel recommended over Netlify for Next.js (better middleware, server actions, instrumentation support)
+- Netlify selected for hosting (user preference)
+- Supabase selected for production PostgreSQL database
 - User has not created hosting account yet — Phase 15 will cover account setup + env var configuration
 - Human verification items from Phase 12 (Sentry live, rate limit live, security headers) to be completed in Phase 15
 
@@ -275,7 +276,7 @@ Recent decisions affecting current work:
 Last session: 2026-03-13
 Stopped at: Completed 15-01-PLAN.md — added postinstall prisma generate to package.json, committed and pushed to main.
 Resume file: None
-Next: Phase 15 Plan 02 - Vercel project setup, env vars, and initial deploy
+Next: Phase 15 Plan 02 - Netlify + Supabase setup, env vars, and initial deploy
 
 **Phase 13 - UI Polish (from 13-01):**
 - DashboardNav stays "use client" — all notification data fetched in layout server component, passed as serialized props

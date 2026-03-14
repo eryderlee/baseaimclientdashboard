@@ -4,7 +4,10 @@ import { z } from "zod";
 export const env = createEnv({
   server: {
     // Database
-    DATABASE_URL: z.string().url(),
+    DATABASE_URL: z
+      .string()
+      // Allow passwords with `/` without breaking validation
+      .regex(/^postgresql:\/\//, "DATABASE_URL must start with postgresql://"),
 
     // Auth
     AUTH_SECRET: z.string().min(1),
