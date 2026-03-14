@@ -88,11 +88,11 @@ Requirements for v1.0 Production Launch milestone. Each maps to roadmap phases.
 
 ### Deployment
 
-- [ ] **DEPLOY-01**: App deployed to production host (Vercel recommended) and accessible via public URL
-- [ ] **DEPLOY-02**: All environment variables configured in host dashboard (Sentry, Upstash, Stripe, Resend, Google Drive)
-- [ ] **DEPLOY-03**: Sentry captures errors in production — verified by triggering a test error
-- [ ] **DEPLOY-04**: Rate limiting fires at 10 req/60s on /login — verified by HTTP 429 response
-- [ ] **DEPLOY-05**: Security headers present on live HTTP responses — verified by curl -I
+- [x] **DEPLOY-01**: App deployed to production host (Vercel recommended) and accessible via public URL
+- [x] **DEPLOY-02**: All environment variables configured in host dashboard (Sentry, Upstash, Stripe, Resend, Google Drive)
+- [x] **DEPLOY-03**: Sentry captures errors in production — verified by triggering a test error
+- [x] **DEPLOY-04**: Rate limiting fires at 10 req/60s on /login — verified by HTTP 429 response
+- [x] **DEPLOY-05**: Security headers present on live HTTP responses — verified by curl -I
 
 ## Validated Requirements (Pre-v1.0)
 

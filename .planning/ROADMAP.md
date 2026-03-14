@@ -290,10 +290,10 @@ Plans:
 **Plans:** 4 plans
 
 Plans:
-- [ ] 15-01-PLAN.md — Add postinstall prisma generate to package.json
-- [ ] 15-02-PLAN.md — Provision Neon database, create Vercel project, configure env vars, first deploy
-- [ ] 15-03-PLAN.md — Configure Upstash Redis, Sentry, Stripe webhook, Google OAuth production mode
-- [ ] 15-04-PLAN.md — Final verification pass: Sentry, rate limiting, security headers
+- [x] 15-01-PLAN.md — Add postinstall prisma generate to package.json
+- [x] 15-02-PLAN.md — Provision Supabase database, create Netlify site, configure env vars, first deploy
+- [x] 15-03-PLAN.md — Configure Upstash Redis, Sentry, Stripe webhook, Google OAuth production mode
+- [x] 15-04-PLAN.md — Final verification pass: Sentry, rate limiting, security headers
 
 ## Progress
 
