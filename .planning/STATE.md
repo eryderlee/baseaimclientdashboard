@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-15)
 
 **Core value:** Clients can see exactly where their project stands without having to ask
-**Current focus:** Phase 15 - Production Deployment
+**Current focus:** Phase 16 - Performance Optimization
 
 ## Current Position
 
-Phase: 15 of 15 (Deployment) — VERIFIED COMPLETE
-Plan: 4 of 4
-Status: Phase 15 COMPLETE — all DEPLOY requirements verified ✓
-Last activity: 2026-03-15 — Phase 15 complete. App live on Netlify with Supabase, Upstash Redis, Sentry, Stripe webhook, Google OAuth all configured. All 5 DEPLOY requirements verified.
+Phase: 16 of 16 (Performance Optimization) — In Progress
+Plan: 2 of 4
+Status: Phase 16 In Progress — 2/4 plans complete (DB pooling + query deduplication done)
+Last activity: 2026-03-16 — Completed 16-02-PLAN.md: settings/client config deduplication, analytics + dashboard DAL-only refactor
 
-Progress: [████████████████████████████████░] 42/45 plans complete (Phase 15 in progress, 1/4 done)
+Progress: [████████████████████████████████████░░] 47/49 plans complete — Phase 16: 2/4 plans complete
 
 ## Performance Metrics
 
@@ -256,6 +256,13 @@ Recent decisions affecting current work:
 - Trend/campaigns/platform sections guarded by isConfigured && fbInsights (trend always shows last_30d regardless of range selector)
 - ExportButtons now accepts campaigns/platforms as optional props — forwarding ready for Plan 03 PDF enhancement
 
+**Phase 16 - Query Deduplication (from 16-02):**
+- getSettings() is the single settings.findFirst canonical call — all DAL functions call getSettings(), never prisma.settings.findFirst() directly
+- getClientAdConfig() is the single client adAccountId canonical call — all client FB DAL functions call getClientAdConfig(), never their own prisma.client.findUnique()
+- getSettings() has no auth check — settings are global config (facebookAccessToken, whatsappNumber, telegramUsername), not user-scoped data
+- getClientAnalytics() uses select (not include) on documents/milestones/activities — fetch only needed fields for analytics computation
+- Dashboard home getCurrentUserName() reads from DB not session — DB is source of truth for display name
+
 **Phase 14 - Branded PDF/CSV Export (from 14-03):**
 - autoTable(doc, opts) named export pattern for jspdf-autotable v5 — NOT doc.autoTable() method (doesn't exist in v5)
 - (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY for next Y after table — avoids TypeScript any
@@ -273,10 +280,10 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-13
-Stopped at: Completed 15-01-PLAN.md — added postinstall prisma generate to package.json, committed and pushed to main.
+Last session: 2026-03-16
+Stopped at: Completed 16-02-PLAN.md — settings deduplication, getClientAdConfig singleton, analytics + dashboard home DAL-only refactor.
 Resume file: None
-Next: All phases complete — v1.0 milestone ready for audit.
+Next: 16-03-PLAN.md (Suspense streaming) and 16-04-PLAN.md (Prisma select optimization + bundle analysis)
 
 **Phase 13 - UI Polish (from 13-01):**
 - DashboardNav stays "use client" — all notification data fetched in layout server component, passed as serialized props
