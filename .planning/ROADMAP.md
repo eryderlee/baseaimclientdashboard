@@ -295,10 +295,21 @@ Plans:
 - [x] 15-03-PLAN.md — Configure Upstash Redis, Sentry, Stripe webhook, Google OAuth production mode
 - [x] 15-04-PLAN.md — Final verification pass: Sentry, rate limiting, security headers
 
+#### Phase 16: Performance Optimization
+**Goal**: Dashboard loads fast for all clients — pages feel snappy, cold starts are minimized, and database queries are efficient
+**Depends on**: Phase 15
+**Plans:** 4 plans
+
+Plans:
+- [x] 16-01-PLAN.md — Supabase connection pooling: directUrl in schema.prisma, $transaction audit, Netlify env var update (Wave 1)
+- [x] 16-02-PLAN.md — Settings deduplication + analytics DAL consolidation: getSettings(), getClientAnalytics(), eliminate direct prisma imports from dashboard pages (Wave 2)
+- [x] 16-03-PLAN.md — Granular Suspense boundaries on analytics page: FB Ads and Project Metrics stream independently (Wave 3, depends on 16-02)
+- [x] 16-04-PLAN.md — Prisma query optimization (select, relationLoadStrategy: 'join') + bundle analysis baseline (Wave 2, depends on 16-02)
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16
 
 **v0.9 Foundation:**
 
@@ -323,4 +334,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 12. Production Hardening | 4/4 | ✓ Complete | 2026-02-23 |
 | 13. UI Polish & Admin Analytics Integration | 3/3 | ✓ Complete | 2026-02-23 |
 | 14. Enhanced Facebook Analytics & Branded Reporting | 3/3 | ✓ Complete | 2026-02-27 |
-| 15. Deployment | 0/4 | Not started | - |
+| 15. Deployment | 4/4 | ✓ Complete | 2026-03-15 |
+| 16. Performance Optimization | 4/4 | ✓ Complete | 2026-03-16 |
