@@ -74,7 +74,21 @@ export const getAllClientsWithMilestones = cache(async () => {
   }
 
   const clients = await prisma.client.findMany({
-    include: {
+    relationLoadStrategy: 'join',
+    select: {
+      id: true,
+      companyName: true,
+      industry: true,
+      website: true,
+      phone: true,
+      address: true,
+      adAccountId: true,
+      driveFolderId: true,
+      onboardingStep: true,
+      isActive: true,
+      createdAt: true,
+      updatedAt: true,
+      userId: true,
       user: {
         select: {
           name: true,
@@ -83,6 +97,16 @@ export const getAllClientsWithMilestones = cache(async () => {
       },
       milestones: {
         orderBy: { order: 'asc' },
+        select: {
+          id: true,
+          clientId: true,
+          title: true,
+          status: true,
+          progress: true,
+          startDate: true,
+          dueDate: true,
+          order: true,
+        },
       },
     },
     orderBy: { createdAt: 'desc' },
@@ -100,6 +124,7 @@ export const getClientWithMilestones = cache(async (clientId: string) => {
 
   const client = await prisma.client.findUnique({
     where: { id: clientId },
+    relationLoadStrategy: 'join',
     include: {
       user: {
         select: {
@@ -129,6 +154,7 @@ export const getClientForEdit = cache(async (clientId: string) => {
 
   const client = await prisma.client.findUnique({
     where: { id: clientId },
+    relationLoadStrategy: 'join',
     include: {
       user: {
         select: {
@@ -378,6 +404,7 @@ export const getClientBillingData = cache(async () => {
 
   const client = await prisma.client.findUnique({
     where: { id: clientId },
+    relationLoadStrategy: 'join',
     include: {
       invoices: {
         orderBy: { createdAt: 'desc' },
@@ -443,6 +470,7 @@ export const getAdminClientForBilling = cache(async (clientId: string) => {
 
   const client = await prisma.client.findUnique({
     where: { id: clientId },
+    relationLoadStrategy: 'join',
     include: {
       user: {
         select: {
