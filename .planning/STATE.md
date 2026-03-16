@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 16 of 16 (Performance Optimization) — In Progress
-Plan: 2 of 4
-Status: Phase 16 In Progress — 2/4 plans complete (DB pooling + query deduplication done)
-Last activity: 2026-03-16 — Completed 16-02-PLAN.md: settings/client config deduplication, analytics + dashboard DAL-only refactor
+Plan: 4 of 4
+Status: Phase 16 In Progress — 4/4 plans complete (pending 16-03 Suspense streaming confirmation)
+Last activity: 2026-03-16 — Completed 16-04-PLAN.md: Prisma select optimization + bundle analysis
 
-Progress: [████████████████████████████████████░░] 47/49 plans complete — Phase 16: 2/4 plans complete
+Progress: [█████████████████████████████████████░] 48/49 plans complete — Phase 16: 4/4 plans complete
 
 ## Performance Metrics
 
@@ -263,6 +263,14 @@ Recent decisions affecting current work:
 - getClientAnalytics() uses select (not include) on documents/milestones/activities — fetch only needed fields for analytics computation
 - Dashboard home getCurrentUserName() reads from DB not session — DB is source of truth for display name
 
+**Phase 16 - Prisma Optimization (from 16-04):**
+- previewFeatures = ["relationJoins"] required in schema.prisma for Prisma 5.x relationLoadStrategy TypeScript types — without it 'join' is typed as 'never'
+- getAllClientsWithMilestones uses select (not include) — excludes notes Json from milestones; analytics/list only needs status/dueDate/startDate/progress/order/title
+- getClientWithMilestones keeps notes in include — admin milestone editor reads milestone.notes for editing
+- relationLoadStrategy: 'join' added to: getAllClientsWithMilestones, getClientWithMilestones, getClientForEdit, getClientBillingData, getAdminClientForBilling
+- Bundle baseline: jspdf (408KB) and recharts (3x 393KB) are largest app-specific client chunks, both scoped to FB analytics route
+- @googleapis/drive confirmed server-only — not present in any client-side chunks
+
 **Phase 14 - Branded PDF/CSV Export (from 14-03):**
 - autoTable(doc, opts) named export pattern for jspdf-autotable v5 — NOT doc.autoTable() method (doesn't exist in v5)
 - (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY for next Y after table — avoids TypeScript any
@@ -281,9 +289,9 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-16
-Stopped at: Completed 16-02-PLAN.md — settings deduplication, getClientAdConfig singleton, analytics + dashboard home DAL-only refactor.
+Stopped at: Completed 16-04-PLAN.md — Prisma select optimization + bundle analysis.
 Resume file: None
-Next: 16-03-PLAN.md (Suspense streaming) and 16-04-PLAN.md (Prisma select optimization + bundle analysis)
+Next: Phase 16 complete (all 4 plans done)
 
 **Phase 13 - UI Polish (from 13-01):**
 - DashboardNav stays "use client" — all notification data fetched in layout server component, passed as serialized props
