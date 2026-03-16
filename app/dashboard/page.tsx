@@ -1,44 +1,16 @@
-import { getMilestones, getChatSettings, getClientFbDailyInsights } from "@/lib/dal"
-import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { getMilestones, getChatSettings, getClientFbDailyInsights, getClientDashboardProfile, getCurrentUserName, getClientRecentDocuments, getRecentActivities } from "@/lib/dal"
 import { getActionValue } from "@/lib/facebook-ads"
 import { DashboardOverview } from "@/components/dashboard/dashboard-overview"
 
 export default async function DashboardPage() {
-  const [milestones, chatSettings, dailyInsights, session] = await Promise.all([
+  const [milestones, chatSettings, dailyInsights, client, userName, documents, activities] = await Promise.all([
     getMilestones(),
     getChatSettings(),
     getClientFbDailyInsights(),
-    auth(),
-  ])
-
-  // Fetch client profile for company name and FB config status
-  const client = await prisma.client.findUnique({
-    where: { userId: session!.user!.id },
-    select: { id: true, companyName: true, adAccountId: true },
-  })
-
-  // Fetch recent documents and activities in parallel
-  const [documents, activities] = await Promise.all([
-    client
-      ? prisma.document.findMany({
-          where: { clientId: client.id },
-          orderBy: { createdAt: 'desc' },
-          take: 5,
-          select: { id: true, title: true, status: true, createdAt: true },
-        })
-      : [],
-    prisma.activity.findMany({
-      where: { userId: session!.user!.id },
-      orderBy: { createdAt: 'desc' },
-      take: 4,
-      select: {
-        id: true,
-        action: true,
-        createdAt: true,
-        user: { select: { name: true } },
-      },
-    }),
+    getClientDashboardProfile(),
+    getCurrentUserName(),
+    getClientRecentDocuments(),
+    getRecentActivities(),
   ])
 
   // Transform daily FB insights into chart-ready format
@@ -86,7 +58,7 @@ export default async function DashboardPage() {
         whatsappNumber: chatSettings?.whatsappNumber,
         telegramUsername: chatSettings?.telegramUsername,
       }}
-      clientName={session?.user?.name || 'Client'}
+      clientName={userName || 'Client'}
       companyName={client?.companyName || 'Company'}
       fbDailyData={fbDailyData}
       isFbConfigured={!!client?.adAccountId}

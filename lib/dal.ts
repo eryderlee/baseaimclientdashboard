@@ -809,3 +809,70 @@ export const getAdminFbAggregation = cache(async () => {
 
   return { ...aggregated, configuredClients: clients.length }
 })
+
+// ─── Dashboard Home DAL Functions ────────────────────────────────────────────
+
+/**
+ * Get client profile data needed for the dashboard home page.
+ * Returns id, companyName, and adAccountId for FB config check.
+ * CLIENT role only.
+ */
+export const getClientDashboardProfile = cache(async () => {
+  const { userId } = await verifySession()
+
+  return prisma.client.findUnique({
+    where: { userId },
+    select: { id: true, companyName: true, adAccountId: true },
+  })
+})
+
+/**
+ * Get the current user's name from their session-linked user record.
+ * Used for the greeting on the dashboard home page.
+ */
+export const getCurrentUserName = cache(async () => {
+  const { userId } = await verifySession()
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { name: true },
+  })
+
+  return user?.name || null
+})
+
+/**
+ * Get the 5 most recent documents for the current client.
+ * CLIENT role only.
+ */
+export const getClientRecentDocuments = cache(async () => {
+  const client = await getClientDashboardProfile()
+  if (!client) return []
+
+  return prisma.document.findMany({
+    where: { clientId: client.id },
+    orderBy: { createdAt: 'desc' },
+    take: 5,
+    select: { id: true, title: true, status: true, createdAt: true },
+  })
+})
+
+/**
+ * Get the 4 most recent activities for the current user.
+ * Used for the recent activity feed on the dashboard home page.
+ */
+export const getRecentActivities = cache(async () => {
+  const { userId } = await verifySession()
+
+  return prisma.activity.findMany({
+    where: { userId },
+    orderBy: { createdAt: 'desc' },
+    take: 4,
+    select: {
+      id: true,
+      action: true,
+      createdAt: true,
+      user: { select: { name: true } },
+    },
+  })
+})

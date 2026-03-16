@@ -1,6 +1,4 @@
-import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
-import { getClientFbInsights, getClientFbCampaigns, getClientFbPlatformBreakdown, getClientFbDailyTrend } from "@/lib/dal"
+import { getClientFbInsights, getClientFbCampaigns, getClientFbPlatformBreakdown, getClientFbDailyTrend, getClientAdConfig, getClientAnalytics } from "@/lib/dal"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FbAdsMetrics } from "@/components/dashboard/fb-ads-metrics"
 import { FbTrendChart } from "@/components/dashboard/fb-trend-chart"
@@ -22,86 +20,11 @@ function rangToDatePreset(range: DateRange): DatePreset {
   return 'last_30d'
 }
 
-async function getAnalyticsData(userId: string) {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: {
-      clientProfile: {
-        include: {
-          documents: {
-            orderBy: { createdAt: "asc" },
-          },
-          milestones: true,
-          invoices: true,
-        },
-      },
-      activities: {
-        orderBy: { createdAt: "desc" },
-        take: 50,
-      },
-    },
-  })
-
-  // Calculate metrics
-  const totalDocuments = user?.clientProfile?.documents.length || 0
-  const completedMilestones = user?.clientProfile?.milestones.filter(
-    (m) => m.status === "COMPLETED"
-  ).length || 0
-  const totalMilestones = user?.clientProfile?.milestones.length || 0
-  const progressRate = totalMilestones > 0
-    ? Math.round((completedMilestones / totalMilestones) * 100)
-    : 0
-
-  // Documents over time
-  const documentsData = user?.clientProfile?.documents.reduce((acc: Array<{ month: string; count: number }>, doc) => {
-    const month = new Date(doc.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-    const existing = acc.find(item => item.month === month)
-    if (existing) {
-      existing.count++
-    } else {
-      acc.push({ month, count: 1 })
-    }
-    return acc
-  }, []) || []
-
-  // Activity over time
-  const activityData = user?.activities.reduce((acc: Array<{ date: string; count: number }>, activity) => {
-    const date = new Date(activity.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-    const existing = acc.find(item => item.date === date)
-    if (existing) {
-      existing.count++
-    } else {
-      acc.push({ date, count: 1 })
-    }
-    return acc
-  }, []).reverse() || []
-
-  // Milestone progress
-  const milestoneData = user?.clientProfile?.milestones.map(m => ({
-    name: m.title,
-    progress: m.progress,
-    status: m.status,
-  })) || []
-
-  return {
-    totalDocuments,
-    completedMilestones,
-    totalMilestones,
-    progressRate,
-    documentsData,
-    activityData,
-    milestoneData,
-  }
-}
-
 export default async function AnalyticsPage({
   searchParams,
 }: {
   searchParams: Promise<{ range?: string }>
 }) {
-  const session = await auth()
-  const userId = session!.user!.id
-
   // Resolve searchParams (Next.js 15 async pattern)
   const resolvedParams = await searchParams
   const rawRange = resolvedParams?.range
@@ -114,23 +37,18 @@ export default async function AnalyticsPage({
 
   const datePreset = rangToDatePreset(dateRange)
 
-  // Determine isConfigured: client has adAccountId set
-  const clientProfile = await prisma.client.findUnique({
-    where: { userId },
-    select: { adAccountId: true },
-  })
-  const isConfigured = !!clientProfile?.adAccountId
-
-  // Fetch all FB data in parallel — existing insights + new campaign/platform/trend data
-  const [fbInsights, campaigns, platforms, dailyTrend] = await Promise.all([
+  // Fetch all data in parallel — FB insights + project analytics
+  const [fbInsights, campaigns, platforms, dailyTrend, analytics] = await Promise.all([
     getClientFbInsights(datePreset),
     getClientFbCampaigns(datePreset),
     getClientFbPlatformBreakdown(datePreset),
     getClientFbDailyTrend(),
+    getClientAnalytics(),
   ])
 
-  // Fetch existing project analytics data
-  const analytics = await getAnalyticsData(userId)
+  // Determine isConfigured: client has adAccountId set
+  const clientAdConfig = await getClientAdConfig()
+  const isConfigured = !!clientAdConfig?.adAccountId
 
   return (
     <div className="space-y-6">
