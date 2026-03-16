@@ -19,9 +19,11 @@ const cspHeader = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  // Produce a self-contained build artifact for VPS deployment
+  output: 'standalone',
+
   // External packages for server components
-  // Prevents Next.js from bundling large packages into each serverless function chunk
-  // Keeps bundle sizes within Vercel's 250 MB limit
+  // Prevents Next.js from bundling large packages into each server chunk
   serverExternalPackages: [
     "@prisma/client",
     "prisma",
