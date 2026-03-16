@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-15)
 
 **Core value:** Clients can see exactly where their project stands without having to ask
-**Current focus:** Phase 16 - Performance Optimization — COMPLETE. All 16 phases done. v1.0 milestone complete.
+**Current focus:** Phase 17 - VPS Self-Hosting Migration
 
 ## Current Position
 
-Phase: 16 of 16 (Performance Optimization) — Complete
-Plan: 4 of 4
-Status: Phase 16 Complete — all 4 plans done
-Last activity: 2026-03-16 — Completed 16-03-PLAN.md: Suspense streaming on analytics page
+Phase: 17 of 17 (VPS Self-Hosting Migration) — In progress
+Plan: 2 of 4
+Status: In progress
+Last activity: 2026-03-16 — Completed 17-02-PLAN.md: GitHub Actions CI/CD pipeline
 
-Progress: [██████████████████████████████████████] 49/49 plans complete — Phase 16: 4/4 plans complete
+Progress: [██████████████████████████████████████░░] Phase 17: 2/4 plans complete
 
 ## Performance Metrics
 
@@ -285,6 +285,14 @@ Recent decisions affecting current work:
 - baseaim-fb-report-{dateRange}-{date} filename prefix on both CSV and PDF exports (was facebook-ads-)
 - PDF layout: full-width blue rect at y=0 h=22, metrics two-column at y=38 spacing 8mm, rankings at y=92, tables below
 
+**Phase 17 - VPS CI/CD Pipeline (from 17-02):**
+- Single-job GitHub Actions workflow — build on runner (not VPS) to avoid RAM pressure
+- SCP artifact target: `/var/www/dashboard/_deploy`, SSH step moves to `.next/standalone`
+- `pm2 reload ecosystem.config.js --env production` for zero-downtime rolling restart
+- ecosystem.config.js NOT copied from artifact — PM2 uses VPS-local committed copy (placed in Plan 17-03)
+- 7 required GitHub secrets: VPS_HOST, VPS_USER, VPS_SSH_KEY, SENTRY_AUTH_TOKEN, SENTRY_ORG, SENTRY_PROJECT, NEXT_PUBLIC_SENTRY_DSN
+- `.env*` glob in .gitignore already covers .env.production; ecosystem.config.js correctly NOT gitignored
+
 **Deployment (Phase 15 - planned):**
 - Netlify selected for hosting (user preference)
 - Supabase selected for production PostgreSQL database
@@ -294,9 +302,9 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-16
-Stopped at: Completed 16-03-PLAN.md — Suspense streaming on analytics page.
+Stopped at: Completed 17-02-PLAN.md — GitHub Actions CI/CD pipeline
 Resume file: None
-Next: All phases complete — project at v1.0 + performance optimization
+Next: 17-03 (VPS provisioning scripts) and 17-04 (Nginx + SSL + monitoring)
 
 **Phase 13 - UI Polish (from 13-01):**
 - DashboardNav stays "use client" — all notification data fetched in layout server component, passed as serialized props
