@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 
 ## Current Position
 
-Phase: 16 of 16 (Performance Optimization) — In Progress
+Phase: 16 of 16 (Performance Optimization) — Complete
 Plan: 4 of 4
-Status: Phase 16 In Progress — 4/4 plans complete (pending 16-03 Suspense streaming confirmation)
-Last activity: 2026-03-16 — Completed 16-04-PLAN.md: Prisma select optimization + bundle analysis
+Status: Phase 16 Complete — all 4 plans done
+Last activity: 2026-03-16 — Completed 16-03-PLAN.md: Suspense streaming on analytics page
 
-Progress: [█████████████████████████████████████░] 48/49 plans complete — Phase 16: 4/4 plans complete
+Progress: [██████████████████████████████████████] 49/49 plans complete — Phase 16: 4/4 plans complete
 
 ## Performance Metrics
 
@@ -263,6 +263,11 @@ Recent decisions affecting current work:
 - getClientAnalytics() uses select (not include) on documents/milestones/activities — fetch only needed fields for analytics computation
 - Dashboard home getCurrentUserName() reads from DB not session — DB is source of truth for display name
 
+**Phase 16 - Suspense Streaming (from 16-03):**
+- Non-async page component reads searchParams then passes dateRange as prop to FbAdsSection — avoids blocking streaming
+- FbAdsSection and ProjectMetricsSection async components co-located in page.tsx — per-section Suspense pattern
+- FbAdsSkeleton mirrors 12-card grid + trend/campaigns/platform shape; ProjectMetricsSkeleton mirrors 3-card grid
+
 **Phase 16 - Prisma Optimization (from 16-04):**
 - previewFeatures = ["relationJoins"] required in schema.prisma for Prisma 5.x relationLoadStrategy TypeScript types — without it 'join' is typed as 'never'
 - getAllClientsWithMilestones uses select (not include) — excludes notes Json from milestones; analytics/list only needs status/dueDate/startDate/progress/order/title
@@ -289,9 +294,9 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-16
-Stopped at: Completed 16-04-PLAN.md — Prisma select optimization + bundle analysis.
+Stopped at: Completed 16-03-PLAN.md — Suspense streaming on analytics page.
 Resume file: None
-Next: Phase 16 complete (all 4 plans done)
+Next: All phases complete — project at v1.0 + performance optimization
 
 **Phase 13 - UI Polish (from 13-01):**
 - DashboardNav stays "use client" — all notification data fetched in layout server component, passed as serialized props
