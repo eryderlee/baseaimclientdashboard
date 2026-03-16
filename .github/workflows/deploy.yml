@@ -1,0 +1,93 @@
+# GitHub Actions CI/CD Pipeline
+# Builds Next.js standalone artifact on runner, transfers to VPS via SCP, reloads PM2
+#
+# Required secrets (set in GitHub repo Settings → Secrets → Actions):
+#   VPS_HOST              -- VPS IP address
+#   VPS_USER              -- SSH username (e.g., deploy or root)
+#   VPS_SSH_KEY           -- Full private SSH key content (PEM format)
+#   SENTRY_AUTH_TOKEN     -- For source map upload during build
+#   SENTRY_ORG            -- Sentry organization slug
+#   SENTRY_PROJECT        -- Sentry project slug
+#   NEXT_PUBLIC_SENTRY_DSN -- Sentry DSN for client-side error tracking
+
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Next.js standalone artifact
+        run: npm run build
+        env:
+          SKIP_ENV_VALIDATION: '1'
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+          NEXT_PUBLIC_APP_URL: 'https://dashboard.baseaim.co'
+          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
+
+      - name: Prepare standalone artifact
+        # Next.js standalone output does NOT include public/ or .next/static/ by default.
+        # These copies make .next/standalone/ fully self-contained for deployment.
+        run: |
+          cp -r public .next/standalone/public
+          cp -r .next/static .next/standalone/.next/static
+
+      - name: Verify artifact integrity
+        run: |
+          test -f .next/standalone/server.js && echo "server.js OK"
+          test -d .next/standalone/public && echo "public/ OK"
+          test -d .next/standalone/.next/static && echo ".next/static/ OK"
+
+      - name: Transfer artifact to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: '.next/standalone/'
+          target: '/var/www/dashboard/_deploy'
+          overwrite: true
+
+      - name: Swap artifact and reload PM2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+            cd /var/www/dashboard
+
+            # Swap deployed artifact into place
+            rm -rf .next/standalone
+            mkdir -p .next
+            mv _deploy/.next/standalone .next/standalone
+
+            # Clean up temp deploy dir
+            rm -rf _deploy
+
+            # Zero-downtime reload (cluster mode rolling restart)
+            # PM2 uses ecosystem.config.js already present at /var/www/dashboard/
+            # (placed there during initial VPS provisioning in Plan 17-03)
+            pm2 reload ecosystem.config.js --env production
