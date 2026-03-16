@@ -227,15 +227,123 @@ export const getAdminAnalytics = cache(async () => {
   }
 })
 
-export const getChatSettings = cache(async () => {
-  const settings = await prisma.settings.findFirst({
+/**
+ * Shared cached settings fetch — deduplicates across all DAL functions in the same render pass.
+ * React cache() ensures this runs at most once per request, even when called from
+ * getClientFbInsights, getClientFbCampaigns, getClientFbPlatformBreakdown, etc.
+ */
+export const getSettings = cache(async () => {
+  return prisma.settings.findFirst({
     select: {
+      facebookAccessToken: true,
       whatsappNumber: true,
       telegramUsername: true,
     },
   })
+})
 
-  return settings
+export const getChatSettings = cache(async () => {
+  const settings = await getSettings()
+  if (!settings) return null
+  return {
+    whatsappNumber: settings.whatsappNumber,
+    telegramUsername: settings.telegramUsername,
+  }
+})
+
+/**
+ * Get current client's profile with ad account config.
+ * Deduplicated via cache() — called by multiple FB DAL functions in the same render.
+ */
+export const getClientAdConfig = cache(async () => {
+  const { userId, userRole } = await verifySession()
+  if (userRole !== 'CLIENT') throw new Error('Unauthorized: Client access required')
+
+  return prisma.client.findUnique({
+    where: { userId },
+    select: { id: true, adAccountId: true },
+  })
+})
+
+/**
+ * Get project analytics for the currently logged-in client.
+ * Uses select to fetch only counts and minimal fields — no full document/activity records.
+ * Replaces the inline getAnalyticsData() that was in app/dashboard/analytics/page.tsx.
+ * CLIENT role only.
+ */
+export const getClientAnalytics = cache(async () => {
+  const { userId } = await verifySession()
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      clientProfile: {
+        select: {
+          documents: {
+            select: { id: true, createdAt: true },
+            orderBy: { createdAt: 'asc' as const },
+          },
+          milestones: {
+            select: { title: true, status: true, progress: true },
+          },
+          invoices: {
+            select: { id: true },
+          },
+        },
+      },
+      activities: {
+        select: { createdAt: true },
+        orderBy: { createdAt: 'desc' as const },
+        take: 50,
+      },
+    },
+  })
+
+  const docs = user?.clientProfile?.documents || []
+  const milestones = user?.clientProfile?.milestones || []
+  const activities = user?.activities || []
+
+  const totalDocuments = docs.length
+  const completedMilestones = milestones.filter(m => m.status === 'COMPLETED').length
+  const totalMilestones = milestones.length
+  const progressRate = totalMilestones > 0
+    ? Math.round((completedMilestones / totalMilestones) * 100)
+    : 0
+
+  // Documents over time
+  const documentsData = docs.reduce((acc: Array<{ month: string; count: number }>, doc) => {
+    const month = new Date(doc.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+    const existing = acc.find(item => item.month === month)
+    if (existing) existing.count++
+    else acc.push({ month, count: 1 })
+    return acc
+  }, [])
+
+  // Activity over time (last 50)
+  const activityData = activities.reduce((acc: Array<{ date: string; count: number }>, activity) => {
+    const date = new Date(activity.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    const existing = acc.find(item => item.date === date)
+    if (existing) existing.count++
+    else acc.push({ date, count: 1 })
+    return acc
+  }, []).reverse()
+
+  // Milestone progress
+  const milestoneData = milestones.map(m => ({
+    name: m.title,
+    progress: m.progress,
+    status: m.status,
+  }))
+
+  return {
+    totalDocuments,
+    completedMilestones,
+    totalMilestones,
+    progressRate,
+    documentsData,
+    activityData,
+    milestoneData,
+  }
 })
 
 // ─── Billing DAL Functions ───────────────────────────────────────────────────
@@ -377,27 +485,22 @@ export const getAdminClientForBilling = cache(async (clientId: string) => {
  */
 export const getClientFbInsights = cache(async (datePreset: DatePreset = 'last_30d') => {
   // Auth OUTSIDE the cache boundary — unstable_cache cannot access session
-  const { userId, userRole } = await verifySession()
+  const { userRole } = await verifySession()
 
   if (userRole !== 'CLIENT') {
     throw new Error('Unauthorized: Client access required')
   }
 
-  // Get client's adAccountId from DB
-  const client = await prisma.client.findUnique({
-    where: { userId },
-    select: { id: true, adAccountId: true },
-  })
+  // Get client's adAccountId from DB (deduplicated via cache)
+  const client = await getClientAdConfig()
 
   if (!client?.adAccountId) {
     // Not configured yet — not an error, show "not configured" state in UI
     return null
   }
 
-  // Get global System User token from Settings singleton
-  const settings = await prisma.settings.findFirst({
-    select: { facebookAccessToken: true },
-  })
+  // Get global System User token from Settings singleton (deduplicated via cache)
+  const settings = await getSettings()
 
   if (!settings?.facebookAccessToken) {
     // Token not configured — not an error
@@ -437,22 +540,17 @@ export const getClientFbInsights = cache(async (datePreset: DatePreset = 'last_3
  * CLIENT role only.
  */
 export const getClientFbDailyInsights = cache(async () => {
-  const { userId, userRole } = await verifySession()
+  const { userRole } = await verifySession()
 
   if (userRole !== 'CLIENT') {
     throw new Error('Unauthorized: Client access required')
   }
 
-  const client = await prisma.client.findUnique({
-    where: { userId },
-    select: { id: true, adAccountId: true },
-  })
+  const client = await getClientAdConfig()
 
   if (!client?.adAccountId) return null
 
-  const settings = await prisma.settings.findFirst({
-    select: { facebookAccessToken: true },
-  })
+  const settings = await getSettings()
 
   if (!settings?.facebookAccessToken) return null
 
@@ -477,22 +575,17 @@ export const getClientFbDailyInsights = cache(async () => {
  */
 export const getClientFbCampaigns = cache(async (datePreset: DatePreset = 'last_30d'): Promise<FbCampaignInsight[]> => {
   // Auth OUTSIDE the cache boundary — unstable_cache cannot access session
-  const { userId, userRole } = await verifySession()
+  const { userRole } = await verifySession()
 
   if (userRole !== 'CLIENT') {
     throw new Error('Unauthorized: Client access required')
   }
 
-  const client = await prisma.client.findUnique({
-    where: { userId },
-    select: { id: true, adAccountId: true },
-  })
+  const client = await getClientAdConfig()
 
   if (!client?.adAccountId) return []
 
-  const settings = await prisma.settings.findFirst({
-    select: { facebookAccessToken: true },
-  })
+  const settings = await getSettings()
 
   if (!settings?.facebookAccessToken) return []
 
@@ -526,22 +619,17 @@ export const getClientFbCampaigns = cache(async (datePreset: DatePreset = 'last_
  */
 export const getClientFbPlatformBreakdown = cache(async (datePreset: DatePreset = 'last_30d'): Promise<FbPlatformRow[]> => {
   // Auth OUTSIDE the cache boundary — unstable_cache cannot access session
-  const { userId, userRole } = await verifySession()
+  const { userRole } = await verifySession()
 
   if (userRole !== 'CLIENT') {
     throw new Error('Unauthorized: Client access required')
   }
 
-  const client = await prisma.client.findUnique({
-    where: { userId },
-    select: { id: true, adAccountId: true },
-  })
+  const client = await getClientAdConfig()
 
   if (!client?.adAccountId) return []
 
-  const settings = await prisma.settings.findFirst({
-    select: { facebookAccessToken: true },
-  })
+  const settings = await getSettings()
 
   if (!settings?.facebookAccessToken) return []
 
@@ -574,22 +662,17 @@ export const getClientFbPlatformBreakdown = cache(async (datePreset: DatePreset 
  */
 export const getClientFbDailyTrend = cache(async (): Promise<FbDailyInsight[] | null> => {
   // Auth OUTSIDE the cache boundary — unstable_cache cannot access session
-  const { userId, userRole } = await verifySession()
+  const { userRole } = await verifySession()
 
   if (userRole !== 'CLIENT') {
     throw new Error('Unauthorized: Client access required')
   }
 
-  const client = await prisma.client.findUnique({
-    where: { userId },
-    select: { id: true, adAccountId: true },
-  })
+  const client = await getClientAdConfig()
 
   if (!client?.adAccountId) return null
 
-  const settings = await prisma.settings.findFirst({
-    select: { facebookAccessToken: true },
-  })
+  const settings = await getSettings()
 
   if (!settings?.facebookAccessToken) return null
 
@@ -680,9 +763,7 @@ export const getAdminFbAggregation = cache(async () => {
   const { userRole } = await verifySession()
   if (userRole !== 'ADMIN') throw new Error('Unauthorized: Admin access required')
 
-  const settings = await prisma.settings.findFirst({
-    select: { facebookAccessToken: true },
-  })
+  const settings = await getSettings()
 
   if (!settings?.facebookAccessToken) {
     return { totalSpend: 0, totalLeads: 0, totalImpressions: 0, configuredClients: 0 }
