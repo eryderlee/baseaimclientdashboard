@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 Phase: 18 of 18 (Complete Analytics Page on the Admin Dashboard) — Complete
 Plan: 2 of 2
 Status: All phases complete
-Last activity: 2026-03-26 — Completed 18-02-PLAN.md: FB analytics UI and Suspense streaming
+Last activity: 2026-03-26 — Completed ad-hoc: Comprehensive admin analytics page (18-03)
 
 Progress: [████████████████████████████████████████] Phase 18: 2/2 plans complete — ALL PHASES DONE
 
@@ -267,6 +267,13 @@ Recent decisions affecting current work:
 - getClientAnalytics() uses select (not include) on documents/milestones/activities — fetch only needed fields for analytics computation
 - Dashboard home getCurrentUserName() reads from DB not session — DB is source of truth for display name
 
+**Phase 18 - Comprehensive Analytics Page (ad-hoc 18-03):**
+- getAdminFbMetricsPerClient returns full metrics map (spend/leads/impressions/clicks/ctr/cpc/cpm/reach) per clientId — 6h TTL
+- getAdminAllCampaigns returns all campaigns across all clients sorted by spend; CTR computed inline (clicks/impressions*100)
+- CPL computed at page render time (spend/leads), not stored in DAL return types — keeps DAL pure
+- RISK_LEVEL_ORDER const map for sort comparator on at-risk clients: { high:0, medium:1, low:2, none:3 }
+- ClientBadge in AdminCampaignsTable: bg-blue-50 text-blue-700 pill, same as blue-50/700 brand pattern
+
 **Phase 18 - Admin FB UI (from 18-02):**
 - AdminFbTrendSkeleton and AdminFbTrendSection co-located in app/admin/page.tsx as local (non-exported) functions — avoids new files for short, page-specific components
 - AdminFbTrendChart formats dates inline, no range selector — data is always 30d from getAdminFbDailyAggregation, range UI would be redundant
@@ -317,7 +324,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-26
-Stopped at: Completed 18-02-PLAN.md — FB analytics UI and Suspense streaming (Phase 18 complete — all 18 phases done)
+Stopped at: Completed ad-hoc 18-03 — Comprehensive admin analytics page with FB per-client metrics, campaigns table, KPI row, and project health
 Resume file: None
 Next: All phases complete. Project is at v1.0 production state.
 
