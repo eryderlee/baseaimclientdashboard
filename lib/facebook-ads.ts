@@ -23,6 +23,7 @@ export interface FbInsights {
   quality_ranking?: string      // ABOVE_AVERAGE | AVERAGE | BELOW_AVERAGE_35 | BELOW_AVERAGE_20 | BELOW_AVERAGE_10 | UNKNOWN
   engagement_rate_ranking?: string  // same enum as quality_ranking
   conversion_rate_ranking?: string  // same enum as quality_ranking
+  purchase_roas?: FbAction[]  // list<AdsActionStats> — ROAS ratio as numeric string (e.g. "2.53" = 2.53x)
 }
 
 export interface FbDailyInsight {
@@ -73,7 +74,7 @@ export interface FbPlatformRow {
 }
 
 const GRAPH_API_VERSION = 'v22.0'
-const INSIGHTS_FIELDS = 'spend,impressions,clicks,ctr,cpc,cpm,actions,reach,frequency,outbound_clicks,quality_ranking,engagement_rate_ranking,conversion_rate_ranking'
+const INSIGHTS_FIELDS = 'spend,impressions,clicks,ctr,cpc,cpm,actions,reach,frequency,outbound_clicks,quality_ranking,engagement_rate_ranking,conversion_rate_ranking,purchase_roas'
 const DAILY_FIELDS = 'spend,impressions,clicks,reach,actions,outbound_clicks'
 
 /**
@@ -87,6 +88,23 @@ const DAILY_FIELDS = 'spend,impressions,clicks,reach,actions,outbound_clicks'
 export function getActionValue(actions: FbAction[] | undefined, actionType: string): number {
   const action = actions?.find((a) => a.action_type === actionType)
   return action ? parseFloat(action.value) : 0
+}
+
+/**
+ * Extract ROAS value from purchase_roas action array.
+ * Returns null when no purchase tracking is configured (lead-gen only clients).
+ * The value is the ROAS ratio: 2.53 means $2.53 revenue per $1 spent.
+ */
+export function getRoas(purchaseRoas?: FbAction[]): number | null {
+  if (!purchaseRoas || purchaseRoas.length === 0) return null
+  // omni_purchase aggregates website + app purchases
+  const omni = purchaseRoas.find(a => a.action_type === 'omni_purchase')
+  if (omni) return parseFloat(omni.value)
+  // Fallback: offsite_conversion.fb_pixel_purchase (website pixel only)
+  const pixel = purchaseRoas.find(a => a.action_type === 'offsite_conversion.fb_pixel_purchase')
+  if (pixel) return parseFloat(pixel.value)
+  // Last resort: first entry
+  return parseFloat(purchaseRoas[0].value)
 }
 
 /**
