@@ -33,6 +33,10 @@ async function getAdminData() {
     const nextDueDate = upcomingMilestones[0]?.dueDate || null
 
     const fbData = fbPerClient[client.id]
+    const setupMilestones = client.milestones.filter((m) => m.order <= 6)
+    const setupComplete =
+      setupMilestones.length >= 6 &&
+      setupMilestones.every((m) => m.status === 'COMPLETED')
     return {
       id: client.id,
       companyName: client.companyName,
@@ -43,6 +47,7 @@ async function getAdminData() {
       riskLevel: risk.riskLevel,
       riskReasons: risk.reasons,
       nextDueDate: nextDueDate ? nextDueDate.toISOString() : null,
+      setupComplete,
       fbSpend: fbData?.spend ?? null,
       fbLeads: fbData?.leads ?? null,
       user: {

@@ -27,6 +27,7 @@ interface ClientData {
   riskLevel: 'none' | 'low' | 'medium' | 'high'
   riskReasons: string[]
   nextDueDate: string | null
+  setupComplete: boolean
   fbSpend?: number | null
   fbLeads?: number | null
   user: {
@@ -110,6 +111,7 @@ export function ClientAnalyticsTable({ clients }: ClientAnalyticsTableProps) {
           <TableHead>Progress</TableHead>
           <TableHead>Risk</TableHead>
           <TableHead>Status</TableHead>
+          <TableHead>Setup</TableHead>
           <TableHead>Next Due Date</TableHead>
           <TableHead className="hidden md:table-cell">FB Spend</TableHead>
           <TableHead className="hidden md:table-cell">FB Leads</TableHead>
@@ -146,6 +148,17 @@ export function ClientAnalyticsTable({ clients }: ClientAnalyticsTableProps) {
             <TableCell>
               <Badge variant={client.isActive ? 'default' : 'secondary'}>
                 {client.isActive ? 'Active' : 'Inactive'}
+              </Badge>
+            </TableCell>
+            <TableCell>
+              <Badge
+                variant={client.setupComplete ? 'default' : 'outline'}
+                className={client.setupComplete
+                  ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100'
+                  : 'border-amber-300 text-amber-600'
+                }
+              >
+                {client.setupComplete ? 'Setup Complete' : 'Setting Up'}
               </Badge>
             </TableCell>
             <TableCell>
