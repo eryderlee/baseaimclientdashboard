@@ -4,12 +4,15 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import {
+  ComposedChart,
   LineChart,
   Line,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
+  Legend,
   ResponsiveContainer,
 } from "recharts"
 import {
@@ -20,6 +23,7 @@ import {
   TrendingUp,
   TrendingDown,
   DollarSign,
+  LayoutDashboard,
   Maximize2,
   Minimize2,
 } from "lucide-react"
@@ -188,7 +192,7 @@ export function AnalyticsOverview({
         </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5 mb-6">
+          <TabsList className="grid w-full grid-cols-6 mb-6">
             {Object.entries(metrics).map(([key, metric]) => {
               const MetricIcon = metric.icon
               return (
@@ -198,7 +202,70 @@ export function AnalyticsOverview({
                 </TabsTrigger>
               )
             })}
+            <TabsTrigger value="overview" className="gap-2">
+              <LayoutDashboard className="h-4 w-4" />
+              Overview
+            </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="overview" className="space-y-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>All Metrics</CardTitle>
+                  <CardDescription>Daily performance across all channels</CardDescription>
+                </div>
+                <div className="flex gap-1">
+                  {CHART_RANGES.map((r) => (
+                    <button
+                      key={r.value}
+                      onClick={() => setChartRange(r.value)}
+                      className={cn(
+                        'rounded px-2.5 py-1 text-xs font-medium transition-colors',
+                        chartRange === r.value
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      )}
+                    >
+                      {r.label}
+                    </button>
+                  ))}
+                </div>
+              </CardHeader>
+              <CardContent>
+                {(() => {
+                  // Merge all series by date — all arrays share the same dates
+                  const sliced = sliceRange(impressionsData, chartRange)
+                  const offset = impressionsData.length - sliced.length
+                  const combined = sliced.map((d, i) => ({
+                    date: d.date,
+                    Impressions: impressionsData[offset + i]?.value ?? 0,
+                    Clicks: clicksData[offset + i]?.value ?? 0,
+                    Leads: leadsData[offset + i]?.value ?? 0,
+                    'Booked Calls': bookedCallsData[offset + i]?.value ?? 0,
+                    'Ad Spend': spendData[offset + i]?.value ?? 0,
+                  }))
+                  return (
+                    <ResponsiveContainer width="100%" height={400}>
+                      <ComposedChart data={combined} margin={{ top: 4, right: 24, left: 8, bottom: 4 }}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-neutral-200 dark:stroke-neutral-800" />
+                        <XAxis dataKey="date" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
+                        <YAxis yAxisId="spend" orientation="left" tickFormatter={(v: number) => `$${v}`} tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
+                        <YAxis yAxisId="counts" orientation="right" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
+                        <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "var(--radius)", fontSize: 12 }} />
+                        <Legend wrapperStyle={{ fontSize: 12 }} />
+                        <Bar yAxisId="spend" dataKey="Ad Spend" fill="#10b981" barSize={16} radius={[2, 2, 0, 0]} />
+                        <Line yAxisId="counts" dataKey="Impressions" stroke="#3b82f6" strokeWidth={2} dot={false} />
+                        <Line yAxisId="counts" dataKey="Clicks" stroke="#22c55e" strokeWidth={2} dot={false} />
+                        <Line yAxisId="counts" dataKey="Leads" stroke="#a855f7" strokeWidth={2} dot={false} />
+                        <Line yAxisId="counts" dataKey="Booked Calls" stroke="#f97316" strokeWidth={2} dot={false} />
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  )
+                })()}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {Object.entries(metrics).map(([key, metric]) => (
             <TabsContent key={key} value={key} className="space-y-6">
