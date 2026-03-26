@@ -317,10 +317,20 @@ Plans:
 - [x] 17-03-PLAN.md — VPS provisioning: NVM, PM2, Nginx, SSL, env vars, first deploy (Wave 2)
 - [x] 17-04-PLAN.md — External service URL updates, full integration verification (Wave 3)
 
+#### Phase 18: Complete Analytics Page on the Admin Dashboard
+
+**Goal:** Admin analytics page shows per-client FB performance in the table, an aggregate 30-day spend/leads trend chart, and polished loading skeletons that match the real page shape
+**Depends on:** Phase 17
+**Plans:** 2 plans
+
+Plans:
+- [ ] 18-01-PLAN.md — DAL: per-client FB data + aggregate daily trend functions, fix loading skeleton
+- [ ] 18-02-PLAN.md — UI: FB columns in table, trend chart component, Suspense streaming, styled fallbacks
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18
 
 **v0.9 Foundation:**
 
@@ -348,3 +358,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 15. Deployment | 4/4 | ✓ Complete | 2026-03-15 |
 | 16. Performance Optimization | 4/4 | ✓ Complete | 2026-03-16 |
 | 17. VPS Self-Hosting Migration | 4/4 | ✓ Complete | 2026-03-26 |
+| 18. Complete Analytics Page on the Admin Dashboard | 0/2 | ○ Not started | — |
