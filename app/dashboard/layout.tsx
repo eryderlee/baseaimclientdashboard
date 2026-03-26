@@ -39,8 +39,10 @@ export default async function DashboardLayout({
   }))
 
   // Preview mode: check for preview cookie when user is ADMIN
+  console.log('[dashboard layout] role:', session?.user?.role, 'userId:', session?.user?.id)
   const cookieStore = await cookies()
   const previewClientId = cookieStore.get('admin_preview_clientId')?.value
+  console.log('[dashboard layout] previewClientId:', previewClientId ?? 'none')
 
   const previewClient =
     previewClientId && session?.user?.role === 'ADMIN'
