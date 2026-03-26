@@ -181,11 +181,13 @@ export function ClientAnalyticsTable({ clients }: ClientAnalyticsTableProps) {
             </TableCell>
             <TableCell>
               <div className="flex items-center gap-1">
-                <Button variant="outline" size="sm" asChild>
-                  <a href={`/api/admin/preview?clientId=${client.id}&returnTo=${encodeURIComponent(pathname)}`}>
-                    <Eye className="h-3 w-3 mr-1" />
-                    View
-                  </a>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => { window.location.href = `/api/admin/preview?clientId=${client.id}&returnTo=${encodeURIComponent(pathname)}` }}
+                >
+                  <Eye className="h-3 w-3 mr-1" />
+                  View
                 </Button>
                 <Button variant="outline" size="sm" asChild>
                   <Link href={`/admin/clients/${client.id}/edit`}>
