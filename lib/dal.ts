@@ -953,6 +953,138 @@ export const getAdminFbDailyAggregation = cache(async (): Promise<Array<{ date: 
   )()
 })
 
+/**
+ * Get extended Facebook Ads metrics per client for the admin analytics page.
+ * Returns a map of clientId → full metrics object including impressions, CTR, CPC, etc.
+ * Uses Promise.allSettled — individual failures are silently skipped.
+ *
+ * verifySession() called BEFORE unstable_cache boundary.
+ * ADMIN role only.
+ */
+export const getAdminFbMetricsPerClient = cache(async (): Promise<Record<string, {
+  spend: number
+  leads: number
+  impressions: number
+  clicks: number
+  ctr: number
+  cpc: number
+  cpm: number
+  reach: number
+}>> => {
+  const { userRole } = await verifySession()
+  if (userRole !== 'ADMIN') throw new Error('Unauthorized: Admin access required')
+
+  const settings = await getSettings()
+  if (!settings?.facebookAccessToken) return {}
+
+  const clients = await prisma.client.findMany({
+    where: { adAccountId: { not: null } },
+    select: { id: true, adAccountId: true },
+  })
+  if (clients.length === 0) return {}
+
+  const accessToken = settings.facebookAccessToken
+
+  const result = await unstable_cache(
+    async () => {
+      const results = await Promise.allSettled(
+        clients.map(c => fetchFacebookInsights(c.adAccountId!, 'last_30d', accessToken))
+      )
+      const map: Record<string, { spend: number; leads: number; impressions: number; clicks: number; ctr: number; cpc: number; cpm: number; reach: number }> = {}
+      results.forEach((r, i) => {
+        if (r.status === 'fulfilled' && r.value) {
+          const v = r.value
+          map[clients[i].id] = {
+            spend: parseFloat(v.spend || '0'),
+            leads: getActionValue(v.actions, 'lead'),
+            impressions: parseFloat(v.impressions || '0'),
+            clicks: parseFloat(v.clicks || '0'),
+            ctr: parseFloat(v.ctr || '0'),
+            cpc: parseFloat(v.cpc || '0'),
+            cpm: parseFloat(v.cpm || '0'),
+            reach: parseFloat(v.reach || '0'),
+          }
+        }
+      })
+      return map
+    },
+    ['admin-fb-metrics-per-client-v1'],
+    { revalidate: 21600 }
+  )()
+
+  return result
+})
+
+/**
+ * Get all campaigns across all clients with Facebook ad accounts configured.
+ * Returns an array of campaign rows sorted by spend descending.
+ *
+ * verifySession() called BEFORE unstable_cache boundary.
+ * ADMIN role only.
+ */
+export const getAdminAllCampaigns = cache(async (): Promise<Array<{
+  clientId: string
+  clientName: string
+  campaign_id: string
+  campaign_name: string
+  spend: number
+  leads: number
+  impressions: number
+  clicks: number
+  ctr: number
+}>> => {
+  const { userRole } = await verifySession()
+  if (userRole !== 'ADMIN') throw new Error('Unauthorized: Admin access required')
+
+  const settings = await getSettings()
+  if (!settings?.facebookAccessToken) return []
+
+  const clients = await prisma.client.findMany({
+    where: { adAccountId: { not: null } },
+    select: { id: true, adAccountId: true, companyName: true },
+  })
+  if (clients.length === 0) return []
+
+  const accessToken = settings.facebookAccessToken
+
+  const result = await unstable_cache(
+    async () => {
+      const results = await Promise.allSettled(
+        clients.map(c => fetchFacebookCampaignInsights(c.adAccountId!, 'last_30d', accessToken))
+      )
+      const campaigns: Array<{
+        clientId: string; clientName: string; campaign_id: string; campaign_name: string
+        spend: number; leads: number; impressions: number; clicks: number; ctr: number
+      }> = []
+      results.forEach((r, i) => {
+        if (r.status === 'fulfilled') {
+          r.value.forEach(campaign => {
+            const clicks = parseFloat(campaign.clicks || '0')
+            const impressions = parseFloat(campaign.impressions || '0')
+            campaigns.push({
+              clientId: clients[i].id,
+              clientName: clients[i].companyName,
+              campaign_id: campaign.campaign_id,
+              campaign_name: campaign.campaign_name,
+              spend: parseFloat(campaign.spend || '0'),
+              leads: getActionValue(campaign.actions, 'lead'),
+              impressions,
+              clicks,
+              ctr: impressions > 0 ? (clicks / impressions) * 100 : 0,
+            })
+          })
+        }
+      })
+      // Sort by spend descending
+      return campaigns.sort((a, b) => b.spend - a.spend)
+    },
+    ['admin-all-campaigns-v1'],
+    { revalidate: 21600 }
+  )()
+
+  return result
+})
+
 // ─── Dashboard Home DAL Functions ────────────────────────────────────────────
 
 /**

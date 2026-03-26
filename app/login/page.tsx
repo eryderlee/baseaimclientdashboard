@@ -127,7 +127,7 @@ export default function LoginPage() {
                   <div className="space-y-1 text-center text-sm text-slate-500">
                     <p>Need an account? Contact our BaseAim support team to provision access.</p>
                     <p>
-                      Or email{" "}
+                      though{" "}
                       <a
                         href="mailto:support@baseaim.co"
                         className="font-semibold text-primary hover:text-primary/80"
