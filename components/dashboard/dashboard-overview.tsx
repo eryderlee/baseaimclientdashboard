@@ -94,6 +94,7 @@ export function DashboardOverview({
     clicks: (fbDailyData ?? []).map((d) => ({ date: d.date, value: d.clicks })),
     leads: (fbDailyData ?? []).map((d) => ({ date: d.date, value: d.leads })),
     bookedCalls: (fbDailyData ?? []).map((d) => ({ date: d.date, value: d.bookedCalls })),
+    spend: (fbDailyData ?? []).map((d) => ({ date: d.date, value: d.spend })),
     totalAdSpend: (fbDailyData ?? []).reduce((sum, d) => sum + d.spend, 0),
   }
 
@@ -402,6 +403,7 @@ export function DashboardOverview({
         clicksData={analytics.clicks}
         leadsData={analytics.leads}
         bookedCallsData={analytics.bookedCalls}
+        spendData={analytics.spend}
         totalAdSpend={analytics.totalAdSpend}
         isExpanded={isChartExpanded}
         setIsExpanded={setIsChartExpanded}

@@ -50,6 +50,7 @@ interface AnalyticsOverviewProps {
   clicksData: DailyMetric[]
   leadsData: DailyMetric[]
   bookedCallsData: DailyMetric[]
+  spendData: DailyMetric[]
   totalAdSpend: number
   isExpanded: boolean
   setIsExpanded: (expanded: boolean) => void
@@ -74,6 +75,7 @@ export function AnalyticsOverview({
   clicksData,
   leadsData,
   bookedCallsData,
+  spendData,
   totalAdSpend,
   isExpanded,
   setIsExpanded,
@@ -143,6 +145,18 @@ export function AnalyticsOverview({
       color: "#f97316",
       bgColor: "bg-orange-100 dark:bg-orange-900",
     },
+    spend: {
+      name: "Ad Spend",
+      dailyData: spendData,
+      total: totalAdSpend,
+      adSpend: totalAdSpend,
+      conversionRate: ctr,
+      cpc: cpc,
+      change: 0,
+      icon: DollarSign,
+      color: "#10b981",
+      bgColor: "bg-emerald-100 dark:bg-emerald-900",
+    },
   }
 
   const currentMetric = metrics[activeTab]
@@ -174,7 +188,7 @@ export function AnalyticsOverview({
         </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 mb-6">
+          <TabsList className="grid w-full grid-cols-5 mb-6">
             {Object.entries(metrics).map(([key, metric]) => {
               const MetricIcon = metric.icon
               return (
@@ -200,7 +214,9 @@ export function AnalyticsOverview({
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {metric.total.toLocaleString()}
+                      {activeTab === 'spend'
+                        ? `$${metric.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                        : metric.total.toLocaleString()}
                     </div>
                     <div className="flex items-center gap-1 mt-1">
                       <TrendingUp className="h-3 w-3 text-green-500" />
