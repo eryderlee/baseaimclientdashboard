@@ -8,6 +8,7 @@ import { generateSecurePassword } from '@/lib/utils/password'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
@@ -33,7 +34,7 @@ export function ClientForm({ mode, defaultValues, clientId }: ClientFormProps) {
     defaultValues: defaultValues || {},
   })
 
-  const { register, handleSubmit, formState: { errors, isSubmitting }, setValue } = form
+  const { register, handleSubmit, watch, formState: { errors, isSubmitting }, setValue } = form
 
   // Handle password generation (create mode only)
   const handleGeneratePassword = () => {
@@ -49,7 +50,10 @@ export function ClientForm({ mode, defaultValues, clientId }: ClientFormProps) {
     const formData = new FormData()
 
     Object.entries(data).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
+      if (key === 'leadsChartEnabled') {
+        // Boolean must be explicitly serialized — skip the truthy-only guard
+        formData.append(key, String(value ?? false))
+      } else if (value !== undefined && value !== null && value !== '') {
         formData.append(key, value.toString())
       }
     })
@@ -291,6 +295,14 @@ export function ClientForm({ mode, defaultValues, clientId }: ClientFormProps) {
                   {(errors as any).adAccountId.message}
                 </p>
               )}
+            </div>
+            <div className="flex items-center gap-3">
+              <Switch
+                id="leadsChartEnabled"
+                checked={watch('leadsChartEnabled' as any) ?? false}
+                onCheckedChange={(checked) => setValue('leadsChartEnabled' as any, checked)}
+              />
+              <Label htmlFor="leadsChartEnabled">Show Leads Chart on Home Page</Label>
             </div>
           </CardContent>
         </Card>

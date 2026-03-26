@@ -35,6 +35,7 @@ export const updateClientSchema = z.object({
     .regex(/^act_\d+$/, 'Format must be act_XXXXXXXXX (e.g. act_123456789)')
     .optional()
     .or(z.literal('')),
+  leadsChartEnabled: z.boolean().optional(),
 });
 
 // Inferred TypeScript types from schemas

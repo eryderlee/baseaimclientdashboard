@@ -55,6 +55,7 @@ export default async function ClientEditPage({
           phone: client.phone || undefined,
           address: client.address || undefined,
           adAccountId: client.adAccountId || undefined,
+          leadsChartEnabled: client.leadsChartEnabled,
         }}
       />
 
