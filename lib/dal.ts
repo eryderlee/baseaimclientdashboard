@@ -296,7 +296,7 @@ export const getClientAdConfig = cache(async () => {
     if (!previewId) return null
     return prisma.client.findUnique({
       where: { id: previewId },
-      select: { id: true, adAccountId: true },
+      select: { id: true, adAccountId: true, leadsChartEnabled: true },
     })
   }
 
@@ -304,7 +304,7 @@ export const getClientAdConfig = cache(async () => {
 
   return prisma.client.findUnique({
     where: { userId },
-    select: { id: true, adAccountId: true },
+    select: { id: true, adAccountId: true, leadsChartEnabled: true },
   })
 })
 
@@ -773,6 +773,43 @@ export const getClientFbDailyTrend = cache(async (): Promise<FbDailyInsight[] | 
     [`fb-daily-trend-90d-${client.id}`],
     {
       revalidate: 21600, // 6 hours in seconds
+      tags: [`fb-insights-${client.id}`],
+    }
+  )
+
+  return cachedFetch()
+})
+
+/**
+ * Get daily Facebook Ads trend data for a specific date range.
+ * Parameterized version of getClientFbDailyTrend — accepts datePreset for
+ * date-range-aware fetching (fixes the home page date range bug).
+ * Returns null when adAccountId or token not configured.
+ * CLIENT role only (ADMIN allowed in preview mode).
+ */
+export const getClientFbDailyTrendByRange = cache(async (
+  datePreset: DatePreset = 'last_30d'
+): Promise<FbDailyInsight[] | null> => {
+  const { userRole } = await verifySession()
+
+  // ADMIN in preview mode: allow through — getClientAdConfig handles preview cookie
+  if (userRole !== 'CLIENT' && userRole !== 'ADMIN') {
+    return null
+  }
+
+  const client = await getClientAdConfig()
+
+  if (!client?.adAccountId) return null
+
+  const settings = await getSettings()
+
+  if (!settings?.facebookAccessToken) return null
+
+  const cachedFetch = unstable_cache(
+    async () => fetchFacebookDailyInsights(client.adAccountId!, settings.facebookAccessToken!, datePreset),
+    [`fb-daily-trend-${datePreset}-${client.id}`],
+    {
+      revalidate: 21600, // 6 hours
       tags: [`fb-insights-${client.id}`],
     }
   )
