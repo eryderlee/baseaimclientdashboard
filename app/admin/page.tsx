@@ -4,20 +4,23 @@ import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { UserPlus } from 'lucide-react'
-import { verifySession, getAllClientsWithMilestones, getAdminAnalytics, getAdminRevenueAnalytics, getAdminFbAggregation } from '@/lib/dal'
+import { verifySession, getAllClientsWithMilestones, getAdminAnalytics, getAdminRevenueAnalytics, getAdminFbAggregation, getAdminFbPerClient, getAdminFbDailyAggregation } from '@/lib/dal'
 import { calculateOverallProgress } from '@/lib/utils/progress'
 import { detectClientRisk } from '@/lib/utils/risk-detection'
 import { AnalyticsSummary } from '@/components/admin/analytics-summary'
 import { ClientFilters } from '@/components/admin/client-filters'
 import { ClientAnalyticsTable } from '@/components/admin/client-analytics-table'
+import { AdminFbTrendChart } from '@/components/admin/admin-fb-trend-chart'
+import { Skeleton } from '@/components/ui/skeleton'
 
 async function getAdminData() {
   // Fetch all data in parallel — cached DAL functions deduplicate internal calls
-  const [analytics, clients, revenue, fbAggregation] = await Promise.all([
+  const [analytics, clients, revenue, fbAggregation, fbPerClient] = await Promise.all([
     getAdminAnalytics(),
     getAllClientsWithMilestones(),
     getAdminRevenueAnalytics(),
     getAdminFbAggregation(),
+    getAdminFbPerClient(),
   ])
 
   // Process each client to prepare data for analytics table
@@ -36,6 +39,7 @@ async function getAdminData() {
       })
     const nextDueDate = upcomingMilestones[0]?.dueDate || null
 
+    const fbData = fbPerClient[client.id]
     return {
       id: client.id,
       companyName: client.companyName,
@@ -46,6 +50,8 @@ async function getAdminData() {
       riskLevel: risk.riskLevel,
       riskReasons: risk.reasons,
       nextDueDate: nextDueDate ? nextDueDate.toISOString() : null,
+      fbSpend: fbData?.spend ?? null,
+      fbLeads: fbData?.leads ?? null,
       user: {
         name: client.user.name || '',
         email: client.user.email,
@@ -70,6 +76,33 @@ async function getAdminData() {
     revenue,
     fbAggregation,
   }
+}
+
+function AdminFbTrendSkeleton() {
+  return (
+    <Card>
+      <CardHeader>
+        <Skeleton className="h-5 w-64" />
+      </CardHeader>
+      <CardContent>
+        <Skeleton className="h-[300px] w-full rounded" />
+      </CardContent>
+    </Card>
+  )
+}
+
+async function AdminFbTrendSection() {
+  const trendData = await getAdminFbDailyAggregation()
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Ad Spend &amp; Leads Trend (30d)</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <AdminFbTrendChart data={trendData} />
+      </CardContent>
+    </Card>
+  )
 }
 
 export default async function AdminPage() {
@@ -116,6 +149,11 @@ export default async function AdminPage() {
         fbConfiguredClients={adminData.fbAggregation.configuredClients}
       />
 
+      {/* Aggregate FB Trend Chart */}
+      <Suspense fallback={<AdminFbTrendSkeleton />}>
+        <AdminFbTrendSection />
+      </Suspense>
+
       {/* Clients Table with Filters */}
       <Card>
         <CardHeader>
@@ -125,10 +163,29 @@ export default async function AdminPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Suspense fallback={<div>Loading filters...</div>}>
+          <Suspense
+            fallback={
+              <div className="flex gap-2">
+                <Skeleton className="h-10 w-64" />
+                <Skeleton className="h-10 w-32" />
+                <Skeleton className="h-10 w-32" />
+              </div>
+            }
+          >
             <ClientFilters />
           </Suspense>
-          <Suspense fallback={<div>Loading clients...</div>}>
+          <Suspense
+            fallback={
+              <div className="space-y-2">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+              </div>
+            }
+          >
             <ClientAnalyticsTable clients={adminData.clients} />
           </Suspense>
         </CardContent>
