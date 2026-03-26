@@ -223,6 +223,10 @@ export function AnalyticsOverview({
             <CardDescription>
               Track your advertising metrics and conversion rates
             </CardDescription>
+            {/* TEMP DEBUG */}
+            <p className="text-xs text-red-500 mt-1">
+              days={spendData.length} | range={chartRange} | filtered={rangedSpend.length} | leads={String(leadsEnabled)} | tabs={metricKeys.join(',')}
+            </p>
           </div>
           <Button
             onClick={() => setIsExpanded(!isExpanded)}
