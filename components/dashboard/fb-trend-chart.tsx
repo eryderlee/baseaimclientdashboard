@@ -92,6 +92,11 @@ export function FbTrendChart({ data }: FbTrendChartProps) {
             tickLine={false}
             axisLine={false}
           />
+          <YAxis
+            yAxisId="roas"
+            orientation="right"
+            hide={true}
+          />
           <Tooltip
             contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }}
           />
@@ -111,6 +116,15 @@ export function FbTrendChart({ data }: FbTrendChartProps) {
             dot={false}
             name="Leads"
             strokeWidth={2}
+          />
+          <Line
+            yAxisId="roas"
+            dataKey="roas"
+            stroke="#f59e0b"
+            dot={false}
+            name="ROAS"
+            strokeWidth={2}
+            strokeDasharray="5 3"
           />
         </ComposedChart>
       </ResponsiveContainer>
