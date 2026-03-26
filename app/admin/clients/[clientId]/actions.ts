@@ -6,6 +6,42 @@ import { verifySession } from '@/lib/dal'
 import { prisma } from '@/lib/prisma'
 import { calculateMilestoneProgress } from '@/lib/utils/progress'
 
+// ─── Growth Milestone Schemas ────────────────────────────────────────────────
+
+const addGrowthMilestoneSchema = z.object({
+  clientId: z.string().cuid(),
+  title: z.string().min(1).max(200).trim(),
+  dueDate: z.string().datetime().nullable().optional(),
+})
+
+const removeGrowthMilestoneSchema = z.object({
+  clientId: z.string().cuid(),
+  milestoneId: z.string().cuid(),
+})
+
+// ─── Internal Helpers ─────────────────────────────────────────────────────────
+
+function firstOfNextMonth(from: Date): Date {
+  return new Date(from.getFullYear(), from.getMonth() + 1, 1)
+}
+
+async function autoGenerateGrowthMilestones(clientId: string) {
+  const base = firstOfNextMonth(new Date())
+  const milestones = Array.from({ length: 12 }, (_, i) => ({
+    clientId,
+    title: `Monthly Review — ${new Date(base.getFullYear(), base.getMonth() + i, 1)
+      .toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`,
+    description: 'Monthly performance review and optimization session.',
+    milestoneType: 'GROWTH' as const,
+    order: i + 1,
+    status: 'NOT_STARTED' as const,
+    progress: 0,
+    dueDate: new Date(base.getFullYear(), base.getMonth() + i, 1),
+    notes: [],
+  }))
+  await prisma.milestone.createMany({ data: milestones })
+}
+
 const updateNoteSchema = z.object({
   clientId: z.string().cuid(),
   milestoneId: z.string().cuid(),
@@ -137,6 +173,24 @@ export async function updateMilestones(clientId: string, rawData: unknown) {
     // Execute transaction
     await prisma.$transaction(updates)
 
+    // Auto-generate growth milestones if setup is now complete
+    const allSetupMilestones = await prisma.milestone.findMany({
+      where: { clientId, milestoneType: 'SETUP' },
+      select: { status: true },
+    })
+    const setupComplete =
+      allSetupMilestones.length >= 6 &&
+      allSetupMilestones.every((m) => m.status === 'COMPLETED')
+
+    if (setupComplete) {
+      const existingGrowth = await prisma.milestone.count({
+        where: { clientId, milestoneType: 'GROWTH' },
+      })
+      if (existingGrowth === 0) {
+        await autoGenerateGrowthMilestones(clientId)
+      }
+    }
+
     // Fire-and-forget notifications for newly completed milestones
     if (newlyCompletedTitles.length > 0) {
       const clientRecord = await prisma.client.findUnique({
@@ -159,6 +213,7 @@ export async function updateMilestones(clientId: string, rawData: unknown) {
     }
 
     // 7. Revalidate paths
+    revalidatePath('/dashboard')
     revalidatePath('/dashboard/progress')
     revalidatePath(`/admin/clients/${clientId}`)
 
@@ -382,5 +437,128 @@ export async function deleteNote(
   } catch (error) {
     console.error('Failed to delete note:', error)
     return { error: 'Failed to delete note' }
+  }
+}
+
+// ─── Growth Milestone Server Actions ─────────────────────────────────────────
+
+/**
+ * Add a GROWTH milestone to a client's ongoing roadmap.
+ */
+export async function addGrowthMilestone(clientId: string, rawData: unknown) {
+  // 1. Verify admin role
+  try {
+    const { userRole } = await verifySession()
+    if (userRole !== 'ADMIN') {
+      return { error: 'Unauthorized' }
+    }
+  } catch {
+    return { error: 'Unauthorized' }
+  }
+
+  // 2. Validate input
+  let validClientId: string
+  let validTitle: string
+  let validDueDate: string | null | undefined
+  try {
+    const parsed = addGrowthMilestoneSchema.parse({ clientId, ...(rawData as object) })
+    validClientId = parsed.clientId
+    validTitle = parsed.title
+    validDueDate = parsed.dueDate
+  } catch {
+    return { error: 'Invalid input' }
+  }
+
+  try {
+    // 3. Find max order among existing GROWTH milestones
+    const aggregate = await prisma.milestone.aggregate({
+      where: { clientId: validClientId, milestoneType: 'GROWTH' },
+      _max: { order: true },
+    })
+    const nextOrder = (aggregate._max.order ?? 0) + 1
+
+    // 4. Create the GROWTH milestone
+    await prisma.milestone.create({
+      data: {
+        clientId: validClientId,
+        title: validTitle,
+        milestoneType: 'GROWTH',
+        order: nextOrder,
+        status: 'NOT_STARTED',
+        progress: 0,
+        dueDate: validDueDate ? new Date(validDueDate) : null,
+        notes: [],
+      },
+    })
+
+    // 5. Revalidate paths
+    revalidatePath('/dashboard')
+    revalidatePath('/dashboard/progress')
+    revalidatePath(`/admin/clients/${validClientId}`)
+
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to add growth milestone:', error)
+    return { error: 'Failed to add growth milestone' }
+  }
+}
+
+/**
+ * Remove a GROWTH milestone from a client's ongoing roadmap.
+ * Refuses to delete SETUP milestones.
+ */
+export async function removeGrowthMilestone(clientId: string, milestoneId: string) {
+  // 1. Verify admin role
+  try {
+    const { userRole } = await verifySession()
+    if (userRole !== 'ADMIN') {
+      return { error: 'Unauthorized' }
+    }
+  } catch {
+    return { error: 'Unauthorized' }
+  }
+
+  // 2. Validate input
+  let validClientId: string
+  let validMilestoneId: string
+  try {
+    const parsed = removeGrowthMilestoneSchema.parse({ clientId, milestoneId })
+    validClientId = parsed.clientId
+    validMilestoneId = parsed.milestoneId
+  } catch {
+    return { error: 'Invalid input' }
+  }
+
+  try {
+    // 3. Verify milestone belongs to client and is a GROWTH milestone
+    const milestone = await prisma.milestone.findUnique({
+      where: { id: validMilestoneId },
+      select: { clientId: true, milestoneType: true },
+    })
+
+    if (!milestone) {
+      return { error: 'Milestone not found' }
+    }
+
+    if (milestone.clientId !== validClientId) {
+      return { error: 'Milestone does not belong to this client' }
+    }
+
+    if (milestone.milestoneType !== 'GROWTH') {
+      return { error: 'Cannot delete SETUP milestones via this action' }
+    }
+
+    // 4. Delete the milestone
+    await prisma.milestone.delete({ where: { id: validMilestoneId } })
+
+    // 5. Revalidate paths
+    revalidatePath('/dashboard')
+    revalidatePath('/dashboard/progress')
+    revalidatePath(`/admin/clients/${validClientId}`)
+
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to remove growth milestone:', error)
+    return { error: 'Failed to remove growth milestone' }
   }
 }
