@@ -13,17 +13,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { updateMilestones, deleteNote, updateNote } from "@/app/admin/clients/[clientId]/actions"
+import { updateMilestones, deleteNote, updateNote, addGrowthMilestone, removeGrowthMilestone } from "@/app/admin/clients/[clientId]/actions"
 import { calculateMilestoneProgress } from "@/lib/utils/progress"
 import { MilestoneStatus } from "@prisma/client"
 import { toast } from "sonner"
-import { X, Check, Edit2, ChevronDown, ChevronUp } from "lucide-react"
+import { X, Check, Edit2, ChevronDown, ChevronUp, Trash2, Plus } from "lucide-react"
 
 type MilestoneData = {
   id: string
   title: string
   description: string | null
   status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "BLOCKED"
+  milestoneType?: "SETUP" | "GROWTH"
   dueDate: string | null
   startDate: string | null
   notes: unknown // Json field from Prisma -- stored as string[] array
@@ -31,17 +32,38 @@ type MilestoneData = {
   order: number
 }
 
+type GrowthMilestoneData = {
+  id: string
+  title: string
+  description: string | null
+  status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "BLOCKED"
+  milestoneType: "SETUP" | "GROWTH"
+  dueDate: string | null
+  startDate: string | null
+  notes: unknown
+  progress: number
+  order: number
+}
+
 interface MilestoneEditTableProps {
   clientId: string
   initialMilestones: MilestoneData[]
+  growthMilestones?: GrowthMilestoneData[]
 }
 
 export function MilestoneEditTable({
   clientId,
   initialMilestones,
+  growthMilestones: initialGrowthMilestones,
 }: MilestoneEditTableProps) {
   const router = useRouter()
   const [milestones, setMilestones] = useState<MilestoneData[]>(initialMilestones)
+  const [growthMilestones, setGrowthMilestones] = useState<GrowthMilestoneData[]>(
+    initialGrowthMilestones ?? []
+  )
+  const [growthTitle, setGrowthTitle] = useState("")
+  const [growthDueDate, setGrowthDueDate] = useState("")
+  const [isGrowthPending, startGrowthTransition] = useTransition()
   const [newNotes, setNewNotes] = useState<Record<string, string>>(
     Object.fromEntries(initialMilestones.map((m) => [m.id, ""]))
   )
@@ -213,6 +235,48 @@ export function MilestoneEditTable({
         setSuccess(true)
         setNewNotes(Object.fromEntries(milestones.map((m) => [m.id, ""])))
         toast.success("Milestones saved")
+        router.refresh()
+      }
+    })
+  }
+
+  const handleAddGrowthMilestone = () => {
+    const trimmedTitle = growthTitle.trim()
+    if (!trimmedTitle) return
+
+    startGrowthTransition(async () => {
+      // Convert date input (YYYY-MM-DD) to ISO datetime if provided
+      const dueDateIso = growthDueDate
+        ? new Date(growthDueDate).toISOString()
+        : undefined
+
+      const result = await addGrowthMilestone(clientId, {
+        title: trimmedTitle,
+        dueDate: dueDateIso ?? null,
+      })
+
+      if (result.error) {
+        toast.error(result.error)
+      } else {
+        toast.success("Growth milestone added")
+        setGrowthTitle("")
+        setGrowthDueDate("")
+        router.refresh()
+      }
+    })
+  }
+
+  const handleRemoveGrowthMilestone = (milestoneId: string) => {
+    if (!window.confirm("Remove this growth milestone?")) return
+
+    startGrowthTransition(async () => {
+      const result = await removeGrowthMilestone(clientId, milestoneId)
+
+      if (result.error) {
+        toast.error(result.error)
+      } else {
+        setGrowthMilestones((prev) => prev.filter((m) => m.id !== milestoneId))
+        toast.success("Milestone removed")
         router.refresh()
       }
     })
@@ -527,6 +591,136 @@ export function MilestoneEditTable({
           </TableBody>
         </Table>
       </CardContent>
+
+      {initialGrowthMilestones !== undefined && (
+        <>
+          <CardHeader className="pt-0 border-t border-neutral-100 mt-2">
+            <div>
+              <CardTitle>Growth Milestones</CardTitle>
+              <p className="text-sm text-neutral-500 mt-1">
+                Ongoing monthly review roadmap
+              </p>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Add form */}
+            <div className="flex items-end gap-3">
+              <div className="flex-1">
+                <label className="text-xs font-medium text-neutral-600 mb-1 block">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  value={growthTitle}
+                  onChange={(e) => setGrowthTitle(e.target.value)}
+                  placeholder="e.g. April 2026 Monthly Review"
+                  className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm hover:bg-neutral-50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-neutral-600 mb-1 block">
+                  Due Date (optional)
+                </label>
+                <input
+                  type="date"
+                  value={growthDueDate}
+                  onChange={(e) => setGrowthDueDate(e.target.value)}
+                  className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm hover:bg-neutral-50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+              <Button
+                type="button"
+                onClick={handleAddGrowthMilestone}
+                disabled={isGrowthPending || !growthTitle.trim()}
+                size="sm"
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                {isGrowthPending ? "Adding..." : "Add"}
+              </Button>
+            </div>
+
+            {/* Growth milestones list */}
+            {growthMilestones.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-white/70 bg-white/60 p-6 text-center">
+                <p className="text-sm font-medium text-neutral-500">
+                  No growth milestones yet.
+                </p>
+                <p className="text-xs text-neutral-400 mt-1">
+                  Complete all setup phases to auto-generate the monthly roadmap, or add one manually above.
+                </p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">#</TableHead>
+                    <TableHead>Milestone</TableHead>
+                    <TableHead className="w-36">Due Date</TableHead>
+                    <TableHead className="w-36">Status</TableHead>
+                    <TableHead className="w-16"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {growthMilestones.map((milestone) => (
+                    <TableRow key={milestone.id}>
+                      <TableCell className="font-medium text-neutral-500">
+                        {milestone.order}
+                      </TableCell>
+                      <TableCell className="font-semibold">
+                        {milestone.title}
+                      </TableCell>
+                      <TableCell className="text-sm text-neutral-600">
+                        {milestone.dueDate
+                          ? new Date(milestone.dueDate).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                            })
+                          : "No date"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={
+                            milestone.status === "COMPLETED"
+                              ? "text-green-600 border-green-600"
+                              : milestone.status === "IN_PROGRESS"
+                              ? "text-blue-600 border-blue-600"
+                              : milestone.status === "BLOCKED"
+                              ? "text-red-600 border-red-600"
+                              : "text-neutral-500 border-neutral-300"
+                          }
+                        >
+                          {milestone.status === "NOT_STARTED"
+                            ? "Not Started"
+                            : milestone.status === "IN_PROGRESS"
+                            ? "In Progress"
+                            : milestone.status === "COMPLETED"
+                            ? "Completed"
+                            : "Blocked"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveGrowthMilestone(milestone.id)}
+                          disabled={isGrowthPending}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
+                          title="Remove milestone"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </>
+      )}
     </Card>
   )
 }
