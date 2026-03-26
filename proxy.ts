@@ -15,7 +15,7 @@ const redis = new Redis({
 
 const ratelimit = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(10, '60 s'),
+  limiter: Ratelimit.slidingWindow(30, '60 s'),
 })
 
 const AUTH_ROUTES_TO_RATE_LIMIT = ['/login', '/reset-password', '/api/auth']
