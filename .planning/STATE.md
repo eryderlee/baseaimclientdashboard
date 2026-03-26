@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-03-26)
 ## Current Position
 
 Phase: 19 — Admin Preview + Status Badge
-Plan: —
-Status: Planned, ready to execute
-Last activity: 2026-03-26 — v1.1 roadmap created (phases 19–23)
+Plan: 02 of 02
+Status: In progress
+Last activity: 2026-03-26 — Completed 19-02-PLAN.md (Setup Status Badge)
 
-Progress: ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ v1.1: 0/5 phases complete
+Progress: █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ v1.1: 1/10 plans complete
 
 ## Performance Metrics
 
@@ -281,6 +281,11 @@ Recent decisions affecting current work:
 - FB columns use hidden md:table-cell — prevents horizontal overflow on mobile without breaking existing table structure
 - Inline Suspense fallback JSX for filter/table skeletons — shapes are simple enough to express inline without dedicated skeleton files
 
+**Phase 19 - Admin Setup Status Badge (from 19-02):**
+- setupComplete derived at page level from getAllClientsWithMilestones — no new DB query
+- setupMilestones.length >= 6 guard before .every() — prevents vacuous truth on clients with < 6 milestones
+- Emerald badge (bg-emerald-100 text-emerald-700) for Setup Complete; amber outline (border-amber-300 text-amber-600) for Setting Up
+
 **Phase 18 - Admin FB DAL (from 18-01):**
 - getAdminFbPerClient: loop counter (not extracted ID) to correlate Promise.allSettled results with client list — allSettled preserves index order
 - getAdminFbDailyAggregation: Map<date, accumulator> pattern for multi-source date merging, then sort entries → array
@@ -325,9 +330,9 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-26
-Stopped at: Roadmap created for v1.1 (phases 19–23) — ready to begin Phase 19
+Stopped at: Completed 19-02-PLAN.md — Setup Status Badge added to admin client table
 Resume file: None
-Next: Begin Phase 19 — Admin Preview + Status Badge. Run `/gsd:plan-phase 19`
+Next: Phase 19 complete if 19-01 also done; otherwise run plan 01 of Phase 19
 
 **Phase 13 - UI Polish (from 13-01):**
 - DashboardNav stays "use client" — all notification data fetched in layout server component, passed as serialized props
