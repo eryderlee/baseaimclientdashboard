@@ -118,7 +118,7 @@ export const getGrowthMilestones = cache(async () => {
 
   return await prisma.milestone.findMany({
     where: clientId ? { clientId, milestoneType: 'GROWTH' } : { milestoneType: 'GROWTH' },
-    orderBy: { order: 'asc' },
+    orderBy: { dueDate: 'asc' },
     select: {
       id: true,
       clientId: true,
@@ -145,7 +145,10 @@ export const getAllClientsWithMilestones = cache(async () => {
     throw new Error('Unauthorized: Admin access required')
   }
 
+  const isDemoAdmin = await resolveClientIsDemoFilter()
+
   const clients = await prisma.client.findMany({
+    where: { isDemo: isDemoAdmin },
     relationLoadStrategy: 'join',
     select: {
       id: true,
@@ -650,6 +653,12 @@ export const getClientFbInsights = cache(async (datePreset: DatePreset = 'last_3
   // Get client's adAccountId from DB (deduplicated via cache)
   const client = await getClientAdConfig()
 
+  // Demo client short-circuit: return static data instead of calling FB API
+  if (client?.isDemo && client?.demoStableId) {
+    const demoData = DEMO_FB_INSIGHTS[client.demoStableId]
+    return demoData ?? null
+  }
+
   if (!client?.adAccountId) {
     // Not configured yet — not an error, show "not configured" state in UI
     return null
@@ -741,6 +750,11 @@ export const getClientFbCampaigns = cache(async (datePreset: DatePreset = 'last_
 
   const client = await getClientAdConfig()
 
+  // Demo client short-circuit: return static campaign data instead of calling FB API
+  if (client?.isDemo && client?.demoStableId) {
+    return DEMO_FB_CAMPAIGNS[client.demoStableId] ?? []
+  }
+
   if (!client?.adAccountId) return []
 
   const settings = await getSettings()
@@ -830,6 +844,11 @@ export const getClientFbDailyTrend = cache(async (): Promise<FbDailyInsight[] | 
 
   const client = await getClientAdConfig()
 
+  // Demo client short-circuit: return static daily trend data instead of calling FB API
+  if (client?.isDemo && client?.demoStableId) {
+    return DEMO_FB_DAILY_TREND[client.demoStableId] ?? null
+  }
+
   if (!client?.adAccountId) return null
 
   const settings = await getSettings()
@@ -867,6 +886,11 @@ export const getClientFbDailyTrendByRange = cache(async (
 
   const client = await getClientAdConfig()
 
+  // Demo client short-circuit: return static daily trend data instead of calling FB API
+  if (client?.isDemo && client?.demoStableId) {
+    return DEMO_FB_DAILY_TREND[client.demoStableId] ?? null
+  }
+
   if (!client?.adAccountId) return null
 
   const settings = await getSettings()
@@ -899,9 +923,11 @@ export const getAdminRevenueAnalytics = cache(async () => {
   const { userRole } = await verifySession()
   if (userRole !== 'ADMIN') throw new Error('Unauthorized: Admin access required')
 
+  const isDemoAdmin = await resolveClientIsDemoFilter()
+
   // Total revenue from local Invoice records — no Stripe API call needed
   const paidInvoices = await prisma.invoice.findMany({
-    where: { status: 'PAID' },
+    where: { status: 'PAID', client: { isDemo: isDemoAdmin } },
     select: { amount: true, currency: true, clientId: true },
   })
 
@@ -960,6 +986,22 @@ export const getAdminFbAggregation = cache(async () => {
   const { userRole } = await verifySession()
   if (userRole !== 'ADMIN') throw new Error('Unauthorized: Admin access required')
 
+  const isDemoAdmin = await resolveClientIsDemoFilter()
+
+  // Demo admin: return aggregated static data for 3 demo clients (no FB API call)
+  if (isDemoAdmin) {
+    const demoInsights = Object.values(DEMO_FB_INSIGHTS)
+    let totalSpend = 0
+    let totalLeads = 0
+    let totalImpressions = 0
+    for (const insight of demoInsights) {
+      totalSpend += parseFloat(insight.spend || '0')
+      totalImpressions += parseFloat(insight.impressions || '0')
+      totalLeads += getActionValue(insight.actions, 'lead')
+    }
+    return { totalSpend, totalLeads, totalImpressions, configuredClients: demoInsights.length }
+  }
+
   const settings = await getSettings()
 
   if (!settings?.facebookAccessToken) {
@@ -967,7 +1009,7 @@ export const getAdminFbAggregation = cache(async () => {
   }
 
   const clients = await prisma.client.findMany({
-    where: { adAccountId: { not: null } },
+    where: { adAccountId: { not: null }, isDemo: false },
     select: { id: true, adAccountId: true },
   })
 
@@ -1019,6 +1061,27 @@ export const getAdminFbPerClient = cache(async (): Promise<Record<string, { spen
   const { userRole } = await verifySession()
   if (userRole !== 'ADMIN') throw new Error('Unauthorized: Admin access required')
 
+  const isDemoAdmin = await resolveClientIsDemoFilter()
+
+  // Demo admin: build per-client map from static demo data
+  if (isDemoAdmin) {
+    const demoClients = await prisma.client.findMany({
+      where: { isDemo: true },
+      select: { id: true, demoStableId: true },
+    })
+    const perClient: Record<string, { spend: number; leads: number }> = {}
+    for (const dc of demoClients) {
+      if (dc.demoStableId && DEMO_FB_INSIGHTS[dc.demoStableId]) {
+        const insight = DEMO_FB_INSIGHTS[dc.demoStableId]
+        perClient[dc.id] = {
+          spend: parseFloat(insight.spend || '0'),
+          leads: getActionValue(insight.actions, 'lead'),
+        }
+      }
+    }
+    return perClient
+  }
+
   const settings = await getSettings()
 
   if (!settings?.facebookAccessToken) {
@@ -1026,7 +1089,7 @@ export const getAdminFbPerClient = cache(async (): Promise<Record<string, { spen
   }
 
   const clients = await prisma.client.findMany({
-    where: { adAccountId: { not: null } },
+    where: { adAccountId: { not: null }, isDemo: false },
     select: { id: true, adAccountId: true },
   })
 
@@ -1075,6 +1138,24 @@ export const getAdminFbDailyAggregation = cache(async (): Promise<Array<{ date: 
   const { userRole } = await verifySession()
   if (userRole !== 'ADMIN') throw new Error('Unauthorized: Admin access required')
 
+  const isDemoAdmin = await resolveClientIsDemoFilter()
+
+  // Demo admin: sum all 3 demo clients' daily data from static constants
+  if (isDemoAdmin) {
+    const dateMap = new Map<string, { spend: number; leads: number }>()
+    for (const dailyData of Object.values(DEMO_FB_DAILY_TREND)) {
+      for (const day of dailyData) {
+        const existing = dateMap.get(day.date_start) ?? { spend: 0, leads: 0 }
+        existing.spend += parseFloat(day.spend || '0')
+        existing.leads += getActionValue(day.actions, 'lead')
+        dateMap.set(day.date_start, existing)
+      }
+    }
+    return Array.from(dateMap.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, vals]) => ({ date, spend: vals.spend, leads: vals.leads }))
+  }
+
   const settings = await getSettings()
 
   if (!settings?.facebookAccessToken) {
@@ -1082,7 +1163,7 @@ export const getAdminFbDailyAggregation = cache(async (): Promise<Array<{ date: 
   }
 
   const clients = await prisma.client.findMany({
-    where: { adAccountId: { not: null } },
+    where: { adAccountId: { not: null }, isDemo: false },
     select: { id: true, adAccountId: true },
   })
 
@@ -1143,11 +1224,38 @@ export const getAdminFbMetricsPerClient = cache(async (): Promise<Record<string,
   const { userRole } = await verifySession()
   if (userRole !== 'ADMIN') throw new Error('Unauthorized: Admin access required')
 
+  const isDemoAdmin = await resolveClientIsDemoFilter()
+
+  // Demo admin: build per-client metrics from static demo data
+  if (isDemoAdmin) {
+    const demoClients = await prisma.client.findMany({
+      where: { isDemo: true },
+      select: { id: true, demoStableId: true },
+    })
+    const map: Record<string, { spend: number; leads: number; impressions: number; clicks: number; ctr: number; cpc: number; cpm: number; reach: number }> = {}
+    for (const dc of demoClients) {
+      if (dc.demoStableId && DEMO_FB_INSIGHTS[dc.demoStableId]) {
+        const v = DEMO_FB_INSIGHTS[dc.demoStableId]
+        map[dc.id] = {
+          spend: parseFloat(v.spend || '0'),
+          leads: getActionValue(v.actions, 'lead'),
+          impressions: parseFloat(v.impressions || '0'),
+          clicks: parseFloat(v.clicks || '0'),
+          ctr: parseFloat(v.ctr || '0'),
+          cpc: parseFloat(v.cpc || '0'),
+          cpm: parseFloat(v.cpm || '0'),
+          reach: parseFloat(v.reach || '0'),
+        }
+      }
+    }
+    return map
+  }
+
   const settings = await getSettings()
   if (!settings?.facebookAccessToken) return {}
 
   const clients = await prisma.client.findMany({
-    where: { adAccountId: { not: null } },
+    where: { adAccountId: { not: null }, isDemo: false },
     select: { id: true, adAccountId: true },
   })
   if (clients.length === 0) return {}
@@ -1205,11 +1313,45 @@ export const getAdminAllCampaigns = cache(async (): Promise<Array<{
   const { userRole } = await verifySession()
   if (userRole !== 'ADMIN') throw new Error('Unauthorized: Admin access required')
 
+  const isDemoAdmin = await resolveClientIsDemoFilter()
+
+  // Demo admin: flatten all demo campaign entries from static data
+  if (isDemoAdmin) {
+    const demoClients = await prisma.client.findMany({
+      where: { isDemo: true },
+      select: { id: true, companyName: true, demoStableId: true },
+    })
+    const campaigns: Array<{
+      clientId: string; clientName: string; campaign_id: string; campaign_name: string
+      spend: number; leads: number; impressions: number; clicks: number; ctr: number
+    }> = []
+    for (const dc of demoClients) {
+      if (dc.demoStableId && DEMO_FB_CAMPAIGNS[dc.demoStableId]) {
+        for (const campaign of DEMO_FB_CAMPAIGNS[dc.demoStableId]) {
+          const clicks = parseFloat(campaign.clicks || '0')
+          const impressions = parseFloat(campaign.impressions || '0')
+          campaigns.push({
+            clientId: dc.id,
+            clientName: dc.companyName,
+            campaign_id: campaign.campaign_id,
+            campaign_name: campaign.campaign_name,
+            spend: parseFloat(campaign.spend || '0'),
+            leads: getActionValue(campaign.actions, 'lead'),
+            impressions,
+            clicks,
+            ctr: impressions > 0 ? (clicks / impressions) * 100 : 0,
+          })
+        }
+      }
+    }
+    return campaigns.sort((a, b) => b.spend - a.spend)
+  }
+
   const settings = await getSettings()
   if (!settings?.facebookAccessToken) return []
 
   const clients = await prisma.client.findMany({
-    where: { adAccountId: { not: null } },
+    where: { adAccountId: { not: null }, isDemo: false },
     select: { id: true, adAccountId: true, companyName: true },
   })
   if (clients.length === 0) return []
@@ -1276,11 +1418,16 @@ export const getAdminAllAds = cache(async (): Promise<Array<{
   const { userRole } = await verifySession()
   if (userRole !== 'ADMIN') throw new Error('Unauthorized: Admin access required')
 
+  const isDemoAdmin = await resolveClientIsDemoFilter()
+
+  // Demo admin: ads breakdown not available for demo clients — return empty array
+  if (isDemoAdmin) return []
+
   const settings = await getSettings()
   if (!settings?.facebookAccessToken) return []
 
   const clients = await prisma.client.findMany({
-    where: { adAccountId: { not: null } },
+    where: { adAccountId: { not: null }, isDemo: false },
     select: { id: true, adAccountId: true, companyName: true },
   })
   if (clients.length === 0) return []
