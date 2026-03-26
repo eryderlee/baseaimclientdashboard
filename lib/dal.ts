@@ -838,6 +838,121 @@ export const getAdminFbAggregation = cache(async () => {
   return { ...aggregated, configuredClients: clients.length }
 })
 
+/**
+ * Get Facebook Ads Insights per client for the admin dashboard.
+ * Returns a map of clientId → { spend, leads } for all clients with configured ad accounts.
+ * Uses Promise.allSettled — individual failures are silently skipped.
+ *
+ * verifySession() called BEFORE unstable_cache boundary.
+ * ADMIN role only.
+ */
+export const getAdminFbPerClient = cache(async (): Promise<Record<string, { spend: number; leads: number }>> => {
+  const { userRole } = await verifySession()
+  if (userRole !== 'ADMIN') throw new Error('Unauthorized: Admin access required')
+
+  const settings = await getSettings()
+
+  if (!settings?.facebookAccessToken) {
+    return {}
+  }
+
+  const clients = await prisma.client.findMany({
+    where: { adAccountId: { not: null } },
+    select: { id: true, adAccountId: true },
+  })
+
+  if (clients.length === 0) {
+    return {}
+  }
+
+  const accessToken = settings.facebookAccessToken
+
+  return unstable_cache(
+    async () => {
+      const results = await Promise.allSettled(
+        clients.map(c =>
+          fetchFacebookInsights(c.adAccountId!, 'last_30d', accessToken)
+        )
+      )
+
+      const perClient: Record<string, { spend: number; leads: number }> = {}
+
+      for (let i = 0; i < results.length; i++) {
+        const result = results[i]
+        if (result.status === 'fulfilled' && result.value) {
+          perClient[clients[i].id] = {
+            spend: parseFloat(result.value.spend || '0'),
+            leads: getActionValue(result.value.actions, 'lead'),
+          }
+        }
+      }
+
+      return perClient
+    },
+    ['admin-fb-per-client-v1'],
+    { revalidate: 21600 } // 6 hours
+  )()
+})
+
+/**
+ * Aggregate daily Facebook Ads trend data across all clients with configured ad accounts.
+ * Returns a sorted array of { date, spend, leads } — one entry per calendar day.
+ * Spend and leads are summed across all clients for each date.
+ *
+ * verifySession() called BEFORE unstable_cache boundary.
+ * ADMIN role only.
+ */
+export const getAdminFbDailyAggregation = cache(async (): Promise<Array<{ date: string; spend: number; leads: number }>> => {
+  const { userRole } = await verifySession()
+  if (userRole !== 'ADMIN') throw new Error('Unauthorized: Admin access required')
+
+  const settings = await getSettings()
+
+  if (!settings?.facebookAccessToken) {
+    return []
+  }
+
+  const clients = await prisma.client.findMany({
+    where: { adAccountId: { not: null } },
+    select: { id: true, adAccountId: true },
+  })
+
+  if (clients.length === 0) {
+    return []
+  }
+
+  const accessToken = settings.facebookAccessToken
+
+  return unstable_cache(
+    async () => {
+      const results = await Promise.allSettled(
+        clients.map(c =>
+          fetchFacebookDailyInsights(c.adAccountId!, accessToken, 'last_30d')
+        )
+      )
+
+      const dateMap = new Map<string, { spend: number; leads: number }>()
+
+      for (const result of results) {
+        if (result.status === 'fulfilled') {
+          for (const day of result.value) {
+            const existing = dateMap.get(day.date_start) ?? { spend: 0, leads: 0 }
+            existing.spend += parseFloat(day.spend || '0')
+            existing.leads += getActionValue(day.actions, 'lead')
+            dateMap.set(day.date_start, existing)
+          }
+        }
+      }
+
+      return Array.from(dateMap.entries())
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([date, vals]) => ({ date, spend: vals.spend, leads: vals.leads }))
+    },
+    ['admin-fb-daily-agg-v1'],
+    { revalidate: 21600 } // 6 hours
+  )()
+})
+
 // ─── Dashboard Home DAL Functions ────────────────────────────────────────────
 
 /**
