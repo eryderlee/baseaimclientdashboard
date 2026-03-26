@@ -153,24 +153,36 @@ export async function fetchFacebookDailyInsights(
   url.searchParams.set('date_preset', datePreset)
   url.searchParams.set('time_increment', '1')
   url.searchParams.set('level', 'account')
+  url.searchParams.set('limit', '500')
   url.searchParams.set('access_token', accessToken)
 
-  let res: Response
-  try {
-    res = await fetch(url.toString(), { cache: 'no-store' })
-  } catch (err) {
-    console.error('[facebook-ads] Network error fetching daily insights:', err)
-    return []
+  const allData: FbDailyInsight[] = []
+  let nextUrl: string | null = url.toString()
+
+  while (nextUrl) {
+    let res: Response
+    try {
+      res = await fetch(nextUrl, { cache: 'no-store' })
+    } catch (err) {
+      console.error('[facebook-ads] Network error fetching daily insights:', err)
+      return allData
+    }
+
+    const json = await res.json()
+
+    if (!res.ok) {
+      console.error('[facebook-ads] API error (daily):', json.error ?? json)
+      return allData
+    }
+
+    if (json.data) {
+      allData.push(...(json.data as FbDailyInsight[]))
+    }
+
+    nextUrl = json.paging?.next ?? null
   }
 
-  const json = await res.json()
-
-  if (!res.ok) {
-    console.error('[facebook-ads] API error (daily):', json.error ?? json)
-    return []
-  }
-
-  return (json.data as FbDailyInsight[]) ?? []
+  return allData
 }
 
 /**
