@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-03-26)
 ## Current Position
 
 Phase: 22 — Ongoing Growth Roadmap
-Plan: 01 of 3 (Schema and DAL)
-Status: In progress — Plan 01 complete 2026-03-27
-Last activity: 2026-03-27 — Completed 22-01-PLAN.md (MilestoneType enum, DAL extension, auto-generation logic, add/remove server actions)
+Plan: 02 of 3 (Admin UI)
+Status: In progress — Plan 02 complete 2026-03-27
+Last activity: 2026-03-27 — Completed 22-02-PLAN.md (Growth Milestones section in MilestoneEditTable, admin add/remove UI)
 
-Progress: ██████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ v1.1: Phase 20+21 done, Phase 22 Plan 01 done
+Progress: ██████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ v1.1: Phase 20+21 done, Phase 22 Plans 01+02 done
 
 ## Performance Metrics
 
@@ -374,6 +374,13 @@ Recent decisions affecting current work:
 - ROAS computed at server component level (page.tsx) via getClientFbInsights('last_30d') parallel fetch — no client-side waterfall
 - workflowHighlights grid updated to sm:grid-cols-2 lg:grid-cols-4 to accommodate 4th highlight card
 
+**Phase 22 - Ongoing Growth Roadmap (from 22-02):**
+- growthMilestones prop optional on MilestoneEditTable — section hidden when prop is undefined, safe for old callers
+- Milestone partitioned at server component boundary (page.tsx), not inside client component — keeps serialization clean
+- Separate useTransition for growth actions — independent pending state from setup save button
+- window.confirm for growth milestone remove — consistent with Phase 10 cancel pattern
+- milestoneType cast as 'SETUP' | 'GROWTH' string union in serialization — Prisma enum returns string at runtime
+
 **Phase 21 - ROAS + Analytics Tab Charts (from 21-02):**
 - action_values added to DAILY_FIELDS — Facebook API returns purchase revenue per day (same FbAction[] shape as actions)
 - getActionValue reused for action_values without modification — same shape means no new extraction logic needed
@@ -393,9 +400,9 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-27
-Stopped at: Completed 22-01-PLAN.md — MilestoneType enum, DAL type-filtered queries, auto-generation logic, add/remove server actions
+Stopped at: Completed 22-02-PLAN.md — Growth Milestones admin UI wired to server actions
 Resume file: None
-Next: 22-02-PLAN.md (Admin UI for growth milestones)
+Next: 22-03-PLAN.md (Client-facing growth roadmap view)
 
 **Phase 13 - UI Polish (from 13-01):**
 - DashboardNav stays "use client" — all notification data fetched in layout server component, passed as serialized props
