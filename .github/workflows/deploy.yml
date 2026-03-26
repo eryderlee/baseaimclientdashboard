@@ -83,6 +83,7 @@ jobs:
 
             # Swap deployed artifact into place
             rm -rf .next/standalone
+            rm -rf .next/cache        # Clear unstable_cache / data cache from previous builds
             mkdir -p .next
             mv _deploy/.next/standalone .next/standalone
 
