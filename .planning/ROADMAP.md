@@ -371,7 +371,7 @@ Plans:
 - [x] 20-02-PLAN.md — Frontend: Ad Spend tab, Overview tab with toggle pills, calendar-date range filtering, pagination fix
 **Implementation note:** Plan 20-02 was re-scoped. Instead of replacing AnalyticsOverview with searchParams-driven SpendLeadsSection, we enhanced the existing tabbed chart with: Ad Spend + Overview tabs, series toggle pills, calendar-date filtering over full `maximum` dataset, and Facebook API pagination fix. Criteria 4-5 use client-side date filtering (accurate to Facebook's date windows) rather than per-range server re-fetch.
 
-#### Phase 21: ROAS + Analytics Tab Charts
+#### Phase 21: ROAS + Analytics Tab Charts  ✅ COMPLETE
 **Goal**: ROAS metric is visible on the client home page and all three charts appear on the analytics tab
 **Depends on**: Phase 20
 **Requirements**: CHART-04, CHART-07, CHART-08
@@ -380,12 +380,13 @@ Plans:
   2. The analytics tab includes the spend chart, leads chart, and combined chart alongside existing analytics content
   3. ROAS is included in the analytics tab charts as a visible data series or metric
 **Plans:** 2 plans
+**Implementation note:** CHART-04 satisfied by single combined chart (ComposedChart with spend bar + leads line + ROAS line) — user accepted this as sufficient vs. three separate standalone charts.
 
 Plans:
-- [ ] 21-01-PLAN.md — ROAS: extend FB API with purchase_roas, getRoas helper, ROAS card on home page + analytics metrics
-- [ ] 21-02-PLAN.md — Daily ROAS in FbTrendChart: action_values in daily fetch, ROAS line series on analytics chart
+- [x] 21-01-PLAN.md — ROAS: extend FB API with purchase_roas, getRoas helper, ROAS card on home page + analytics metrics
+- [x] 21-02-PLAN.md — Daily ROAS in FbTrendChart: action_values in daily fetch, ROAS line series on analytics chart
 
-#### Phase 22: Ongoing Growth Roadmap
+#### Phase 22: Ongoing Growth Roadmap  ✅ COMPLETE
 **Goal**: Clients who have completed setup see an ongoing monthly review roadmap instead of setup phase cards, and admin can manage it
 **Depends on**: Phase 21
 **Requirements**: GROWTH-01, GROWTH-02, GROWTH-03, GROWTH-04
@@ -397,9 +398,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 22-01-PLAN.md — Schema and DAL: milestone type field (SETUP vs GROWTH), auto-generation logic triggered on setup completion, Zod schema updates
-- [ ] 22-02-PLAN.md — Admin UI: add and remove growth milestones from client admin page
-- [ ] 22-03-PLAN.md — Client UI: conditional home page rendering — setup roadmap vs ongoing growth roadmap based on setup completion state
+- [x] 22-01-PLAN.md — Schema and DAL: milestone type field (SETUP vs GROWTH), auto-generation logic triggered on setup completion, Zod schema updates
+- [x] 22-02-PLAN.md — Admin UI: add and remove growth milestones from client admin page
+- [x] 22-03-PLAN.md — Client UI: conditional home page rendering — setup roadmap vs ongoing growth roadmap based on setup completion state
 
 #### Phase 23: Demo Environment
 **Goal**: A single seed command creates a fully realistic demo environment with 5 fake clients, believable metrics, and no visible indicators that the data is not real
@@ -456,7 +457,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 19. Admin Preview + Status Badge | 2/2 | ✓ Complete | 2026-03-26 |
-| 20. Home Page Charts + Bug Fixes | 0/2 | Not started | - |
-| 21. ROAS + Analytics Tab Charts | 0/2 | Not started | - |
-| 22. Ongoing Growth Roadmap | 0/3 | Not started | - |
+| 20. Home Page Charts + Bug Fixes | 2/2 | ✓ Complete | 2026-03-27 |
+| 21. ROAS + Analytics Tab Charts | 2/2 | ✓ Complete | 2026-03-27 |
+| 22. Ongoing Growth Roadmap | 3/3 | ✓ Complete | 2026-03-27 |
 | 23. Demo Environment | 0/3 | Not started | - |

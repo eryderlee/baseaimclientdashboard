@@ -300,18 +300,18 @@ Requirements for v1.1 milestone. Phases continue from 19.
 - [ ] **CHART-01**: Daily ad spend graph shown on client home page (respects active date range)
 - [ ] **CHART-02**: Leads graph shown on client home page — hidden by default, admin can enable per client
 - [ ] **CHART-03**: Combined chart with legend showing all active metrics on client home page
-- [ ] **CHART-04**: Ad spend graph, leads graph, and combined chart also appear on the client analytics tab
+- [x] **CHART-04**: Ad spend graph, leads graph, and combined chart also appear on the client analytics tab
 - [ ] **CHART-05**: Date range selector on home page affects data fetched from the API, not just chart display (bug fix)
 - [ ] **CHART-06**: Date range selector on campaign performance section affects data fetched (bug fix)
-- [ ] **CHART-07**: ROAS metric card on client home page (purchase revenue from ads ÷ ad spend, sourced from Facebook Ads API)
-- [ ] **CHART-08**: ROAS included in charts and analytics tab
+- [x] **CHART-07**: ROAS metric card on client home page (purchase revenue from ads ÷ ad spend, sourced from Facebook Ads API)
+- [x] **CHART-08**: ROAS included in charts and analytics tab
 
 ### Ongoing Growth Roadmap
 
-- [ ] **GROWTH-01**: When all 6 setup milestones are marked complete, system auto-generates 12 monthly review milestones with dates starting the 1st of the following month
-- [ ] **GROWTH-02**: Admin can add custom milestones to a client's ongoing roadmap from the admin interface
-- [ ] **GROWTH-03**: Admin can remove milestones from a client's ongoing roadmap
-- [ ] **GROWTH-04**: Client home page shows the ongoing roadmap section after setup is complete, replacing the setup phase cards
+- [x] **GROWTH-01**: When all 6 setup milestones are marked complete, system auto-generates 12 monthly review milestones with dates starting the 1st of the following month
+- [x] **GROWTH-02**: Admin can add custom milestones to a client's ongoing roadmap from the admin interface
+- [x] **GROWTH-03**: Admin can remove milestones from a client's ongoing roadmap
+- [x] **GROWTH-04**: Client home page shows the ongoing roadmap section after setup is complete, replacing the setup phase cards
 
 ### Demo Environment
 
@@ -357,15 +357,15 @@ Deferred to future release. Tracked but not in current roadmap.
 | CHART-01 | Phase 20 | Pending |
 | CHART-02 | Phase 20 | Pending |
 | CHART-03 | Phase 20 | Pending |
-| CHART-04 | Phase 21 | Pending |
+| CHART-04 | Phase 21 | Complete |
 | CHART-05 | Phase 20 | Pending |
 | CHART-06 | Phase 20 | Pending |
-| CHART-07 | Phase 21 | Pending |
-| CHART-08 | Phase 21 | Pending |
-| GROWTH-01 | Phase 22 | Pending |
-| GROWTH-02 | Phase 22 | Pending |
-| GROWTH-03 | Phase 22 | Pending |
-| GROWTH-04 | Phase 22 | Pending |
+| CHART-07 | Phase 21 | Complete |
+| CHART-08 | Phase 21 | Complete |
+| GROWTH-01 | Phase 22 | Complete |
+| GROWTH-02 | Phase 22 | Complete |
+| GROWTH-03 | Phase 22 | Complete |
+| GROWTH-04 | Phase 22 | Complete |
 | DEMO-01 | Phase 23 | Pending |
 | DEMO-02 | Phase 23 | Pending |
 | DEMO-03 | Phase 23 | Pending |
