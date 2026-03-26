@@ -10,7 +10,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "seed:demo": "npx tsx --env-file=.env scripts/seed-demo.ts"
   },
   "dependencies": {
     "@googleapis/drive": "^20.1.0",
