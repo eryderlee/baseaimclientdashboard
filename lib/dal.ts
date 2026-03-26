@@ -9,6 +9,7 @@ import { calculateOverallProgress } from '@/lib/utils/progress'
 import { detectClientRisk } from '@/lib/utils/risk-detection'
 import { fetchFacebookInsights, fetchFacebookDailyInsights, fetchFacebookCampaignInsights, fetchFacebookPlatformBreakdown, fetchFacebookAdInsights, getActionValue, type DatePreset, type FbCampaignInsight, type FbPlatformRow, type FbDailyInsight } from '@/lib/facebook-ads'
 import { stripe } from '@/lib/stripe'
+import { DEMO_ADMIN_EMAIL, DEMO_FB_INSIGHTS, DEMO_FB_CAMPAIGNS, DEMO_FB_DAILY_TREND } from '@/lib/demo-data'
 
 export const verifySession = cache(async () => {
   const session = await auth()
@@ -23,6 +24,21 @@ export const verifySession = cache(async () => {
     isAuth: true,
   }
 })
+
+/**
+ * Internal helper: returns true if the calling admin is the demo admin account.
+ * Used in all admin DAL functions to conditionally filter by isDemo.
+ * Demo admin (khan@baseaim.co) → true → sees only demo clients
+ * Real admin → false → sees only non-demo clients
+ */
+async function resolveClientIsDemoFilter(): Promise<boolean> {
+  const { userId } = await verifySession()
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true },
+  })
+  return user?.email === DEMO_ADMIN_EMAIL
+}
 
 export const getCurrentClientId = cache(async () => {
   const { userId, userRole } = await verifySession()
@@ -348,7 +364,7 @@ export const getClientAdConfig = cache(async () => {
     if (!previewId) return null
     return prisma.client.findUnique({
       where: { id: previewId },
-      select: { id: true, adAccountId: true, leadsChartEnabled: true },
+      select: { id: true, adAccountId: true, leadsChartEnabled: true, isDemo: true, demoStableId: true },
     })
   }
 
@@ -356,7 +372,7 @@ export const getClientAdConfig = cache(async () => {
 
   return prisma.client.findUnique({
     where: { userId },
-    select: { id: true, adAccountId: true, leadsChartEnabled: true },
+    select: { id: true, adAccountId: true, leadsChartEnabled: true, isDemo: true, demoStableId: true },
   })
 })
 
