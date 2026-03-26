@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import GradientBG from "@/components/GradientBG"
 import { AnalyticsOverview } from "@/components/dashboard/analytics-overview"
+import { GrowthRoadmap } from "@/components/dashboard/growth-roadmap"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -39,6 +40,7 @@ interface SerializedMilestone {
   title: string
   description: string | null
   status: string
+  milestoneType?: string
   startDate: string | null
   dueDate: string | null
   completedAt: string | null
@@ -64,7 +66,9 @@ interface SerializedActivity {
 }
 
 interface DashboardOverviewProps {
-  milestones: SerializedMilestone[]
+  setupMilestones: SerializedMilestone[]
+  growthMilestones: SerializedMilestone[]
+  setupComplete: boolean
   chatSettings?: {
     whatsappNumber?: string | null
     telegramUsername?: string | null
@@ -80,7 +84,9 @@ interface DashboardOverviewProps {
 }
 
 export function DashboardOverview({
-  milestones: serializedMilestones,
+  setupMilestones: serializedSetupMilestones,
+  growthMilestones: serializedGrowthMilestones,
+  setupComplete,
   chatSettings,
   clientName = 'Client',
   companyName = 'Company',
@@ -109,7 +115,7 @@ export function DashboardOverview({
   }
 
   // Convert serialized milestones back to Milestone type with Date objects
-  const milestones: Milestone[] = serializedMilestones.map(m => ({
+  const milestones: Milestone[] = serializedSetupMilestones.map(m => ({
     ...m,
     status: m.status as any,
     startDate: m.startDate ? new Date(m.startDate) : null,
@@ -135,6 +141,13 @@ export function DashboardOverview({
   const averageCpa = totalLeads ? analytics.totalAdSpend / totalLeads : 0
   const averageCostPerCall = totalBookedCalls ? analytics.totalAdSpend / totalBookedCalls : 0
   const ctr = totalImpressions ? (totalClicks / totalImpressions) * 100 : 0
+
+  // Growth milestone stats (computed from growthMilestones prop directly — no Date conversion needed for counts)
+  const completedGrowth = serializedGrowthMilestones.filter((m) => m.status === 'COMPLETED').length
+  const totalGrowth = serializedGrowthMilestones.length
+  const nextGrowthMilestone = [...serializedGrowthMilestones]
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    .find((m) => m.status !== 'COMPLETED')
 
   const inProgressMilestone = milestones.find((milestone) => milestone.status === "IN_PROGRESS")
   const nextMilestone = milestones.find((milestone) => milestone.status === "NOT_STARTED")
@@ -323,89 +336,131 @@ export function DashboardOverview({
 
       <div className="space-y-6" id="milestones">
         <Card className="glass-card rounded-3xl border border-white/60 shadow-xl shadow-sky-100 dark:border-slate-800/70">
-          <CardHeader>
-            <CardTitle className="font-heading text-2xl">Growth Roadmap</CardTitle>
-            <CardDescription>Track each funnel phase from strategy through optimization.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl border border-white/70 bg-white/70 p-4 text-slate-700 shadow-sm shadow-sky-100 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-100">
-                <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                  Phase Completion
-                </p>
-                <p className="mt-2 text-3xl font-heading text-slate-900 dark:text-white">
-                  {completedMilestones}/{totalMilestones}
-                </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {overallProgress}% complete
-                </p>
-              </div>
-              <div className="rounded-2xl border border-white/70 bg-white/70 p-4 text-slate-700 shadow-sm shadow-sky-100 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-100">
-                <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                  Current Focus
-                </p>
-                <p className="mt-2 text-3xl font-heading text-slate-900 dark:text-white">
-                  {currentPhaseNumber > 0 ? `Phase ${currentPhaseNumber}` : "Not scheduled"}
-                </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {currentPhase?.title || "Awaiting kickoff"}
-                </p>
-              </div>
-            </div>
-            {orderedMilestones.length > 0 ? (
-              <div className="overflow-x-auto pb-2">
-                <div className="flex min-w-[640px] items-stretch gap-4">
-                  {orderedMilestones.map((milestone, index) => {
-                    const phaseNumber = milestone.order || index + 1
-                    const theme = getPhaseTheme(milestone.status)
-                    return (
-                      <div key={milestone.id} className="flex items-stretch gap-4">
-                        <div
-                          className={`flex min-w-[220px] flex-1 flex-col justify-between rounded-3xl border p-4 shadow-sm transition-all duration-200 hover:shadow-md ${theme.card}`}
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-200">
-                              Phase {phaseNumber}
-                            </span>
-                            <span className={`rounded-full px-2 py-1 text-xs font-semibold ${theme.badge}`}>
-                              {milestone.status.replace("_", " ")}
-                            </span>
-                          </div>
-                          <div className="space-y-2 pt-2">
-                            <p className="text-base font-semibold text-slate-900 dark:text-white">
-                              {milestone.title}
-                            </p>
-                            {milestone.description && (
-                              <p className="text-sm text-slate-600 dark:text-slate-300">
-                                {milestone.description}
-                              </p>
+          {setupComplete ? (
+            <>
+              <CardHeader>
+                <CardTitle className="font-heading text-2xl">Ongoing Growth</CardTitle>
+                <CardDescription>Monthly performance reviews and optimization sessions.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-white/70 bg-white/70 p-4 text-slate-700 shadow-sm shadow-sky-100 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-100">
+                    <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                      Reviews Completed
+                    </p>
+                    <p className="mt-2 text-3xl font-heading text-slate-900 dark:text-white">
+                      {completedGrowth}/{totalGrowth}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      Monthly reviews done
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-white/70 bg-white/70 p-4 text-slate-700 shadow-sm shadow-sky-100 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-100">
+                    <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                      Next Review
+                    </p>
+                    <p className="mt-2 text-base font-heading text-slate-900 dark:text-white">
+                      {nextGrowthMilestone
+                        ? nextGrowthMilestone.title
+                        : "All complete"}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {nextGrowthMilestone?.dueDate
+                        ? `Due ${new Date(nextGrowthMilestone.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
+                        : nextGrowthMilestone ? "Date TBD" : "Nothing pending"}
+                    </p>
+                  </div>
+                </div>
+                <GrowthRoadmap milestones={serializedGrowthMilestones} />
+              </CardContent>
+            </>
+          ) : (
+            <>
+              <CardHeader>
+                <CardTitle className="font-heading text-2xl">Growth Roadmap</CardTitle>
+                <CardDescription>Track each funnel phase from strategy through optimization.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-white/70 bg-white/70 p-4 text-slate-700 shadow-sm shadow-sky-100 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-100">
+                    <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                      Phase Completion
+                    </p>
+                    <p className="mt-2 text-3xl font-heading text-slate-900 dark:text-white">
+                      {completedMilestones}/{totalMilestones}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {overallProgress}% complete
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-white/70 bg-white/70 p-4 text-slate-700 shadow-sm shadow-sky-100 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-100">
+                    <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                      Current Focus
+                    </p>
+                    <p className="mt-2 text-3xl font-heading text-slate-900 dark:text-white">
+                      {currentPhaseNumber > 0 ? `Phase ${currentPhaseNumber}` : "Not scheduled"}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {currentPhase?.title || "Awaiting kickoff"}
+                    </p>
+                  </div>
+                </div>
+                {orderedMilestones.length > 0 ? (
+                  <div className="overflow-x-auto pb-2">
+                    <div className="flex min-w-[640px] items-stretch gap-4">
+                      {orderedMilestones.map((milestone, index) => {
+                        const phaseNumber = milestone.order || index + 1
+                        const theme = getPhaseTheme(milestone.status)
+                        return (
+                          <div key={milestone.id} className="flex items-stretch gap-4">
+                            <div
+                              className={`flex min-w-[220px] flex-1 flex-col justify-between rounded-3xl border p-4 shadow-sm transition-all duration-200 hover:shadow-md ${theme.card}`}
+                            >
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-200">
+                                  Phase {phaseNumber}
+                                </span>
+                                <span className={`rounded-full px-2 py-1 text-xs font-semibold ${theme.badge}`}>
+                                  {milestone.status.replace("_", " ")}
+                                </span>
+                              </div>
+                              <div className="space-y-2 pt-2">
+                                <p className="text-base font-semibold text-slate-900 dark:text-white">
+                                  {milestone.title}
+                                </p>
+                                {milestone.description && (
+                                  <p className="text-sm text-slate-600 dark:text-slate-300">
+                                    {milestone.description}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="pt-4">
+                                <Progress value={milestone.progress} className="h-2 bg-white/40 dark:bg-slate-800/60" />
+                                <p className="mt-2 text-xs text-slate-500 dark:text-slate-300">
+                                  {milestone.dueDate
+                                    ? `Due ${milestone.dueDate.toLocaleDateString()}`
+                                    : "Timeline TBD"}
+                                </p>
+                              </div>
+                            </div>
+                            {index < orderedMilestones.length - 1 && (
+                              <div className="hidden h-full items-center justify-center md:flex">
+                                <ArrowRight className="h-6 w-6 flex-shrink-0 text-slate-400 dark:text-slate-600" />
+                              </div>
                             )}
                           </div>
-                          <div className="pt-4">
-                            <Progress value={milestone.progress} className="h-2 bg-white/40 dark:bg-slate-800/60" />
-                            <p className="mt-2 text-xs text-slate-500 dark:text-slate-300">
-                              {milestone.dueDate
-                                ? `Due ${milestone.dueDate.toLocaleDateString()}`
-                                : "Timeline TBD"}
-                            </p>
-                          </div>
-                        </div>
-                        {index < orderedMilestones.length - 1 && (
-                          <div className="hidden h-full items-center justify-center md:flex">
-                            <ArrowRight className="h-6 w-6 flex-shrink-0 text-slate-400 dark:text-slate-600" />
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            ) : (
-              <div className="rounded-2xl border border-dashed border-white/70 bg-white/60 p-6 text-center text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-400">
-                Your project team will create phases after onboarding.
-              </div>
-            )}
-          </CardContent>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-white/70 bg-white/60 p-6 text-center text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-400">
+                    Your project team will create phases after onboarding.
+                  </div>
+                )}
+              </CardContent>
+            </>
+          )}
         </Card>
       </div>
 
