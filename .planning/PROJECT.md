@@ -8,16 +8,16 @@ A client-facing dashboard for BaseAim, a paid ads and funnel agency serving loca
 
 Clients can see exactly where their project stands — what's been done, what's in progress, and what's next — without having to ask.
 
-## Current Milestone: v1.0 Production Launch
+## Current Milestone: v1.1 Dashboard Improvements
 
-**Goal:** Transform the dashboard from development MVP into a production-ready platform with all critical integrations, polished UX, and enterprise-grade reliability.
+**Goal:** Polish the client experience, fix data consistency issues, and create a believable demo environment ready for prospect presentations.
 
 **Target features:**
-- **Integrations**: Email system (client onboarding), Telegram/WhatsApp chat links, Google Drive storage (replace Vercel Blob), Facebook Ads API (campaign metrics), Stripe payments (billing functionality)
-- **Admin**: Populate admin analytics dashboard with real data
-- **UI polish**: Chat/notification components, responsive refinement, loading states & animations
-- **Production**: Error handling, monitoring, performance optimization, security hardening
-- **Deployment**: Full production configuration and launch preparation
+- **Admin client preview**: "View as client" impersonation mode — admin sees the full client dashboard (all pages) with a sticky exit banner
+- **Graph overhaul**: Ad spend (daily), leads (admin-toggleable per client), combined chart with legend — on both home page and analytics tab; fix date range bug (currently only affects display, not data)
+- **ROAS metric**: Return on Ad Spend card (revenue from ads / ad spend) on home page and analytics
+- **Ongoing growth roadmap**: After all 6 setup phases complete, auto-generate 12 monthly review milestones from completion date; admin can add/remove milestones per client
+- **Demo environment**: Seed script creating 1 test admin + 5 realistic fake clients at varying stages, with believable fake FB metrics, invoices, and documents — no real Stripe/Facebook connections, no test indicators
 
 ## Requirements
 
@@ -36,10 +36,14 @@ Clients can see exactly where their project stands — what's been done, what's 
 
 ### Active
 
-- [ ] Rework dashboard overview layout — smaller chart on right, 4 stat cards on left, chart expandable to current full size
-- [ ] Checklist-style project progress tracking with standard milestones (same for every client)
-- [ ] Admin method to update client milestone progress via Google Sheets integration
-- [ ] Client-specific dashboard data (each client sees their own progress/metrics)
+- [ ] Admin "View as client" impersonation mode with sticky exit banner
+- [ ] Daily ad spend graph on home page and analytics (respects date range)
+- [ ] Leads graph on home page and analytics (admin-toggleable per client)
+- [ ] Combined chart with legend showing all active metrics
+- [ ] Fix: date range selector affects data fetch, not just chart display (home page + campaign performance)
+- [ ] ROAS metric card (revenue from ads / ad spend) on home page and analytics
+- [ ] Ongoing milestones: auto-generate 12 monthly reviews after setup completion; admin can add/remove
+- [ ] Demo seed: 5 realistic fake clients with believable FB metrics, invoices, and documents
 
 ### Out of Scope
 
@@ -76,4 +80,4 @@ Clients can see exactly where their project stands — what's been done, what's 
 | Checklist-style progress (not timeline) | Simple, clear, easy to understand at a glance | — Pending |
 
 ---
-*Last updated: 2026-02-15 after milestone v1.0 initialization*
+*Last updated: 2026-03-26 after milestone v1.1 initialization*
