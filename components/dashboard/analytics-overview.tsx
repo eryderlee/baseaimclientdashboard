@@ -72,8 +72,8 @@ const ALL_SERIES = [
   { key: 'Impressions', color: '#3b82f6', leadsOnly: false },
   { key: 'Clicks', color: '#22c55e', leadsOnly: false },
   { key: 'Leads', color: '#a855f7', leadsOnly: true },
-  { key: 'Booked Calls', color: '#f97316', leadsOnly: true },
-  { key: 'Ad Spend', color: '#10b981', leadsOnly: false },
+  { key: 'Booked Calls', color: '#f97316', leadsOnly: false },
+  { key: 'Ad Spend', color: '#eab308', leadsOnly: false },
 ] as const
 
 function toLocalDateStr(d: Date): string {
@@ -165,19 +165,19 @@ export function AnalyticsOverview({
         color: "#a855f7",
         bgColor: "bg-purple-100 dark:bg-purple-900",
       },
-      bookedCalls: {
-        name: "Booked Calls",
-        dailyData: bookedCallsData,
-        total: totalBookedCalls,
-        adSpend: rangeAdSpend,
-        conversionRate: totalLeads > 0 ? (totalBookedCalls / totalLeads) * 100 : 0,
-        cpa: cpCall,
-        change: 23.1,
-        icon: Phone,
-        color: "#f97316",
-        bgColor: "bg-orange-100 dark:bg-orange-900",
-      },
     } : {}),
+    bookedCalls: {
+      name: "Booked Calls",
+      dailyData: bookedCallsData,
+      total: totalBookedCalls,
+      adSpend: rangeAdSpend,
+      conversionRate: totalLeads > 0 ? (totalBookedCalls / totalLeads) * 100 : 0,
+      cpa: cpCall,
+      change: 23.1,
+      icon: Phone,
+      color: "#f97316",
+      bgColor: "bg-orange-100 dark:bg-orange-900",
+    },
     spend: {
       name: "Ad Spend",
       dailyData: spendData,
@@ -187,8 +187,8 @@ export function AnalyticsOverview({
       cpc: cpc,
       change: 0,
       icon: DollarSign,
-      color: "#10b981",
-      bgColor: "bg-emerald-100 dark:bg-emerald-900",
+      color: "#eab308",
+      bgColor: "bg-amber-100 dark:bg-amber-900",
     },
   }
 
@@ -223,10 +223,6 @@ export function AnalyticsOverview({
             <CardDescription>
               Track your advertising metrics and conversion rates
             </CardDescription>
-            {/* TEMP DEBUG */}
-            <p className="text-xs text-red-500 mt-1">
-              days={spendData.length} | range={chartRange} | filtered={rangedSpend.length} | leads={String(leadsEnabled)} | tabs={metricKeys.join(',')}
-            </p>
           </div>
           <Button
             onClick={() => setIsExpanded(!isExpanded)}
@@ -241,8 +237,8 @@ export function AnalyticsOverview({
         </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          {/* grid-cols-4 grid-cols-6 — keep both in source so Tailwind doesn't purge them */}
-          <TabsList className={cn("grid w-full mb-6", leadsEnabled ? "grid-cols-6" : "grid-cols-4")}>
+          {/* grid-cols-5 grid-cols-6 — keep both in source so Tailwind doesn't purge them */}
+          <TabsList className={cn("grid w-full mb-6", leadsEnabled ? "grid-cols-6" : "grid-cols-5")}>
             <TabsTrigger value="overview" className="gap-2">
               <LayoutDashboard className="h-4 w-4" />
               Overview
