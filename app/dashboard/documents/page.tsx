@@ -1,32 +1,23 @@
-import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { getCurrentClientId, verifySession } from "@/lib/dal"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { DocumentUpload } from "@/components/dashboard/document-upload"
 import { DocumentList } from "@/components/dashboard/document-list"
 
-async function getDocuments(userId: string) {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: {
-      clientProfile: {
-        include: {
-          documents: {
-            orderBy: { createdAt: "desc" },
-            include: {
-              folder: true,
-            },
-          },
-        },
-      },
-    },
-  })
+async function getDocuments() {
+  await verifySession()
+  const clientId = await getCurrentClientId()
+  if (!clientId) return []
 
-  return user?.clientProfile?.documents || []
+  return prisma.document.findMany({
+    where: { clientId },
+    orderBy: { createdAt: "desc" },
+    include: { folder: true },
+  })
 }
 
 export default async function DocumentsPage() {
-  const session = await auth()
-  const documents = await getDocuments(session!.user!.id)
+  const documents = await getDocuments()
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">

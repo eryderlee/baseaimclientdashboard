@@ -2,6 +2,7 @@ import 'server-only'
 import { cache } from 'react'
 import { redirect } from 'next/navigation'
 import { unstable_cache } from 'next/cache'
+import { cookies } from 'next/headers'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { calculateOverallProgress } from '@/lib/utils/progress'
@@ -27,6 +28,10 @@ export const getCurrentClientId = cache(async () => {
   const { userId, userRole } = await verifySession()
 
   if (userRole === 'ADMIN') {
+    // In preview mode, the admin impersonates a client via an httpOnly cookie
+    const cookieStore = await cookies()
+    const previewId = cookieStore.get('admin_preview_clientId')?.value
+    if (previewId) return previewId
     return null
   }
 
@@ -283,7 +288,19 @@ export const getChatSettings = cache(async () => {
  */
 export const getClientAdConfig = cache(async () => {
   const { userId, userRole } = await verifySession()
-  if (userRole !== 'CLIENT') throw new Error('Unauthorized: Client access required')
+
+  if (userRole === 'ADMIN') {
+    // In preview mode, return the previewed client's ad config
+    const cookieStore = await cookies()
+    const previewId = cookieStore.get('admin_preview_clientId')?.value
+    if (!previewId) return null
+    return prisma.client.findUnique({
+      where: { id: previewId },
+      select: { id: true, adAccountId: true },
+    })
+  }
+
+  if (userRole !== 'CLIENT') return null
 
   return prisma.client.findUnique({
     where: { userId },
@@ -300,34 +317,75 @@ export const getClientAdConfig = cache(async () => {
 export const getClientAnalytics = cache(async () => {
   const { userId } = await verifySession()
 
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      clientProfile: {
-        select: {
-          documents: {
-            select: { id: true, createdAt: true },
-            orderBy: { createdAt: 'asc' as const },
-          },
-          milestones: {
-            select: { title: true, status: true, progress: true },
-          },
-          invoices: {
-            select: { id: true },
-          },
+  // In preview mode, getCurrentClientId returns the previewed client's id
+  const clientId = await getCurrentClientId()
+
+  let docs: Array<{ id: string; createdAt: Date }> = []
+  let milestones: Array<{ title: string; status: string; progress: number }> = []
+  let activities: Array<{ createdAt: Date }> = []
+
+  if (clientId) {
+    // Query by clientId directly — works for both CLIENT and ADMIN-in-preview
+    const clientData = await prisma.client.findUnique({
+      where: { id: clientId },
+      select: {
+        documents: {
+          select: { id: true, createdAt: true },
+          orderBy: { createdAt: 'asc' as const },
         },
+        milestones: {
+          select: { title: true, status: true, progress: true },
+        },
+        invoices: {
+          select: { id: true },
+        },
+        userId: true,
       },
-      activities: {
+    })
+
+    docs = clientData?.documents || []
+    milestones = clientData?.milestones || []
+
+    if (clientData?.userId) {
+      const activityData = await prisma.activity.findMany({
+        where: { userId: clientData.userId },
         select: { createdAt: true },
         orderBy: { createdAt: 'desc' as const },
         take: 50,
+      })
+      activities = activityData
+    }
+  } else {
+    // Fallback: query by userId (standard client path)
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        clientProfile: {
+          select: {
+            documents: {
+              select: { id: true, createdAt: true },
+              orderBy: { createdAt: 'asc' as const },
+            },
+            milestones: {
+              select: { title: true, status: true, progress: true },
+            },
+            invoices: {
+              select: { id: true },
+            },
+          },
+        },
+        activities: {
+          select: { createdAt: true },
+          orderBy: { createdAt: 'desc' as const },
+          take: 50,
+        },
       },
-    },
-  })
+    })
 
-  const docs = user?.clientProfile?.documents || []
-  const milestones = user?.clientProfile?.milestones || []
-  const activities = user?.activities || []
+    docs = user?.clientProfile?.documents || []
+    milestones = user?.clientProfile?.milestones || []
+    activities = user?.activities || []
+  }
 
   const totalDocuments = docs.length
   const completedMilestones = milestones.filter(m => m.status === 'COMPLETED').length
@@ -515,8 +573,10 @@ export const getClientFbInsights = cache(async (datePreset: DatePreset = 'last_3
   // Auth OUTSIDE the cache boundary — unstable_cache cannot access session
   const { userRole } = await verifySession()
 
-  if (userRole !== 'CLIENT') {
-    throw new Error('Unauthorized: Client access required')
+  // ADMIN in preview mode: allow through — getClientAdConfig handles preview cookie
+  // ADMIN without preview: return null (not configured state, no throw)
+  if (userRole !== 'CLIENT' && userRole !== 'ADMIN') {
+    return null
   }
 
   // Get client's adAccountId from DB (deduplicated via cache)
@@ -570,8 +630,9 @@ export const getClientFbInsights = cache(async (datePreset: DatePreset = 'last_3
 export const getClientFbDailyInsights = cache(async () => {
   const { userRole } = await verifySession()
 
-  if (userRole !== 'CLIENT') {
-    throw new Error('Unauthorized: Client access required')
+  // ADMIN in preview mode: allow through — getClientAdConfig handles preview cookie
+  if (userRole !== 'CLIENT' && userRole !== 'ADMIN') {
+    return null
   }
 
   const client = await getClientAdConfig()
@@ -605,8 +666,9 @@ export const getClientFbCampaigns = cache(async (datePreset: DatePreset = 'last_
   // Auth OUTSIDE the cache boundary — unstable_cache cannot access session
   const { userRole } = await verifySession()
 
-  if (userRole !== 'CLIENT') {
-    throw new Error('Unauthorized: Client access required')
+  // ADMIN in preview mode: allow through — getClientAdConfig handles preview cookie
+  if (userRole !== 'CLIENT' && userRole !== 'ADMIN') {
+    return []
   }
 
   const client = await getClientAdConfig()
@@ -649,8 +711,9 @@ export const getClientFbPlatformBreakdown = cache(async (datePreset: DatePreset 
   // Auth OUTSIDE the cache boundary — unstable_cache cannot access session
   const { userRole } = await verifySession()
 
-  if (userRole !== 'CLIENT') {
-    throw new Error('Unauthorized: Client access required')
+  // ADMIN in preview mode: allow through — getClientAdConfig handles preview cookie
+  if (userRole !== 'CLIENT' && userRole !== 'ADMIN') {
+    return []
   }
 
   const client = await getClientAdConfig()
@@ -692,8 +755,9 @@ export const getClientFbDailyTrend = cache(async (): Promise<FbDailyInsight[] | 
   // Auth OUTSIDE the cache boundary — unstable_cache cannot access session
   const { userRole } = await verifySession()
 
-  if (userRole !== 'CLIENT') {
-    throw new Error('Unauthorized: Client access required')
+  // ADMIN in preview mode: allow through — getClientAdConfig handles preview cookie
+  if (userRole !== 'CLIENT' && userRole !== 'ADMIN') {
+    return null
   }
 
   const client = await getClientAdConfig()
@@ -1167,6 +1231,18 @@ export const getAdminAllAds = cache(async (): Promise<Array<{
 export const getClientDashboardProfile = cache(async () => {
   const { userId } = await verifySession()
 
+  // In preview mode, getCurrentClientId returns the previewed client's id
+  const clientId = await getCurrentClientId()
+
+  if (clientId) {
+    // Query by clientId directly — works for both CLIENT and ADMIN-in-preview
+    return prisma.client.findUnique({
+      where: { id: clientId },
+      select: { id: true, companyName: true, adAccountId: true },
+    })
+  }
+
+  // Fallback: query by userId (admin without preview context returns null)
   return prisma.client.findUnique({
     where: { userId },
     select: { id: true, companyName: true, adAccountId: true },
@@ -1179,6 +1255,23 @@ export const getClientDashboardProfile = cache(async () => {
  */
 export const getCurrentUserName = cache(async () => {
   const { userId } = await verifySession()
+
+  // In preview mode, return the previewed client's name
+  const clientId = await getCurrentClientId()
+
+  if (clientId) {
+    const client = await prisma.client.findUnique({
+      where: { id: clientId },
+      select: { userId: true },
+    })
+    if (client?.userId) {
+      const user = await prisma.user.findUnique({
+        where: { id: client.userId },
+        select: { name: true },
+      })
+      return user?.name || null
+    }
+  }
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -1211,8 +1304,23 @@ export const getClientRecentDocuments = cache(async () => {
 export const getRecentActivities = cache(async () => {
   const { userId } = await verifySession()
 
+  // In preview mode, return activities for the previewed client
+  const clientId = await getCurrentClientId()
+
+  let targetUserId = userId
+
+  if (clientId) {
+    const client = await prisma.client.findUnique({
+      where: { id: clientId },
+      select: { userId: true },
+    })
+    if (client?.userId) {
+      targetUserId = client.userId
+    }
+  }
+
   return prisma.activity.findMany({
-    where: { userId },
+    where: { userId: targetUserId },
     orderBy: { createdAt: 'desc' },
     take: 4,
     select: {
