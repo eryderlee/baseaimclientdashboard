@@ -33,6 +33,7 @@ export interface FbDailyInsight {
   reach?: string
   actions?: FbAction[]
   outbound_clicks?: FbAction[]
+  action_values?: FbAction[]  // purchase revenue per day — used for daily ROAS calculation
   date_start: string
   date_stop: string
 }
@@ -75,7 +76,7 @@ export interface FbPlatformRow {
 
 const GRAPH_API_VERSION = 'v22.0'
 const INSIGHTS_FIELDS = 'spend,impressions,clicks,ctr,cpc,cpm,actions,reach,frequency,outbound_clicks,quality_ranking,engagement_rate_ranking,conversion_rate_ranking,purchase_roas'
-const DAILY_FIELDS = 'spend,impressions,clicks,reach,actions,outbound_clicks'
+const DAILY_FIELDS = 'spend,impressions,clicks,reach,actions,outbound_clicks,action_values'
 
 /**
  * Extract a numeric value from a FB actions array by action_type.
@@ -299,6 +300,7 @@ export interface TrendDataPoint {
   date: string
   spend: number
   leads: number
+  roas: number
 }
 
 /**
@@ -340,14 +342,23 @@ export async function fetchFacebookAdInsights(
 }
 
 export function buildTrendData(daily: FbDailyInsight[]): TrendDataPoint[] {
-  return daily.map((d) => ({
-    date: new Date(d.date_start).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-    }),
-    spend: parseFloat(d.spend),
-    leads:
-      getActionValue(d.actions, 'lead') +
-      getActionValue(d.actions, 'offsite_conversion.fb_pixel_lead'),
-  }))
+  return daily.map((d) => {
+    const spend = parseFloat(d.spend)
+    // Try multiple action_types for purchase revenue from action_values
+    const purchaseValue =
+      getActionValue(d.action_values, 'offsite_conversion.fb_pixel_purchase') ||
+      getActionValue(d.action_values, 'omni_purchase') ||
+      getActionValue(d.action_values, 'purchase')
+    return {
+      date: new Date(d.date_start).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      }),
+      spend,
+      leads:
+        getActionValue(d.actions, 'lead') +
+        getActionValue(d.actions, 'offsite_conversion.fb_pixel_lead'),
+      roas: spend > 0 ? purchaseValue / spend : 0,
+    }
+  })
 }
