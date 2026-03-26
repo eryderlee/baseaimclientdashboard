@@ -59,6 +59,16 @@ export default function LoginPage() {
           <div className="baseaim-login-frame">
             <Card className="rounded-[30px] border-0 bg-white shadow-none">
               <CardHeader className="space-y-4 text-center">
+                <div className="flex justify-center">
+                  <Image
+                    src="/BASEAIM BLACK.png"
+                    alt="BaseAim logo"
+                    width={140}
+                    height={40}
+                    className="h-10 w-auto"
+                    priority
+                  />
+                </div>
                 <CardTitle className="font-heading text-3xl text-slate-900">BaseAim ClientHub</CardTitle>
                 <CardDescription className="text-base text-slate-600">
                   Enter your credentials to sync up with your firm&apos;s live dashboard.
@@ -114,29 +124,17 @@ export default function LoginPage() {
                     {isLoading ? "Signing in..." : "Secure sign in"}
                   </Button>
 
-                  <div className="space-y-3 text-center text-sm text-slate-500">
-                    <div className="space-y-1">
-                      <p>Need an account? Contact our BaseAim support team to provision access.</p>
-                      <p>
-                        Or email{" "}
-                        <a
-                          href="mailto:support@baseaim.co"
-                          className="font-semibold text-primary hover:text-primary/80"
-                        >
-                          support@baseaim.co
-                        </a>
-                      </p>
-                    </div>
-                    <div className="flex justify-center pt-2">
-                      <Image
-                        src="/BASEAIM BLACK.png"
-                        alt="BaseAim logo"
-                        width={130}
-                        height={40}
-                        className="h-8 w-auto"
-                        priority
-                      />
-                    </div>
+                  <div className="space-y-1 text-center text-sm text-slate-500">
+                    <p>Need an account? Contact our BaseAim support team to provision access.</p>
+                    <p>
+                      Or email{" "}
+                      <a
+                        href="mailto:support@baseaim.co"
+                        className="font-semibold text-primary hover:text-primary/80"
+                      >
+                        support@baseaim.co
+                      </a>
+                    </p>
                   </div>
                 </form>
               </CardContent>

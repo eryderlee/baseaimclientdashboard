@@ -380,6 +380,39 @@
   }
 }
 
+/* ========================================
+   Login Animated Gradient Frame
+   ======================================== */
+
+.baseaim-login-frame {
+  position: relative;
+  border-radius: 32px;
+  padding: 1px;
+  background: linear-gradient(
+    120deg,
+    #2563eb 0%,
+    #4fc3f7 25%,
+    #22d3ee 50%,
+    #0066ff 75%,
+    #2563eb 100%
+  );
+  background-size: 250% 250%;
+  animation: baseaim-border-flow 18s ease infinite;
+  box-shadow: 0 30px 90px rgba(15, 23, 42, 0.18);
+}
+
+@keyframes baseaim-border-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 @media (max-width: 768px) {
   .wave-layer {
     filter: blur(20px);
@@ -390,5 +423,10 @@
   .wave-layer,
   .gradient-overlay {
     animation: none;
+  }
+
+  .baseaim-login-frame {
+    animation: none;
+    background-position: 50% 50%;
   }
 }

@@ -56,6 +56,20 @@ export const metadata: Metadata = {
   title: "Baseaim Client Hub",
   description:
     "The Baseaim workspace for accounting firms—track acquisition systems, project milestones, and client deliverables in one place.",
+  icons: {
+    icon: [
+      {
+        url: "/BASEAIM BLACK.png",
+        type: "image/png",
+      },
+    ],
+    shortcut: [
+      {
+        url: "/BASEAIM BLACK.png",
+        type: "image/png",
+      },
+    ],
+  },
 }
 
 export default function RootLayout({
