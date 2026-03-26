@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-03-26)
 
 ## Current Position
 
-Phase: 20 — Home Page Charts + Bug Fixes ✅ COMPLETE
-Plan: 02 of 2 (Home Page Chart Rendering)
-Status: Phase complete — verified 2026-03-27
-Last activity: 2026-03-27 — All criteria met, phase marked complete
+Phase: 21 — ROAS + Analytics Tab Charts
+Plan: 01 of 2 (ROAS API Field + Metric Cards)
+Status: In progress — Plan 01 complete 2026-03-27
+Last activity: 2026-03-27 — Completed 21-01-PLAN.md (purchase_roas field + getRoas helper + ROAS metric cards)
 
-Progress: ████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ v1.1: 1/5 phases complete (Phase 20 done, Phase 21 next)
+Progress: ████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ v1.1: 1/5 phases complete (Phase 20 done, Phase 21 Plan 01 done)
 
 ## Performance Metrics
 
@@ -355,6 +355,13 @@ Recent decisions affecting current work:
 - Boolean leadsChartEnabled serialized explicitly as String('true'/'false') in FormData — bypasses generic truthy guard in onSubmit loop
 - db push unavailable (Supabase unreachable) — prisma validate + prisma generate confirmed schema valid; push deferred
 
+**Phase 21 - ROAS + Analytics Tab Charts (from 21-01):**
+- purchase_roas is FbAction[] not string — Facebook returns ROAS as an action array (same pattern as outbound_clicks)
+- getRoas returns null (not 0) when purchase_roas absent — allows UI to display "—" vs "0.00x" for lead-gen clients
+- omni_purchase action_type prioritized over offsite_conversion.fb_pixel_purchase in getRoas — aggregates website + app purchases
+- ROAS computed at server component level (page.tsx) via getClientFbInsights('last_30d') parallel fetch — no client-side waterfall
+- workflowHighlights grid updated to sm:grid-cols-2 lg:grid-cols-4 to accommodate 4th highlight card
+
 **Phase 20 - Home Page Charts + Bug Fixes (from 20-02):**
 - DateRangeSelector gets its own Suspense boundary — useSearchParams requires Suspense; must not block on FB API load
 - SpendLeadsSection co-located in page.tsx — consistent with Phase 16 FbAdsSection pattern (no new file)
@@ -364,10 +371,10 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-26
-Stopped at: Completed 20-02-PLAN.md — home page chart rendering with searchParams + SpendLeadsSection
+Last session: 2026-03-27
+Stopped at: Completed 21-01-PLAN.md — purchase_roas API field, getRoas helper, ROAS metric cards on home + analytics pages
 Resume file: None
-Next: Phase 21+ (v1.1 Dashboard Improvements) — pending npx prisma db push when Supabase reachable
+Next: 21-02-PLAN.md (Analytics Tab Charts)
 
 **Phase 13 - UI Polish (from 13-01):**
 - DashboardNav stays "use client" — all notification data fetched in layout server component, passed as serialized props
