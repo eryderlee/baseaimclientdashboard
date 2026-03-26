@@ -351,8 +351,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans:** 2 plans
 
 Plans:
-- [ ] 19-01-PLAN.md — Preview mode: route structure, session impersonation or query-param approach, exit-preview Server Action, sticky banner component
-- [ ] 19-02-PLAN.md — Status badge: DAL query for setup milestone completion, badge component, wire into admin client list
+- [ ] 19-01-PLAN.md — Preview mode: httpOnly cookie mechanism, DAL patches for all client pages, banner component, route refactor
+- [ ] 19-02-PLAN.md — Status badge: derive setup completion from existing milestone data, badge in admin client table
 
 #### Phase 20: Home Page Charts + Bug Fixes
 **Goal**: Client home page displays spend and leads charts with a working date range selector that actually fetches fresh data
