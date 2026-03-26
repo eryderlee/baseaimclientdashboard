@@ -67,8 +67,9 @@ const proxyHandler = auth(async (req) => {
     return NextResponse.redirect(new URL('/login', req.url))
   }
 
-  // Block admins from accessing client dashboard
-  if (isOnDashboard && userRole === 'ADMIN') {
+  // Block admins from accessing client dashboard (unless in preview mode)
+  const isPreviewMode = req.cookies.get('admin_preview_clientId')?.value
+  if (isOnDashboard && userRole === 'ADMIN' && !isPreviewMode) {
     return NextResponse.redirect(new URL('/admin', req.url))
   }
 
