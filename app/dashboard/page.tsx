@@ -1,70 +1,27 @@
-import { Suspense } from 'react'
-import { getMilestones, getChatSettings, getClientDashboardProfile, getCurrentUserName, getClientRecentDocuments, getRecentActivities, getClientFbDailyTrendByRange, getClientAdConfig } from '@/lib/dal'
-import { buildTrendData, type DatePreset } from '@/lib/facebook-ads'
-import { DashboardOverview } from '@/components/dashboard/dashboard-overview'
-import { DateRangeSelector } from '@/components/dashboard/date-range-selector'
-import { FbTrendChart } from '@/components/dashboard/fb-trend-chart'
+import { getMilestones, getChatSettings, getClientFbDailyInsights, getClientDashboardProfile, getCurrentUserName, getClientRecentDocuments, getRecentActivities } from "@/lib/dal"
+import { getActionValue } from "@/lib/facebook-ads"
+import { DashboardOverview } from "@/components/dashboard/dashboard-overview"
 
-type DateRange = '7d' | '30d' | 'all'
-
-function rangToDatePreset(range: DateRange): DatePreset {
-  if (range === '7d') return 'last_7d'
-  if (range === 'all') return 'maximum'
-  return 'last_30d'
-}
-
-// ─── Async section: Spend & Leads chart (slow — Facebook API with 6h TTL cache) ─
-
-async function SpendLeadsSection({ dateRange }: { dateRange: DateRange }) {
-  try {
-    const datePreset = rangToDatePreset(dateRange)
-    const [dailyTrend, clientAdConfig] = await Promise.all([
-      getClientFbDailyTrendByRange(datePreset),
-      getClientAdConfig(),
-    ])
-
-    const isConfigured = !!clientAdConfig?.adAccountId
-    if (!isConfigured) return null
-
-    const trendData = dailyTrend ? buildTrendData(dailyTrend) : []
-    // leadsEnabled will be wired from DB once leadsChartEnabled migration is applied
-    const leadsEnabled = false
-
-    return <FbTrendChart data={trendData} leadsEnabled={leadsEnabled} />
-  } catch {
-    return null
-  }
-}
-
-function SpendLeadsSkeleton() {
-  return (
-    <div className="space-y-3 animate-pulse">
-      <div className="h-4 w-40 bg-slate-200 rounded" />
-      <div className="h-[300px] bg-slate-100 rounded-2xl" />
-    </div>
-  )
-}
-
-export default async function DashboardPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ range?: string }>
-}) {
-  const resolvedParams = await searchParams
-  const rawRange = resolvedParams?.range
-  const dateRange: DateRange =
-    rawRange === '7d' || rawRange === '30d' || rawRange === 'all'
-      ? rawRange
-      : '30d'
-
-  const [milestones, chatSettings, client, userName, documents, activities] = await Promise.all([
+export default async function DashboardPage() {
+  const [milestones, chatSettings, dailyInsights, client, userName, documents, activities] = await Promise.all([
     getMilestones(),
     getChatSettings(),
+    getClientFbDailyInsights(),
     getClientDashboardProfile(),
     getCurrentUserName(),
     getClientRecentDocuments(),
     getRecentActivities(),
   ])
+
+  // Transform daily FB insights into chart-ready format
+  const fbDailyData = dailyInsights?.map((day) => ({
+    date: new Date(day.date_start).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    impressions: parseFloat(day.impressions || '0'),
+    clicks: parseFloat(day.clicks || '0'),
+    spend: parseFloat(day.spend || '0'),
+    leads: getActionValue(day.actions, 'lead'),
+    bookedCalls: getActionValue(day.actions, 'offsite_conversion.fb_pixel_custom'),
+  })) ?? null
 
   // Serialize dates for client component (JSON serialization)
   const serializedMilestones = milestones.map(m => ({
@@ -95,31 +52,18 @@ export default async function DashboardPage({
   }))
 
   return (
-    <div className="space-y-10 pb-16">
-      <DashboardOverview
-        milestones={serializedMilestones}
-        chatSettings={{
-          whatsappNumber: chatSettings?.whatsappNumber,
-          telegramUsername: chatSettings?.telegramUsername,
-        }}
-        clientName={userName || 'Client'}
-        companyName={client?.companyName || 'Company'}
-        documents={serializedDocuments}
-        activities={serializedActivities}
-      />
-
-      {/* Ad Performance section — CHART-05/CHART-06 fix */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="font-heading text-2xl text-slate-900">Ad Performance</h3>
-          <Suspense>
-            <DateRangeSelector />
-          </Suspense>
-        </div>
-        <Suspense fallback={<SpendLeadsSkeleton />}>
-          <SpendLeadsSection dateRange={dateRange} />
-        </Suspense>
-      </div>
-    </div>
+    <DashboardOverview
+      milestones={serializedMilestones}
+      chatSettings={{
+        whatsappNumber: chatSettings?.whatsappNumber,
+        telegramUsername: chatSettings?.telegramUsername,
+      }}
+      clientName={userName || 'Client'}
+      companyName={client?.companyName || 'Company'}
+      fbDailyData={fbDailyData}
+      isFbConfigured={!!client?.adAccountId}
+      documents={serializedDocuments}
+      activities={serializedActivities}
+    />
   )
 }
