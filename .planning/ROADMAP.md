@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v0.9 Foundation** - Phases 1-6 (shipped 2026-02-15)
-- 🚧 **v1.0 Production Launch** - Phases 7-13 (in progress)
+- ✅ **v1.0 Production Launch** - Phases 7-18 (shipped 2026-03-26)
 
 ## Phases
 
@@ -324,8 +324,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 18-01-PLAN.md — DAL: per-client FB data + aggregate daily trend functions, fix loading skeleton
-- [ ] 18-02-PLAN.md — UI: FB columns in table, trend chart component, Suspense streaming, styled fallbacks
+- [x] 18-01-PLAN.md — DAL: per-client FB data + aggregate daily trend functions, fix loading skeleton
+- [x] 18-02-PLAN.md — UI: FB columns in table, trend chart component, Suspense streaming, styled fallbacks
 
 ## Progress
 
@@ -358,4 +358,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 15. Deployment | 4/4 | ✓ Complete | 2026-03-15 |
 | 16. Performance Optimization | 4/4 | ✓ Complete | 2026-03-16 |
 | 17. VPS Self-Hosting Migration | 4/4 | ✓ Complete | 2026-03-26 |
-| 18. Complete Analytics Page on the Admin Dashboard | 0/2 | ○ Not started | — |
+| 18. Complete Analytics Page on the Admin Dashboard | 2/2 | ✓ Complete | 2026-03-26 |
