@@ -280,6 +280,116 @@ Which phases cover which requirements. Updated during roadmap creation.
 - Phase 13 (UI Polish & Admin Analytics Integration): 12 requirements (6 UI + 5 ADMIN + 1 EMAIL)
 - Phase 14 (Enhanced Facebook Analytics & Branded Reporting): 5 requirements
 
+## v1.1 Requirements (Dashboard Improvements)
+
+Requirements for v1.1 milestone. Phases continue from 19.
+
+### Admin Client Preview
+
+- [ ] **PREV-01**: Admin can click "View as client" from any client's admin page and be taken to the full client dashboard
+- [ ] **PREV-02**: A sticky banner shows "Viewing as [Client Name]" with an "Exit Preview" button while in preview mode
+- [ ] **PREV-03**: All client pages (home, progress, analytics, billing, documents) are accessible in preview mode
+- [ ] **PREV-04**: Exiting preview returns admin to the page they came from
+
+### Admin Client Status
+
+- [ ] **STATUS-01**: Admin client list shows a "Setup Complete" or "Setting Up" badge per client based on whether all 6 setup milestones are marked complete
+
+### Charts & Metrics
+
+- [ ] **CHART-01**: Daily ad spend graph shown on client home page (respects active date range)
+- [ ] **CHART-02**: Leads graph shown on client home page — hidden by default, admin can enable per client
+- [ ] **CHART-03**: Combined chart with legend showing all active metrics on client home page
+- [ ] **CHART-04**: Ad spend graph, leads graph, and combined chart also appear on the client analytics tab
+- [ ] **CHART-05**: Date range selector on home page affects data fetched from the API, not just chart display (bug fix)
+- [ ] **CHART-06**: Date range selector on campaign performance section affects data fetched (bug fix)
+- [ ] **CHART-07**: ROAS metric card on client home page (purchase revenue from ads ÷ ad spend, sourced from Facebook Ads API)
+- [ ] **CHART-08**: ROAS included in charts and analytics tab
+
+### Ongoing Growth Roadmap
+
+- [ ] **GROWTH-01**: When all 6 setup milestones are marked complete, system auto-generates 12 monthly review milestones with dates starting the 1st of the following month
+- [ ] **GROWTH-02**: Admin can add custom milestones to a client's ongoing roadmap from the admin interface
+- [ ] **GROWTH-03**: Admin can remove milestones from a client's ongoing roadmap
+- [ ] **GROWTH-04**: Client home page shows the ongoing roadmap section after setup is complete, replacing the setup phase cards
+
+### Demo Environment
+
+- [ ] **DEMO-01**: Schema adds `isDemo: Boolean` flag to Client model to separate demo data from real data
+- [ ] **DEMO-02**: Seed script creates 1 demo admin account with a realistic name and email (no "test", "demo", or "fake" in credentials)
+- [ ] **DEMO-03**: Demo admin account sees only demo clients; real admin account never sees demo clients
+- [ ] **DEMO-04**: Seed script creates 5 fake clients with realistic accounting firm names
+- [ ] **DEMO-05**: Client breakdown: 2 in setup (one early phase 1-2, one mid phase 3-4), 3 post-setup (recently launched, active 3-4 months, mature 6+ months)
+- [ ] **DEMO-06**: All 3 post-setup clients have realistic fake Facebook Ads metrics (spend, impressions, clicks, CTR, CPC, ROAS) — no real API connections
+- [ ] **DEMO-07**: Post-setup clients have realistic fake invoices at appropriate dollar amounts
+- [ ] **DEMO-08**: Post-setup clients have realistic fake documents named as real deliverables (e.g. "Landing Page Brief.pdf", "Ad Creative Set 1.pdf")
+- [ ] **DEMO-09**: Mature client has monthly review milestones populated showing several months of history
+- [ ] **DEMO-10**: No visual or data indicators that any client is fake — dates, names, amounts, and metrics are plausible
+- [ ] **DEMO-11**: Seed script is a single command (`npm run seed:demo`) that can be re-run safely (idempotent)
+
+## v2 Requirements
+
+Deferred to future release. Tracked but not in current roadmap.
+
+### Advanced Features
+
+- **ADV-01**: Estimated launch date calculated from current progress rate
+- **ADV-02**: Expected vs actual timeline comparison per milestone
+- **ADV-03**: Celebratory animation/styling when major milestones complete
+- **ADV-04**: Benchmark indicators for Facebook Ads (show "good" vs "needs improvement")
+- **ADV-05**: Automated billing on milestone completion
+- **ADV-06**: Multi-month trend visualization for Facebook Ads
+- **ADV-07**: Lead cost projection calculator
+- **ADV-08**: Onboarding email sequence (Day 1, 3, 7 drip campaign)
+- **ADV-09**: Weekly progress digest email
+
+## Traceability
+
+### v1.1 Dashboard Improvements
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| PREV-01 | Phase 19 | Pending |
+| PREV-02 | Phase 19 | Pending |
+| PREV-03 | Phase 19 | Pending |
+| PREV-04 | Phase 19 | Pending |
+| STATUS-01 | Phase 19 | Pending |
+| CHART-01 | Phase 20 | Pending |
+| CHART-02 | Phase 20 | Pending |
+| CHART-03 | Phase 20 | Pending |
+| CHART-04 | Phase 21 | Pending |
+| CHART-05 | Phase 20 | Pending |
+| CHART-06 | Phase 20 | Pending |
+| CHART-07 | Phase 21 | Pending |
+| CHART-08 | Phase 21 | Pending |
+| GROWTH-01 | Phase 22 | Pending |
+| GROWTH-02 | Phase 22 | Pending |
+| GROWTH-03 | Phase 22 | Pending |
+| GROWTH-04 | Phase 22 | Pending |
+| DEMO-01 | Phase 23 | Pending |
+| DEMO-02 | Phase 23 | Pending |
+| DEMO-03 | Phase 23 | Pending |
+| DEMO-04 | Phase 23 | Pending |
+| DEMO-05 | Phase 23 | Pending |
+| DEMO-06 | Phase 23 | Pending |
+| DEMO-07 | Phase 23 | Pending |
+| DEMO-08 | Phase 23 | Pending |
+| DEMO-09 | Phase 23 | Pending |
+| DEMO-10 | Phase 23 | Pending |
+| DEMO-11 | Phase 23 | Pending |
+
+**Coverage:**
+- v1.1 requirements: 28 total
+- Mapped to phases: 28/28 ✓
+- Unmapped: 0 ✓
+
+**Phase Distribution:**
+- Phase 19 (Admin Preview + Status Badge): 5 requirements
+- Phase 20 (Home Page Charts + Bug Fixes): 5 requirements
+- Phase 21 (ROAS + Analytics Tab): 3 requirements
+- Phase 22 (Ongoing Growth Roadmap): 4 requirements
+- Phase 23 (Demo Environment): 11 requirements
+
 ---
 *Requirements defined: 2026-02-11*
-*Last updated: 2026-02-16 after v1.0 roadmap creation*
+*Last updated: 2026-03-26 after v1.1 milestone initialization*
