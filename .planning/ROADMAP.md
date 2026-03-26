@@ -312,10 +312,10 @@ Plans:
 **Plans:** 4 plans
 
 Plans:
-- [ ] 17-01-PLAN.md — Next.js standalone output, PM2 ecosystem config, proxy.ts migration (Wave 1)
-- [ ] 17-02-PLAN.md — GitHub Actions deploy workflow with build-on-CI and SCP transfer (Wave 1)
-- [ ] 17-03-PLAN.md — VPS provisioning: NVM, PM2, Nginx, SSL, env vars, first deploy (Wave 2)
-- [ ] 17-04-PLAN.md — External service URL updates, full integration verification (Wave 3)
+- [x] 17-01-PLAN.md — Next.js standalone output, PM2 ecosystem config, proxy.ts migration (Wave 1)
+- [x] 17-02-PLAN.md — GitHub Actions deploy workflow with build-on-CI and SCP transfer (Wave 1)
+- [x] 17-03-PLAN.md — VPS provisioning: NVM, PM2, Nginx, SSL, env vars, first deploy (Wave 2)
+- [x] 17-04-PLAN.md — External service URL updates, full integration verification (Wave 3)
 
 ## Progress
 
@@ -347,4 +347,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 14. Enhanced Facebook Analytics & Branded Reporting | 3/3 | ✓ Complete | 2026-02-27 |
 | 15. Deployment | 4/4 | ✓ Complete | 2026-03-15 |
 | 16. Performance Optimization | 4/4 | ✓ Complete | 2026-03-16 |
-| 17. VPS Self-Hosting Migration | 0/4 | In Progress | — |
+| 17. VPS Self-Hosting Migration | 4/4 | ✓ Complete | 2026-03-26 |
