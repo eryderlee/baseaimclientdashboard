@@ -1,10 +1,11 @@
-import { getMilestones, getChatSettings, getClientFbDailyInsights, getClientDashboardProfile, getCurrentUserName, getClientRecentDocuments, getRecentActivities, getClientFbInsights } from "@/lib/dal"
+import { getSetupMilestones, getGrowthMilestones, getChatSettings, getClientFbDailyInsights, getClientDashboardProfile, getCurrentUserName, getClientRecentDocuments, getRecentActivities, getClientFbInsights } from "@/lib/dal"
 import { getActionValue, getRoas } from "@/lib/facebook-ads"
 import { DashboardOverview } from "@/components/dashboard/dashboard-overview"
 
 export default async function DashboardPage() {
-  const [milestones, chatSettings, dailyInsights, client, userName, documents, activities, fbInsights] = await Promise.all([
-    getMilestones(),
+  const [setupMilestones, growthMilestones, chatSettings, dailyInsights, client, userName, documents, activities, fbInsights] = await Promise.all([
+    getSetupMilestones(),
+    getGrowthMilestones(),
     getChatSettings(),
     getClientFbDailyInsights(),
     getClientDashboardProfile(),
@@ -13,6 +14,10 @@ export default async function DashboardPage() {
     getRecentActivities(),
     getClientFbInsights('last_30d'),
   ])
+
+  const setupComplete =
+    setupMilestones.length >= 6 &&
+    setupMilestones.every((m) => m.status === 'COMPLETED')
 
   const roas = getRoas(fbInsights?.purchase_roas ?? undefined)
 
@@ -27,8 +32,7 @@ export default async function DashboardPage() {
     bookedCalls: getActionValue(day.actions, 'offsite_conversion.fb_pixel_custom'),
   })) ?? null
 
-  // Serialize dates for client component (JSON serialization)
-  const serializedMilestones = milestones.map(m => ({
+  const serializeMilestone = (m: typeof setupMilestones[number]) => ({
     ...m,
     startDate: m.startDate ? new Date(m.startDate).toISOString() : null,
     dueDate: m.dueDate ? new Date(m.dueDate).toISOString() : null,
@@ -43,7 +47,11 @@ export default async function DashboardPage() {
           createdBy: note.createdBy || 'Admin',
         }))
       : [],
-  }))
+  })
+
+  // Serialize dates for client component (JSON serialization)
+  const serializedSetupMilestones = setupMilestones.map(serializeMilestone)
+  const serializedGrowthMilestones = growthMilestones.map(serializeMilestone)
 
   const serializedDocuments = documents.map((d) => ({
     ...d,
@@ -57,7 +65,9 @@ export default async function DashboardPage() {
 
   return (
     <DashboardOverview
-      milestones={serializedMilestones}
+      setupMilestones={serializedSetupMilestones}
+      growthMilestones={serializedGrowthMilestones}
+      setupComplete={setupComplete}
       chatSettings={{
         whatsappNumber: chatSettings?.whatsappNumber,
         telegramUsername: chatSettings?.telegramUsername,
