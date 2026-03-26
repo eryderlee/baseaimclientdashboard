@@ -645,7 +645,7 @@ export const getClientFbDailyInsights = cache(async () => {
 
   const cachedFetch = unstable_cache(
     async () => fetchFacebookDailyInsights(client.adAccountId!, settings.facebookAccessToken!, 'last_90d'),
-    [`fb-daily-90d-${client.id}`],
+    [`fb-daily-90d-v2-${client.id}`],
     { revalidate: 21600, tags: [`fb-insights-${client.id}`] }
   )
 
