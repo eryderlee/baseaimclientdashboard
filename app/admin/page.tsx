@@ -4,13 +4,12 @@ import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { UserPlus } from 'lucide-react'
-import { verifySession, getAllClientsWithMilestones, getAdminAnalytics, getAdminRevenueAnalytics, getAdminFbAggregation, getAdminFbPerClient, getAdminFbDailyAggregation } from '@/lib/dal'
+import { verifySession, getAllClientsWithMilestones, getAdminAnalytics, getAdminRevenueAnalytics, getAdminFbAggregation, getAdminFbPerClient } from '@/lib/dal'
 import { calculateOverallProgress } from '@/lib/utils/progress'
 import { detectClientRisk } from '@/lib/utils/risk-detection'
 import { AnalyticsSummary } from '@/components/admin/analytics-summary'
 import { ClientFilters } from '@/components/admin/client-filters'
 import { ClientAnalyticsTable } from '@/components/admin/client-analytics-table'
-import { AdminFbTrendChart } from '@/components/admin/admin-fb-trend-chart'
 import { Skeleton } from '@/components/ui/skeleton'
 
 async function getAdminData() {
@@ -78,32 +77,6 @@ async function getAdminData() {
   }
 }
 
-function AdminFbTrendSkeleton() {
-  return (
-    <Card>
-      <CardHeader>
-        <Skeleton className="h-5 w-64" />
-      </CardHeader>
-      <CardContent>
-        <Skeleton className="h-[300px] w-full rounded" />
-      </CardContent>
-    </Card>
-  )
-}
-
-async function AdminFbTrendSection() {
-  const trendData = await getAdminFbDailyAggregation()
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Ad Spend &amp; Leads Trend (30d)</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <AdminFbTrendChart data={trendData} />
-      </CardContent>
-    </Card>
-  )
-}
 
 export default async function AdminPage() {
   const { userRole } = await verifySession()
@@ -148,11 +121,6 @@ export default async function AdminPage() {
         totalFbLeads={adminData.fbAggregation.totalLeads}
         fbConfiguredClients={adminData.fbAggregation.configuredClients}
       />
-
-      {/* Aggregate FB Trend Chart */}
-      <Suspense fallback={<AdminFbTrendSkeleton />}>
-        <AdminFbTrendSection />
-      </Suspense>
 
       {/* Clients Table with Filters */}
       <Card>
