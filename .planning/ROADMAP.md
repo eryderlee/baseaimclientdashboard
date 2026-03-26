@@ -354,7 +354,7 @@ Plans:
 - [ ] 19-01-PLAN.md — Preview mode: httpOnly cookie mechanism, DAL patches for all client pages, banner component, route refactor
 - [ ] 19-02-PLAN.md — Status badge: derive setup completion from existing milestone data, badge in admin client table
 
-#### Phase 20: Home Page Charts + Bug Fixes
+#### Phase 20: Home Page Charts + Bug Fixes  ✅ COMPLETE
 **Goal**: Client home page displays spend and leads charts with a working date range selector that actually fetches fresh data
 **Depends on**: Phase 19
 **Requirements**: CHART-01, CHART-02, CHART-03, CHART-05, CHART-06
@@ -367,8 +367,9 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 20-01-PLAN.md — Bug fix: wire date range selectors on home page and campaign section to re-fetch API data; add leadsChartEnabled flag to Client model and admin toggle
-- [ ] 20-02-PLAN.md — Charts: daily spend chart, leads chart (conditional on flag), combined chart with legend on client home page
+- [x] 20-01-PLAN.md — Backend: leadsChartEnabled flag on Client model, admin toggle, DAL wiring
+- [x] 20-02-PLAN.md — Frontend: Ad Spend tab, Overview tab with toggle pills, calendar-date range filtering, pagination fix
+**Implementation note:** Plan 20-02 was re-scoped. Instead of replacing AnalyticsOverview with searchParams-driven SpendLeadsSection, we enhanced the existing tabbed chart with: Ad Spend + Overview tabs, series toggle pills, calendar-date filtering over full `maximum` dataset, and Facebook API pagination fix. Criteria 4-5 use client-side date filtering (accurate to Facebook's date windows) rather than per-range server re-fetch.
 
 #### Phase 21: ROAS + Analytics Tab Charts
 **Goal**: ROAS metric is visible on the client home page and all three charts appear on the analytics tab
