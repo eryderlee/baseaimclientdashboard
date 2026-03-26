@@ -25,6 +25,7 @@ import {
 // Shape of one day's FB data passed from the server
 interface FbDayData {
   date: string
+  rawDate: string
   impressions: number
   clicks: number
   spend: number
@@ -90,11 +91,11 @@ export function DashboardOverview({
 
   // Build chart series from real FB daily data, falling back to zeros if not configured
   const analytics = {
-    impressions: (fbDailyData ?? []).map((d) => ({ date: d.date, value: d.impressions })),
-    clicks: (fbDailyData ?? []).map((d) => ({ date: d.date, value: d.clicks })),
-    leads: (fbDailyData ?? []).map((d) => ({ date: d.date, value: d.leads })),
-    bookedCalls: (fbDailyData ?? []).map((d) => ({ date: d.date, value: d.bookedCalls })),
-    spend: (fbDailyData ?? []).map((d) => ({ date: d.date, value: d.spend })),
+    impressions: (fbDailyData ?? []).map((d) => ({ date: d.date, rawDate: d.rawDate, value: d.impressions })),
+    clicks: (fbDailyData ?? []).map((d) => ({ date: d.date, rawDate: d.rawDate, value: d.clicks })),
+    leads: (fbDailyData ?? []).map((d) => ({ date: d.date, rawDate: d.rawDate, value: d.leads })),
+    bookedCalls: (fbDailyData ?? []).map((d) => ({ date: d.date, rawDate: d.rawDate, value: d.bookedCalls })),
+    spend: (fbDailyData ?? []).map((d) => ({ date: d.date, rawDate: d.rawDate, value: d.spend })),
     totalAdSpend: (fbDailyData ?? []).reduce((sum, d) => sum + d.spend, 0),
   }
 

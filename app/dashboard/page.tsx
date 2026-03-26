@@ -16,6 +16,7 @@ export default async function DashboardPage() {
   // Transform daily FB insights into chart-ready format
   const fbDailyData = dailyInsights?.map((day) => ({
     date: new Date(day.date_start).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    rawDate: day.date_start, // "YYYY-MM-DD" — used for calendar-based range filtering
     impressions: parseFloat(day.impressions || '0'),
     clicks: parseFloat(day.clicks || '0'),
     spend: parseFloat(day.spend || '0'),

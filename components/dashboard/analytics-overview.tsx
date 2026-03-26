@@ -32,6 +32,7 @@ import { Button } from "@/components/ui/button"
 
 interface DailyMetric {
   date: string
+  rawDate: string   // ISO date e.g. "2026-03-20" — used for calendar-based filtering
   value: number
 }
 
@@ -71,7 +72,11 @@ const CHART_RANGES: { label: string; value: ChartRange }[] = [
 
 function sliceRange(data: DailyMetric[], range: ChartRange): DailyMetric[] {
   if (range === 'all') return data
-  return data.slice(-parseInt(range))
+  const days = parseInt(range)
+  const cutoff = new Date()
+  cutoff.setDate(cutoff.getDate() - days)
+  const cutoffStr = cutoff.toISOString().slice(0, 10) // "YYYY-MM-DD"
+  return data.filter((d) => d.rawDate >= cutoffStr)
 }
 
 export function AnalyticsOverview({
@@ -187,7 +192,7 @@ export function AnalyticsOverview({
             </CardDescription>
             {/* DEBUG — remove after verifying data */}
             <p className="text-xs text-red-500 mt-1">
-              DEBUG: {spendData.length} days total | range={chartRange} | sliced={rangedSpend.length} | sum=${rangeAdSpend.toFixed(2)} | first={spendData[0]?.date} last={spendData[spendData.length-1]?.date}
+              DEBUG: {spendData.length} days total | range={chartRange} | filtered={rangedSpend.length} | sum=${rangeAdSpend.toFixed(2)} | first={spendData[0]?.rawDate} last={spendData[spendData.length-1]?.rawDate}
             </p>
           </div>
           <Button
@@ -245,17 +250,22 @@ export function AnalyticsOverview({
               </CardHeader>
               <CardContent>
                 {(() => {
-                  // Merge all series by date — all arrays share the same dates
+                  // Merge all series by date — all arrays share the same dates/rawDates
                   const sliced = sliceRange(impressionsData, chartRange)
-                  const offset = impressionsData.length - sliced.length
-                  const combined = sliced.map((d, i) => ({
-                    date: d.date,
-                    Impressions: impressionsData[offset + i]?.value ?? 0,
-                    Clicks: clicksData[offset + i]?.value ?? 0,
-                    Leads: leadsData[offset + i]?.value ?? 0,
-                    'Booked Calls': bookedCallsData[offset + i]?.value ?? 0,
-                    'Ad Spend': spendData[offset + i]?.value ?? 0,
-                  }))
+                  const combined = sliced.map((d) => {
+                    const clickDay = clicksData.find((c) => c.rawDate === d.rawDate)
+                    const leadDay = leadsData.find((l) => l.rawDate === d.rawDate)
+                    const callDay = bookedCallsData.find((b) => b.rawDate === d.rawDate)
+                    const spendDay = spendData.find((s) => s.rawDate === d.rawDate)
+                    return {
+                      date: d.date,
+                      Impressions: d.value,
+                      Clicks: clickDay?.value ?? 0,
+                      Leads: leadDay?.value ?? 0,
+                      'Booked Calls': callDay?.value ?? 0,
+                      'Ad Spend': spendDay?.value ?? 0,
+                    }
+                  })
                   return (
                     <ResponsiveContainer width="100%" height={400}>
                       <LineChart data={combined}>
