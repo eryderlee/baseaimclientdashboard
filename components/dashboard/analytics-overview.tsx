@@ -185,6 +185,10 @@ export function AnalyticsOverview({
             <CardDescription>
               Track your advertising metrics and conversion rates over the last 30 days
             </CardDescription>
+            {/* DEBUG — remove after verifying data */}
+            <p className="text-xs text-red-500 mt-1">
+              DEBUG: {spendData.length} days total | range={chartRange} | sliced={rangedSpend.length} | sum=${rangeAdSpend.toFixed(2)} | first={spendData[0]?.date} last={spendData[spendData.length-1]?.date}
+            </p>
           </div>
           <Button
             onClick={() => setIsExpanded(!isExpanded)}
