@@ -73,10 +73,14 @@ const CHART_RANGES: { label: string; value: ChartRange }[] = [
 function sliceRange(data: DailyMetric[], range: ChartRange): DailyMetric[] {
   if (range === 'all') return data
   const days = parseInt(range)
+  // Facebook's date presets (last_7d, last_30d) count N days ending YESTERDAY.
+  // Match that: cutoff = today - days, and exclude today.
+  const today = new Date()
+  const todayStr = today.toISOString().slice(0, 10)
   const cutoff = new Date()
   cutoff.setDate(cutoff.getDate() - days)
-  const cutoffStr = cutoff.toISOString().slice(0, 10) // "YYYY-MM-DD"
-  return data.filter((d) => d.rawDate >= cutoffStr)
+  const cutoffStr = cutoff.toISOString().slice(0, 10)
+  return data.filter((d) => d.rawDate >= cutoffStr && d.rawDate < todayStr)
 }
 
 export function AnalyticsOverview({
