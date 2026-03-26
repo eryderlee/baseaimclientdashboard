@@ -1,9 +1,9 @@
-import { getMilestones, getChatSettings, getClientFbDailyInsights, getClientDashboardProfile, getCurrentUserName, getClientRecentDocuments, getRecentActivities } from "@/lib/dal"
-import { getActionValue } from "@/lib/facebook-ads"
+import { getMilestones, getChatSettings, getClientFbDailyInsights, getClientDashboardProfile, getCurrentUserName, getClientRecentDocuments, getRecentActivities, getClientFbInsights } from "@/lib/dal"
+import { getActionValue, getRoas } from "@/lib/facebook-ads"
 import { DashboardOverview } from "@/components/dashboard/dashboard-overview"
 
 export default async function DashboardPage() {
-  const [milestones, chatSettings, dailyInsights, client, userName, documents, activities] = await Promise.all([
+  const [milestones, chatSettings, dailyInsights, client, userName, documents, activities, fbInsights] = await Promise.all([
     getMilestones(),
     getChatSettings(),
     getClientFbDailyInsights(),
@@ -11,7 +11,10 @@ export default async function DashboardPage() {
     getCurrentUserName(),
     getClientRecentDocuments(),
     getRecentActivities(),
+    getClientFbInsights('last_30d'),
   ])
+
+  const roas = getRoas(fbInsights?.purchase_roas ?? undefined)
 
   // Transform daily FB insights into chart-ready format
   const fbDailyData = dailyInsights?.map((day) => ({
@@ -64,6 +67,7 @@ export default async function DashboardPage() {
       fbDailyData={fbDailyData}
       isFbConfigured={!!client?.adAccountId}
       leadsEnabled={client?.leadsChartEnabled ?? false}
+      roas={roas}
       documents={serializedDocuments}
       activities={serializedActivities}
     />

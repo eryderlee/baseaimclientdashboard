@@ -17,7 +17,7 @@ import {
   Globe,
 } from 'lucide-react'
 import { ExportButtons } from '@/app/dashboard/analytics/export-buttons'
-import { getActionValue } from '@/lib/facebook-ads'
+import { getActionValue, getRoas } from '@/lib/facebook-ads'
 import type { FbInsights, FbAction, FbCampaignInsight, FbPlatformRow } from '@/lib/facebook-ads'
 
 interface FbAdsMetricsProps {
@@ -138,6 +138,8 @@ export function FbAdsMetrics({
     )
   }
 
+  const roas = getRoas(insights?.purchase_roas)
+
   return (
     <div className="space-y-4">
       {/* Date Range Switcher */}
@@ -179,7 +181,7 @@ export function FbAdsMetrics({
           </CardContent>
         </Card>
       ) : (
-        /* State 3: Metrics grid — 12 cards */
+        /* State 3: Metrics grid — 12 cards + ROAS */
         <>
           <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {/* Card 1: Ad Spend */}
@@ -327,6 +329,20 @@ export function FbAdsMetrics({
                   {formatNumber(String(getActionValue(insights.actions, 'landing_page_view')))}
                 </div>
                 <p className="text-xs text-neutral-500 mt-1">Landing page loads (requires pixel)</p>
+              </CardContent>
+            </Card>
+
+            {/* Card 13: ROAS */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">ROAS</CardTitle>
+                <TrendingUp className="h-4 w-4 text-neutral-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {roas !== null ? `${roas.toFixed(2)}x` : '—'}
+                </div>
+                <p className="text-xs text-neutral-500 mt-1">Purchase revenue / ad spend</p>
               </CardContent>
             </Card>
           </div>
