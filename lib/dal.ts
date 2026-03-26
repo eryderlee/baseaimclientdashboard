@@ -12,10 +12,8 @@ import { stripe } from '@/lib/stripe'
 
 export const verifySession = cache(async () => {
   const session = await auth()
-  console.log('[verifySession] session:', session ? `userId=${session.user?.id} role=${session.user?.role}` : 'null')
 
   if (!session?.user?.id) {
-    console.log('[verifySession] no session — redirecting to /login')
     redirect('/login')
   }
 

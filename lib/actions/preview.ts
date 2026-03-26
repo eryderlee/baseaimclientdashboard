@@ -48,7 +48,6 @@ export async function enterPreview(clientId: string, returnTo?: string) {
   const cookieStore = await cookies()
   cookieStore.set('admin_preview_clientId', clientId, COOKIE_OPTS)
   cookieStore.set('admin_preview_return_to', safeReturnTo, COOKIE_OPTS)
-  console.log('[enterPreview] cookies set, clientId:', clientId, 'redirecting to /dashboard')
 
   redirect('/dashboard')
 }
