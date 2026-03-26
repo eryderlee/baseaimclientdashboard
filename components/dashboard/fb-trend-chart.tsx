@@ -35,9 +35,10 @@ function sliceByRange(data: TrendDataPoint[], range: Range): TrendDataPoint[] {
 
 interface FbTrendChartProps {
   data: TrendDataPoint[]
+  leadsEnabled?: boolean
 }
 
-export function FbTrendChart({ data }: FbTrendChartProps) {
+export function FbTrendChart({ data, leadsEnabled = true }: FbTrendChartProps) {
   const [range, setRange] = useState<Range>('30d')
   const visible = sliceByRange(data, range)
 
@@ -84,18 +85,20 @@ export function FbTrendChart({ data }: FbTrendChartProps) {
             tickLine={false}
             axisLine={false}
           />
-          <YAxis
-            yAxisId="leads"
-            orientation="right"
-            allowDecimals={false}
-            tick={{ fontSize: 12, fill: '#64748b' }}
-            tickLine={false}
-            axisLine={false}
-          />
+          {leadsEnabled && (
+            <YAxis
+              yAxisId="leads"
+              orientation="right"
+              allowDecimals={false}
+              tick={{ fontSize: 12, fill: '#64748b' }}
+              tickLine={false}
+              axisLine={false}
+            />
+          )}
           <Tooltip
             contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }}
           />
-          <Legend wrapperStyle={{ fontSize: 12 }} />
+          {leadsEnabled && <Legend wrapperStyle={{ fontSize: 12 }} />}
           <Bar
             yAxisId="spend"
             dataKey="spend"
@@ -104,14 +107,16 @@ export function FbTrendChart({ data }: FbTrendChartProps) {
             barSize={20}
             radius={[2, 2, 0, 0]}
           />
-          <Line
-            yAxisId="leads"
-            dataKey="leads"
-            stroke="#10b981"
-            dot={false}
-            name="Leads"
-            strokeWidth={2}
-          />
+          {leadsEnabled && (
+            <Line
+              yAxisId="leads"
+              dataKey="leads"
+              stroke="#10b981"
+              dot={false}
+              name="Leads"
+              strokeWidth={2}
+            />
+          )}
         </ComposedChart>
       </ResponsiveContainer>
     </div>
