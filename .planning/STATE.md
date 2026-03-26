@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-03-26)
 ## Current Position
 
 Phase: 21 — ROAS + Analytics Tab Charts
-Plan: 01 of 2 (ROAS API Field + Metric Cards)
-Status: In progress — Plan 01 complete 2026-03-27
-Last activity: 2026-03-27 — Completed 21-01-PLAN.md (purchase_roas field + getRoas helper + ROAS metric cards)
+Plan: 02 of 2 (Daily ROAS in FbTrendChart)
+Status: Phase complete — Plan 02 complete 2026-03-27
+Last activity: 2026-03-27 — Completed 21-02-PLAN.md (daily ROAS series in FbTrendChart)
 
-Progress: ████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ v1.1: 1/5 phases complete (Phase 20 done, Phase 21 Plan 01 done)
+Progress: █████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ v1.1: Phase 21 complete (Phase 20 done, Phase 21 done)
 
 ## Performance Metrics
 
@@ -362,6 +362,15 @@ Recent decisions affecting current work:
 - ROAS computed at server component level (page.tsx) via getClientFbInsights('last_30d') parallel fetch — no client-side waterfall
 - workflowHighlights grid updated to sm:grid-cols-2 lg:grid-cols-4 to accommodate 4th highlight card
 
+**Phase 21 - ROAS + Analytics Tab Charts (from 21-02):**
+- action_values added to DAILY_FIELDS — Facebook API returns purchase revenue per day (same FbAction[] shape as actions)
+- getActionValue reused for action_values without modification — same shape means no new extraction logic needed
+- Three fallback action_types in buildTrendData: offsite_conversion.fb_pixel_purchase → omni_purchase → purchase
+- Daily ROAS = purchaseValue / spend; guard: roas = 0 when spend = 0 (division by zero prevention)
+- ROAS YAxis hide={true} — independent scale without visual axis clutter; values visible in tooltip
+- Tooltip formatter omitted — avoids TypeScript Formatter<V,N> overload incompatibility (Phase 14 precedent)
+- Amber (#f59e0b) dashed (strokeDasharray="5 3") ROAS line distinguishes it from spend (blue) and leads (emerald)
+
 **Phase 20 - Home Page Charts + Bug Fixes (from 20-02):**
 - DateRangeSelector gets its own Suspense boundary — useSearchParams requires Suspense; must not block on FB API load
 - SpendLeadsSection co-located in page.tsx — consistent with Phase 16 FbAdsSection pattern (no new file)
@@ -372,9 +381,9 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-27
-Stopped at: Completed 21-01-PLAN.md — purchase_roas API field, getRoas helper, ROAS metric cards on home + analytics pages
+Stopped at: Completed 21-02-PLAN.md — daily ROAS series in FbTrendChart (Phase 21 complete)
 Resume file: None
-Next: 21-02-PLAN.md (Analytics Tab Charts)
+Next: Phase 22 (per roadmap)
 
 **Phase 13 - UI Polish (from 13-01):**
 - DashboardNav stays "use client" — all notification data fetched in layout server component, passed as serialized props
