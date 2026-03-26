@@ -10,16 +10,21 @@ function baseUrl(request: NextRequest): string {
 
 export async function GET(request: NextRequest) {
   const base = baseUrl(request)
+  console.log('[preview] GET', request.url, 'base:', base)
   const session = await auth()
+  console.log('[preview] role:', session?.user?.role ?? 'no session')
   if (session?.user?.role !== 'ADMIN') {
+    console.log('[preview] not admin, redirecting to /dashboard')
     return NextResponse.redirect(new URL('/dashboard', base))
   }
 
   const { searchParams } = new URL(request.url)
   const clientId = searchParams.get('clientId')
   const returnTo = searchParams.get('returnTo') || '/admin'
+  console.log('[preview] clientId:', clientId, 'returnTo:', returnTo)
 
   if (!clientId) {
+    console.log('[preview] no clientId, redirecting to /admin')
     return NextResponse.redirect(new URL('/admin', base))
   }
 
@@ -27,7 +32,9 @@ export async function GET(request: NextRequest) {
     where: { id: clientId },
     select: { id: true },
   })
+  console.log('[preview] client found:', !!client)
   if (!client) {
+    console.log('[preview] client not found, redirecting to /admin')
     return NextResponse.redirect(new URL('/admin', base))
   }
 
