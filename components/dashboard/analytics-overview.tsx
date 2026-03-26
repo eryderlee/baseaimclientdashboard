@@ -164,7 +164,7 @@ export function AnalyticsOverview({
   }
 
   const currentMetric = metrics[activeTab]
-  const Icon = currentMetric.icon
+  const Icon = currentMetric?.icon ?? LayoutDashboard
 
   return (
     <div className={cn(
