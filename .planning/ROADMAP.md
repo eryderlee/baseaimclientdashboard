@@ -382,8 +382,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 21-01-PLAN.md — ROAS: extend FB API fetch to include purchase_roas action value, add ROAS card to home page metrics
-- [ ] 21-02-PLAN.md — Analytics tab: render spend, leads, and combined charts; include ROAS in chart data series
+- [ ] 21-01-PLAN.md — ROAS: extend FB API with purchase_roas, getRoas helper, ROAS card on home page + analytics metrics
+- [ ] 21-02-PLAN.md — Daily ROAS in FbTrendChart: action_values in daily fetch, ROAS line series on analytics chart
 
 #### Phase 22: Ongoing Growth Roadmap
 **Goal**: Clients who have completed setup see an ongoing monthly review roadmap instead of setup phase cards, and admin can manage it
