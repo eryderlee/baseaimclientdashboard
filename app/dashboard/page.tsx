@@ -27,8 +27,8 @@ async function SpendLeadsSection({ dateRange }: { dateRange: DateRange }) {
     if (!isConfigured) return null
 
     const trendData = dailyTrend ? buildTrendData(dailyTrend) : []
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const leadsEnabled = (clientAdConfig as any)?.leadsChartEnabled ?? false
+    // leadsEnabled will be wired from DB once leadsChartEnabled migration is applied
+    const leadsEnabled = false
 
     return <FbTrendChart data={trendData} leadsEnabled={leadsEnabled} />
   } catch {

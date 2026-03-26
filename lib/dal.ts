@@ -296,7 +296,7 @@ export const getClientAdConfig = cache(async () => {
     if (!previewId) return null
     return prisma.client.findUnique({
       where: { id: previewId },
-      select: { id: true, adAccountId: true, leadsChartEnabled: true },
+      select: { id: true, adAccountId: true },
     })
   }
 
@@ -304,7 +304,7 @@ export const getClientAdConfig = cache(async () => {
 
   return prisma.client.findUnique({
     where: { userId },
-    select: { id: true, adAccountId: true, leadsChartEnabled: true },
+    select: { id: true, adAccountId: true },
   })
 })
 
