@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import {
   Table,
@@ -44,6 +44,7 @@ interface ClientAnalyticsTableProps {
 export function ClientAnalyticsTable({ clients }: ClientAnalyticsTableProps) {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const pathname = usePathname()
 
   const status = searchParams.get('status') || 'all'
   const sort = searchParams.get('sort') || 'name'
@@ -181,7 +182,7 @@ export function ClientAnalyticsTable({ clients }: ClientAnalyticsTableProps) {
             <TableCell>
               <div className="flex items-center gap-1">
                 <Button variant="outline" size="sm" asChild>
-                  <Link href={`/admin/preview/${client.id}`}>
+                  <Link href={`/admin/preview/${client.id}?returnTo=${encodeURIComponent(pathname)}`}>
                     <Eye className="h-3 w-3 mr-1" />
                     View
                   </Link>

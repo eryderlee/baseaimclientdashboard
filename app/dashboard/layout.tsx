@@ -1,4 +1,7 @@
+import { cookies } from 'next/headers'
 import { DashboardNav } from "@/components/dashboard/dashboard-nav"
+import { AdminPreviewBanner } from "@/components/dashboard/admin-preview-banner"
+import { exitPreview } from "@/lib/actions/preview"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
@@ -35,9 +38,24 @@ export default async function DashboardLayout({
     createdAt: n.createdAt.toISOString(),
   }))
 
+  // Preview mode: check for preview cookie when user is ADMIN
+  const cookieStore = await cookies()
+  const previewClientId = cookieStore.get('admin_preview_clientId')?.value
+
+  const previewClient =
+    previewClientId && session?.user?.role === 'ADMIN'
+      ? await prisma.client.findUnique({
+          where: { id: previewClientId },
+          select: { companyName: true },
+        })
+      : null
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-transparent">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(79,195,247,0.25),_transparent_60%)] blur-3xl opacity-70" />
+      {previewClient && (
+        <AdminPreviewBanner clientName={previewClient.companyName} exitAction={exitPreview} />
+      )}
       <DashboardNav user={user} notifications={notifications} />
       <main className="relative z-10 w-full px-4 py-8 md:px-8 lg:px-12 lg:py-12">
         {children}
