@@ -59,6 +59,57 @@ export const getMilestones = cache(async () => {
       title: true,
       description: true,
       status: true,
+      milestoneType: true,
+      progress: true,
+      startDate: true,
+      dueDate: true,
+      completedAt: true,
+      notes: true,
+      order: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  })
+})
+
+export const getSetupMilestones = cache(async () => {
+  const clientId = await getCurrentClientId()
+
+  return await prisma.milestone.findMany({
+    where: clientId ? { clientId, milestoneType: 'SETUP' } : { milestoneType: 'SETUP' },
+    orderBy: { order: 'asc' },
+    select: {
+      id: true,
+      clientId: true,
+      title: true,
+      description: true,
+      status: true,
+      milestoneType: true,
+      progress: true,
+      startDate: true,
+      dueDate: true,
+      completedAt: true,
+      notes: true,
+      order: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  })
+})
+
+export const getGrowthMilestones = cache(async () => {
+  const clientId = await getCurrentClientId()
+
+  return await prisma.milestone.findMany({
+    where: clientId ? { clientId, milestoneType: 'GROWTH' } : { milestoneType: 'GROWTH' },
+    orderBy: { order: 'asc' },
+    select: {
+      id: true,
+      clientId: true,
+      title: true,
+      description: true,
+      status: true,
+      milestoneType: true,
       progress: true,
       startDate: true,
       dueDate: true,
@@ -107,6 +158,7 @@ export const getAllClientsWithMilestones = cache(async () => {
           clientId: true,
           title: true,
           status: true,
+          milestoneType: true,
           progress: true,
           startDate: true,
           dueDate: true,

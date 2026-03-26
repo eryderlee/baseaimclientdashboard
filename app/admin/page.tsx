@@ -33,7 +33,7 @@ async function getAdminData() {
     const nextDueDate = upcomingMilestones[0]?.dueDate || null
 
     const fbData = fbPerClient[client.id]
-    const setupMilestones = client.milestones.filter((m) => m.order <= 6)
+    const setupMilestones = client.milestones.filter((m) => m.milestoneType === 'SETUP')
     const setupComplete =
       setupMilestones.length >= 6 &&
       setupMilestones.every((m) => m.status === 'COMPLETED')

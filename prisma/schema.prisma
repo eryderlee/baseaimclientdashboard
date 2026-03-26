@@ -38,6 +38,11 @@ enum MilestoneStatus {
   BLOCKED
 }
 
+enum MilestoneType {
+  SETUP
+  GROWTH
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
@@ -162,8 +167,9 @@ model Milestone {
   clientId    String
   title       String
   description String?
-  status      MilestoneStatus @default(NOT_STARTED)
-  startDate   DateTime?
+  status        MilestoneStatus @default(NOT_STARTED)
+  milestoneType MilestoneType   @default(SETUP)
+  startDate     DateTime?
   dueDate     DateTime?
   completedAt DateTime?
   progress    Int             @default(0)

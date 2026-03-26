@@ -91,6 +91,7 @@ export async function seedStandardMilestones(clientId: string) {
           description: milestone.description,
           order: milestone.order,
           status: milestone.status,
+          milestoneType: 'SETUP',
           progress: milestone.progress,
           dueDate: milestone.dueDate,
           notes: milestone.notes,
