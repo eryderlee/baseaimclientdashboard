@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-15)
 
 **Core value:** Clients can see exactly where their project stands without having to ask
-**Current focus:** Phase 17 - VPS Self-Hosting Migration
+**Current focus:** Phase 18 - Complete Analytics Page on the Admin Dashboard
 
 ## Current Position
 
-Phase: 17 of 17 (VPS Self-Hosting Migration) — In progress
-Plan: 2 of 4
+Phase: 18 of 18 (Complete Analytics Page on the Admin Dashboard) — In progress
+Plan: 1 of 2
 Status: In progress
-Last activity: 2026-03-16 — Completed 17-02-PLAN.md: GitHub Actions CI/CD pipeline
+Last activity: 2026-03-26 — Completed 18-01-PLAN.md: Admin FB DAL functions and loading skeleton
 
-Progress: [██████████████████████████████████████░░] Phase 17: 2/4 plans complete
+Progress: [██████████████████████████████████████░░] Phase 18: 1/2 plans complete
 
 ## Performance Metrics
 
@@ -109,6 +109,10 @@ Recent decisions affecting current work:
 - Zero Blob files existed (BLOB_READ_WRITE_TOKEN was always empty) — Phase 9 migration was purely Drive folder provisioning
 - Migration script uses inline Drive client to bypass server-only module import restrictions
 - @vercel/blob fully removed; no rollback path needed
+
+### Roadmap Evolution
+
+- Phase 18 added (2026-03-26): Complete analytics page on the admin dashboard
 
 ### Pending Todos
 
@@ -263,6 +267,11 @@ Recent decisions affecting current work:
 - getClientAnalytics() uses select (not include) on documents/milestones/activities — fetch only needed fields for analytics computation
 - Dashboard home getCurrentUserName() reads from DB not session — DB is source of truth for display name
 
+**Phase 18 - Admin FB DAL (from 18-01):**
+- getAdminFbPerClient: loop counter (not extracted ID) to correlate Promise.allSettled results with client list — allSettled preserves index order
+- getAdminFbDailyAggregation: Map<date, accumulator> pattern for multi-source date merging, then sort entries → array
+- Admin FB functions query prisma.client.findMany({ where: { adAccountId: { not: null } } }) before cache boundary, pass accessToken into closure
+
 **Phase 16 - Suspense Streaming (from 16-03):**
 - Non-async page component reads searchParams then passes dateRange as prop to FbAdsSection — avoids blocking streaming
 - FbAdsSection and ProjectMetricsSection async components co-located in page.tsx — per-section Suspense pattern
@@ -301,10 +310,10 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-16
-Stopped at: Completed 17-02-PLAN.md — GitHub Actions CI/CD pipeline
+Last session: 2026-03-26
+Stopped at: Completed 18-01-PLAN.md — Admin FB DAL functions and loading skeleton
 Resume file: None
-Next: 17-03 (VPS provisioning scripts) and 17-04 (Nginx + SSL + monitoring)
+Next: 18-02 (wire FB columns into admin table, render aggregate trend chart)
 
 **Phase 13 - UI Polish (from 13-01):**
 - DashboardNav stays "use client" — all notification data fetched in layout server component, passed as serialized props
