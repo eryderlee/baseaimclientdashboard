@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-03-26)
 ## Current Position
 
 Phase: 20 — Home Page Charts + Bug Fixes
-Plan: 01 of 2 (leadsChartEnabled Flag + Parameterized Daily Trend DAL)
-Status: In progress
-Last activity: 2026-03-26 — Completed 20-01-PLAN.md
+Plan: 02 of 2 (Home Page Chart Rendering)
+Status: Phase complete
+Last activity: 2026-03-26 — Completed 20-02-PLAN.md
 
-Progress: ████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ v1.1: 1/5 phases complete
+Progress: ████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ v1.1: 1/5 phases complete (Phase 20 done)
 
 ## Performance Metrics
 
@@ -355,12 +355,19 @@ Recent decisions affecting current work:
 - Boolean leadsChartEnabled serialized explicitly as String('true'/'false') in FormData — bypasses generic truthy guard in onSubmit loop
 - db push unavailable (Supabase unreachable) — prisma validate + prisma generate confirmed schema valid; push deferred
 
+**Phase 20 - Home Page Charts + Bug Fixes (from 20-02):**
+- DateRangeSelector gets its own Suspense boundary — useSearchParams requires Suspense; must not block on FB API load
+- SpendLeadsSection co-located in page.tsx — consistent with Phase 16 FbAdsSection pattern (no new file)
+- leadsEnabled defaults to true in FbTrendChart — backward compat with analytics/page.tsx (which calls FbTrendChart without prop)
+- CHART-05/06 fixed: searchParam-driven re-fetch replaces broken client-side AnalyticsOverview
+- AnalyticsOverview fully removed from DashboardOverview (import, props fbDailyData/isFbConfigured, heroStats grid, render)
+
 ## Session Continuity
 
 Last session: 2026-03-26
-Stopped at: Completed 20-01-PLAN.md — leadsChartEnabled flag + parameterized daily trend DAL
+Stopped at: Completed 20-02-PLAN.md — home page chart rendering with searchParams + SpendLeadsSection
 Resume file: None
-Next: Execute 20-02 — Home page chart rendering using leadsChartEnabled and getClientFbDailyTrendByRange
+Next: Phase 21+ (v1.1 Dashboard Improvements) — pending npx prisma db push when Supabase reachable
 
 **Phase 13 - UI Polish (from 13-01):**
 - DashboardNav stays "use client" — all notification data fetched in layout server component, passed as serialized props
