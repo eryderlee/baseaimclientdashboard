@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-03-26)
 ## Current Position
 
 Phase: 19 — Admin Preview + Status Badge
-Plan: 02 of 02
+Plan: 01 of 02 (plan 01 complete)
 Status: In progress
-Last activity: 2026-03-26 — Completed 19-02-PLAN.md (Setup Status Badge)
+Last activity: 2026-03-26 — Completed 19-01-PLAN.md (Admin Preview Mode)
 
 Progress: █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ v1.1: 1/10 plans complete
 
@@ -281,6 +281,15 @@ Recent decisions affecting current work:
 - FB columns use hidden md:table-cell — prevents horizontal overflow on mobile without breaking existing table structure
 - Inline Suspense fallback JSX for filter/table skeletons — shapes are simple enough to express inline without dedicated skeleton files
 
+**Phase 19 - Admin Preview Mode (from 19-01):**
+- httpOnly cookie approach for admin preview: admin_preview_clientId + admin_preview_return_to cookies, no DB state
+- getCurrentClientId is the single preview hook — ADMIN + preview cookie returns preview clientId before returning null
+- getClientAdConfig patched to return preview client's ad config when ADMIN + cookie set; no cookie returns null (no throw)
+- FB DAL functions: throw changed to return null/[] for non-CLIENT/non-ADMIN roles — allows ADMIN-in-preview to flow through getClientAdConfig
+- AdminPreviewBanner uses form action pattern (exitPreview Server Action as prop) — progressive enhancement, no client JS required
+- exitPreview validates returnTo.startsWith('/') — prevents open redirect
+- documents/page.tsx: refactored to use getCurrentClientId instead of direct auth() + prisma.user
+
 **Phase 19 - Admin Setup Status Badge (from 19-02):**
 - setupComplete derived at page level from getAllClientsWithMilestones — no new DB query
 - setupMilestones.length >= 6 guard before .every() — prevents vacuous truth on clients with < 6 milestones
@@ -330,9 +339,9 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-26
-Stopped at: Completed 19-02-PLAN.md — Setup Status Badge added to admin client table
+Stopped at: Completed 19-01-PLAN.md — Admin Preview Mode with cookie impersonation
 Resume file: None
-Next: Phase 19 complete if 19-01 also done; otherwise run plan 01 of Phase 19
+Next: Phase 19 plan 02 (Status Badge) — or Phase 19 complete if plan 02 already done
 
 **Phase 13 - UI Polish (from 13-01):**
 - DashboardNav stays "use client" — all notification data fetched in layout server component, passed as serialized props
