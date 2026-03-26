@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-03-26)
 ## Current Position
 
 Phase: 22 — Ongoing Growth Roadmap
-Plan: 02 of 3 (Admin UI)
-Status: In progress — Plan 02 complete 2026-03-27
-Last activity: 2026-03-27 — Completed 22-02-PLAN.md (Growth Milestones section in MilestoneEditTable, admin add/remove UI)
+Plan: 03 of 3 (Client UI)
+Status: Phase complete — All 3 plans done 2026-03-27
+Last activity: 2026-03-27 — Completed 22-03-PLAN.md (GrowthRoadmap component, conditional rendering in DashboardOverview, typed milestone fetches)
 
-Progress: ██████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ v1.1: Phase 20+21 done, Phase 22 Plans 01+02 done
+Progress: ████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░ v1.1: Phases 20+21+22 done
 
 ## Performance Metrics
 
@@ -355,6 +355,12 @@ Recent decisions affecting current work:
 - Boolean leadsChartEnabled serialized explicitly as String('true'/'false') in FormData — bypasses generic truthy guard in onSubmit loop
 - db push unavailable (Supabase unreachable) — prisma validate + prisma generate confirmed schema valid; push deferred
 
+**Phase 22 - Ongoing Growth Roadmap (from 22-03):**
+- setupComplete computed server-side in page.tsx (length >= 6 && all COMPLETED), passed as boolean prop to DashboardOverview — keeps client component dumb
+- serializeMilestone helper extracted in page.tsx to apply identical Date→ISO serialization to both setup and growth arrays
+- GrowthRoadmap uses grid layout (grid-cols-2 sm:grid-cols-3 lg:grid-cols-4) not horizontal scroll — 12 monthly cards too many for single scroll row
+- DashboardOverview Growth Roadmap section wrapped in {setupComplete ? <growth> : <setup>} conditional — setup view preserved exactly
+
 **Phase 22 - Ongoing Growth Roadmap (from 22-01):**
 - MilestoneType enum (SETUP | GROWTH) added to Prisma schema — single table discriminator, not separate model
 - milestoneType field @default(SETUP) — all existing milestones are automatically SETUP with no data loss
@@ -400,9 +406,9 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-27
-Stopped at: Completed 22-02-PLAN.md — Growth Milestones admin UI wired to server actions
+Stopped at: Completed 22-03-PLAN.md — Phase 22 complete, all 3 plans done
 Resume file: None
-Next: 22-03-PLAN.md (Client-facing growth roadmap view)
+Next: Phase 23 or next milestone as planned
 
 **Phase 13 - UI Polish (from 13-01):**
 - DashboardNav stays "use client" — all notification data fetched in layout server component, passed as serialized props
