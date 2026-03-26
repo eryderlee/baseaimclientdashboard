@@ -15,6 +15,7 @@ export const verifySession = cache(async () => {
   console.log('[verifySession] session:', session ? `userId=${session.user?.id} role=${session.user?.role}` : 'null')
 
   if (!session?.user?.id) {
+    console.log('[verifySession] no session — redirecting to /login')
     redirect('/login')
   }
 
