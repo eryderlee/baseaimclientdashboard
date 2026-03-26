@@ -16,19 +16,24 @@ function rangToDatePreset(range: DateRange): DatePreset {
 // ─── Async section: Spend & Leads chart (slow — Facebook API with 6h TTL cache) ─
 
 async function SpendLeadsSection({ dateRange }: { dateRange: DateRange }) {
-  const datePreset = rangToDatePreset(dateRange)
-  const [dailyTrend, clientAdConfig] = await Promise.all([
-    getClientFbDailyTrendByRange(datePreset),
-    getClientAdConfig(),
-  ])
+  try {
+    const datePreset = rangToDatePreset(dateRange)
+    const [dailyTrend, clientAdConfig] = await Promise.all([
+      getClientFbDailyTrendByRange(datePreset),
+      getClientAdConfig(),
+    ])
 
-  const isConfigured = !!clientAdConfig?.adAccountId
-  if (!isConfigured) return null
+    const isConfigured = !!clientAdConfig?.adAccountId
+    if (!isConfigured) return null
 
-  const trendData = dailyTrend ? buildTrendData(dailyTrend) : []
-  const leadsEnabled = clientAdConfig?.leadsChartEnabled ?? false
+    const trendData = dailyTrend ? buildTrendData(dailyTrend) : []
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const leadsEnabled = (clientAdConfig as any)?.leadsChartEnabled ?? false
 
-  return <FbTrendChart data={trendData} leadsEnabled={leadsEnabled} />
+    return <FbTrendChart data={trendData} leadsEnabled={leadsEnabled} />
+  } catch {
+    return null
+  }
 }
 
 function SpendLeadsSkeleton() {

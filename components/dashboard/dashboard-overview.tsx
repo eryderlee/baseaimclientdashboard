@@ -229,6 +229,34 @@ export function DashboardOverview({
               </Button>
             </div>
           </div>
+
+          <div className="grid flex-1 gap-4 sm:grid-cols-2 mt-6 lg:mt-0 lg:ml-6">
+            {[
+              { label: "Qualified Calls (30d)", value: "—", caption: "Booked calls logged in Baseaim" },
+              { label: "Leads → Calls", value: "—", caption: "Conversion rate across funnels" },
+              { label: "Avg CPA", value: "—", caption: "Media efficiency" },
+              { label: "Cost / Booked Call", value: "—", caption: "Goal: <$450 per consultation" },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="relative overflow-hidden rounded-2xl border border-white/70 bg-gradient-to-br from-white via-white/90 to-slate-50 p-5 text-slate-700 shadow-[0_28px_90px_rgba(15,23,42,0.2)] ring-1 ring-white/70 transition-all duration-200 hover:shadow-lg dark:border-slate-800/60 dark:bg-slate-900/70 dark:ring-slate-800/70"
+              >
+                <div className="pointer-events-none absolute inset-0 -z-10 opacity-[0.45]" aria-hidden="true">
+                  <div className="absolute inset-y-0 left-[-10%] w-2/3 bg-gradient-to-br from-primary/25 via-sky-200/35 to-transparent blur-3xl" />
+                  <div className="absolute inset-y-0 right-[-5%] w-1/2 bg-gradient-to-br from-cyan-200/35 via-white/40 to-transparent blur-3xl" />
+                </div>
+                <div className="relative">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
+                    {item.label}
+                  </p>
+                  <p className="mt-3 text-3xl font-heading text-slate-900 dark:text-white">
+                    {item.value}
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{item.caption}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
