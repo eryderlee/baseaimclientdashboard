@@ -3,33 +3,27 @@ import { Suspense } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { UserPlus } from 'lucide-react'
-import { verifySession, getAllClientsWithMilestones, getAdminAnalytics, getAdminRevenueAnalytics, getAdminFbAggregation, getAdminFbPerClient } from '@/lib/dal'
+import { UserPlus, Calendar } from 'lucide-react'
+import { verifySession, getAllClientsWithMilestones, getAdminAnalytics, getAdminFbPerClient } from '@/lib/dal'
 import { calculateOverallProgress } from '@/lib/utils/progress'
 import { detectClientRisk } from '@/lib/utils/risk-detection'
-import { AnalyticsSummary } from '@/components/admin/analytics-summary'
 import { ClientFilters } from '@/components/admin/client-filters'
 import { ClientAnalyticsTable } from '@/components/admin/client-analytics-table'
 import { Skeleton } from '@/components/ui/skeleton'
 
 async function getAdminData() {
-  // Fetch all data in parallel — cached DAL functions deduplicate internal calls
-  const [analytics, clients, revenue, fbAggregation, fbPerClient] = await Promise.all([
+  const [analytics, clients, fbPerClient] = await Promise.all([
     getAdminAnalytics(),
     getAllClientsWithMilestones(),
-    getAdminRevenueAnalytics(),
-    getAdminFbAggregation(),
     getAdminFbPerClient(),
   ])
 
-  // Process each client to prepare data for analytics table
   const processedClients = clients.map((client) => {
     const overallProgress = calculateOverallProgress(client.milestones)
     const completedMilestones = client.milestones.filter((m) => m.status === 'COMPLETED').length
     const totalMilestones = client.milestones.length
     const risk = detectClientRisk(client)
 
-    // Find next due date (earliest non-COMPLETED milestone)
     const upcomingMilestones = client.milestones
       .filter((m) => m.status !== 'COMPLETED' && m.dueDate)
       .sort((a, b) => {
@@ -59,44 +53,31 @@ async function getAdminData() {
     }
   })
 
-  // Serialize upcoming due dates for AnalyticsSummary
   const upcomingDueDates = analytics.upcomingDueDates.map((item) => ({
     clientName: item.clientName,
     milestoneTitle: item.milestoneTitle,
     dueDate: item.dueDate.toISOString(),
   }))
 
-  return {
-    analytics: {
-      ...analytics,
-      upcomingDueDates,
-    },
-    clients: processedClients,
-    revenue,
-    fbAggregation,
-  }
+  return { clients: processedClients, upcomingDueDates }
 }
-
 
 export default async function AdminPage() {
   const { userRole } = await verifySession()
 
-  // Check if user is admin
   if (userRole !== 'ADMIN') {
     redirect('/dashboard')
   }
 
-  const adminData = await getAdminData()
+  const { clients, upcomingDueDates } = await getAdminData()
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-          <p className="text-neutral-500 mt-1">
-            Manage all clients and monitor platform activity
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight">Clients</h1>
+          <p className="text-neutral-500 mt-1">Manage all client accounts</p>
         </div>
         <Button asChild>
           <Link href="/admin/clients/new">
@@ -106,29 +87,46 @@ export default async function AdminPage() {
         </Button>
       </div>
 
-      {/* Analytics Summary */}
-      <AnalyticsSummary
-        totalClients={adminData.analytics.totalClients}
-        activeClients={adminData.analytics.activeClients}
-        averageProgress={adminData.analytics.averageProgress}
-        atRiskClients={adminData.analytics.atRiskClients}
-        upcomingDueDates={adminData.analytics.upcomingDueDates}
-        totalRevenue={adminData.revenue.totalRevenue}
-        mrr={adminData.revenue.mrr}
-        payingClientCount={adminData.revenue.payingClientCount}
-        activeSubscriptionCount={adminData.revenue.activeSubscriptionCount}
-        totalFbSpend={adminData.fbAggregation.totalSpend}
-        totalFbLeads={adminData.fbAggregation.totalLeads}
-        fbConfiguredClients={adminData.fbAggregation.configuredClients}
-      />
+      {/* Upcoming Milestones */}
+      {upcomingDueDates.length > 0 && (
+        <Card>
+          <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-3">
+            <Calendar className="h-4 w-4 text-neutral-500" />
+            <CardTitle className="text-base">Upcoming Milestones</CardTitle>
+            <span className="ml-auto text-xs text-neutral-400">Next 7 days</span>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {upcomingDueDates.map((item, index) => {
+                const date = new Date(item.dueDate)
+                const formatted = new Intl.DateTimeFormat('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                }).format(date)
+                return (
+                  <div
+                    key={index}
+                    className="flex items-start justify-between border-b pb-2 last:border-0 last:pb-0"
+                  >
+                    <div>
+                      <p className="text-sm font-medium">{item.milestoneTitle}</p>
+                      <p className="text-xs text-neutral-500">{item.clientName}</p>
+                    </div>
+                    <p className="text-sm text-neutral-500 shrink-0 ml-4">{formatted}</p>
+                  </div>
+                )
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Clients Table with Filters */}
+      {/* All Clients */}
       <Card>
         <CardHeader>
           <CardTitle>All Clients</CardTitle>
-          <CardDescription>
-            Filter, sort, and manage all client accounts
-          </CardDescription>
+          <CardDescription>Filter, sort, and manage all client accounts</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Suspense
@@ -154,7 +152,7 @@ export default async function AdminPage() {
               </div>
             }
           >
-            <ClientAnalyticsTable clients={adminData.clients} />
+            <ClientAnalyticsTable clients={clients} />
           </Suspense>
         </CardContent>
       </Card>
