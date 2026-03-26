@@ -6,7 +6,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { calculateOverallProgress } from '@/lib/utils/progress'
 import { detectClientRisk } from '@/lib/utils/risk-detection'
-import { fetchFacebookInsights, fetchFacebookDailyInsights, fetchFacebookCampaignInsights, fetchFacebookPlatformBreakdown, getActionValue, type DatePreset, type FbCampaignInsight, type FbPlatformRow, type FbDailyInsight } from '@/lib/facebook-ads'
+import { fetchFacebookInsights, fetchFacebookDailyInsights, fetchFacebookCampaignInsights, fetchFacebookPlatformBreakdown, fetchFacebookAdInsights, getActionValue, type DatePreset, type FbCampaignInsight, type FbPlatformRow, type FbDailyInsight } from '@/lib/facebook-ads'
 import { stripe } from '@/lib/stripe'
 
 export const verifySession = cache(async () => {
@@ -1079,6 +1079,78 @@ export const getAdminAllCampaigns = cache(async (): Promise<Array<{
       return campaigns.sort((a, b) => b.spend - a.spend)
     },
     ['admin-all-campaigns-v1'],
+    { revalidate: 21600 }
+  )()
+
+  return result
+})
+
+/**
+ * Fetch top 5 individual ads per client across all configured ad accounts.
+ * Returns a flat list sorted by spend descending.
+ *
+ * verifySession() called BEFORE unstable_cache boundary.
+ * ADMIN role only.
+ */
+export const getAdminAllAds = cache(async (): Promise<Array<{
+  clientId: string
+  clientName: string
+  ad_id: string
+  ad_name: string
+  campaign_name: string
+  spend: number
+  leads: number
+  impressions: number
+  clicks: number
+  ctr: number
+}>> => {
+  const { userRole } = await verifySession()
+  if (userRole !== 'ADMIN') throw new Error('Unauthorized: Admin access required')
+
+  const settings = await getSettings()
+  if (!settings?.facebookAccessToken) return []
+
+  const clients = await prisma.client.findMany({
+    where: { adAccountId: { not: null } },
+    select: { id: true, adAccountId: true, companyName: true },
+  })
+  if (clients.length === 0) return []
+
+  const accessToken = settings.facebookAccessToken
+
+  const result = await unstable_cache(
+    async () => {
+      const results = await Promise.allSettled(
+        clients.map(c => fetchFacebookAdInsights(c.adAccountId!, 'last_30d', accessToken))
+      )
+      const ads: Array<{
+        clientId: string; clientName: string; ad_id: string; ad_name: string
+        campaign_name: string; spend: number; leads: number
+        impressions: number; clicks: number; ctr: number
+      }> = []
+      results.forEach((r, i) => {
+        if (r.status === 'fulfilled') {
+          r.value.forEach(ad => {
+            const clicks = parseFloat(ad.clicks || '0')
+            const impressions = parseFloat(ad.impressions || '0')
+            ads.push({
+              clientId: clients[i].id,
+              clientName: clients[i].companyName,
+              ad_id: ad.ad_id,
+              ad_name: ad.ad_name,
+              campaign_name: ad.campaign_name,
+              spend: parseFloat(ad.spend || '0'),
+              leads: getActionValue(ad.actions, 'lead'),
+              impressions,
+              clicks,
+              ctr: impressions > 0 ? (clicks / impressions) * 100 : 0,
+            })
+          })
+        }
+      })
+      return ads.sort((a, b) => b.spend - a.spend)
+    },
+    ['admin-all-ads-v1'],
     { revalidate: 21600 }
   )()
 

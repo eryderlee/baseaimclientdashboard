@@ -50,6 +50,19 @@ export interface FbCampaignInsight {
   date_stop: string
 }
 
+export interface FbAdInsight {
+  ad_id: string
+  ad_name: string
+  campaign_name: string
+  spend: string
+  impressions: string
+  clicks: string
+  reach: string
+  actions?: FbAction[]
+  date_start: string
+  date_stop: string
+}
+
 export interface FbPlatformRow {
   publisher_platform: string
   impressions: string
@@ -256,6 +269,44 @@ export interface TrendDataPoint {
   date: string
   spend: number
   leads: number
+}
+
+/**
+ * Fetch top 5 individual ads sorted by spend (descending).
+ * Returns ad-level breakdown for the given date preset.
+ * Returns empty array on API error or when no ad data exists.
+ */
+export async function fetchFacebookAdInsights(
+  adAccountId: string,
+  datePreset: DatePreset,
+  accessToken: string
+): Promise<FbAdInsight[]> {
+  const url = new URL(
+    `https://graph.facebook.com/${GRAPH_API_VERSION}/${adAccountId}/insights`
+  )
+  url.searchParams.set('fields', 'ad_id,ad_name,campaign_name,spend,impressions,clicks,reach,actions')
+  url.searchParams.set('date_preset', datePreset)
+  url.searchParams.set('level', 'ad')
+  url.searchParams.set('sort', 'spend_descending')
+  url.searchParams.set('limit', '5')
+  url.searchParams.set('access_token', accessToken)
+
+  let res: Response
+  try {
+    res = await fetch(url.toString(), { cache: 'no-store' })
+  } catch (err) {
+    console.error('[facebook-ads] Network error fetching ad insights:', err)
+    return []
+  }
+
+  const json = await res.json()
+
+  if (!res.ok) {
+    console.error('[facebook-ads] API error (ads):', json.error ?? json)
+    return []
+  }
+
+  return (json.data as FbAdInsight[]) ?? []
 }
 
 export function buildTrendData(daily: FbDailyInsight[]): TrendDataPoint[] {

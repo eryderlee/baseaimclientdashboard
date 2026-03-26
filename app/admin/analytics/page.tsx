@@ -10,11 +10,13 @@ import {
   getAdminFbDailyAggregation,
   getAdminFbMetricsPerClient,
   getAdminAllCampaigns,
+  getAdminAllAds,
   getAllClientsWithMilestones,
 } from '@/lib/dal'
 import { AdminFbTrendChart } from '@/components/admin/admin-fb-trend-chart'
 import { AdminClientFbTable } from '@/components/admin/admin-client-fb-table'
 import { AdminCampaignsTable } from '@/components/admin/admin-campaigns-table'
+import { AdminAdsTable } from '@/components/admin/admin-ads-table'
 import { detectClientRisk } from '@/lib/utils/risk-detection'
 import { Users, DollarSign, TrendingUp, Megaphone, Target, AlertTriangle, Calendar } from 'lucide-react'
 
@@ -71,13 +73,14 @@ export default async function AdminAnalyticsPage() {
   }
 
   // Fetch all data in parallel
-  const [analytics, revenue, fbAggregation, fbMetricsPerClient, allCampaigns, allClients] =
+  const [analytics, revenue, fbAggregation, fbMetricsPerClient, allCampaigns, allAds, allClients] =
     await Promise.all([
       getAdminAnalytics(),
       getAdminRevenueAnalytics(),
       getAdminFbAggregation(),
       getAdminFbMetricsPerClient(),
       getAdminAllCampaigns(),
+      getAdminAllAds(),
       getAllClientsWithMilestones(),
     ])
 
@@ -112,6 +115,12 @@ export default async function AdminAnalyticsPage() {
   const campaignRows = allCampaigns.map((c) => ({
     ...c,
     cpl: c.leads > 0 ? c.spend / c.leads : 0,
+  }))
+
+  // Build ad rows with CPL
+  const adRows = allAds.map((a) => ({
+    ...a,
+    cpl: a.leads > 0 ? a.spend / a.leads : 0,
   }))
 
   // Build at-risk clients list (top 5 by severity)
@@ -253,12 +262,23 @@ export default async function AdminAnalyticsPage() {
         </CardContent>
       </Card>
 
-      {/* ── Section 4: Trend Chart (streamed) ── */}
+      {/* ── Section 4: Individual Ad Performance ── */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Individual Ad Performance</CardTitle>
+          <CardDescription>Top 5 ads per client by spend — last 30 days</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AdminAdsTable rows={adRows} />
+        </CardContent>
+      </Card>
+
+      {/* ── Section 5: Trend Chart (streamed) ── */}
       <Suspense fallback={<TrendChartSkeleton />}>
         <TrendChartSection />
       </Suspense>
 
-      {/* ── Section 5: Project Health ── */}
+      {/* ── Section 6: Project Health ── */}
       <div className="grid gap-6 md:grid-cols-2">
 
         {/* At-Risk Clients */}
