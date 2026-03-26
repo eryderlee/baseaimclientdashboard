@@ -2,10 +2,10 @@ module.exports = {
   apps: [
     {
       name: 'baseaim-dashboard',
-      script: '.next/standalone/server.js',
+      script: '/var/www/dashboard/start.sh',
       cwd: '/var/www/dashboard',
-      instances: 'max',
-      exec_mode: 'cluster',
+      instances: 1,
+      exec_mode: 'fork',
       env_production: {
         NODE_ENV: 'production',
         PORT: 3000,
