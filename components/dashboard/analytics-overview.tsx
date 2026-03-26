@@ -4,15 +4,12 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import {
-  ComposedChart,
   LineChart,
   Line,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from "recharts"
 import {
@@ -21,7 +18,6 @@ import {
   Users,
   Phone,
   TrendingUp,
-  TrendingDown,
   DollarSign,
   LayoutDashboard,
   Maximize2,
@@ -57,6 +53,7 @@ interface AnalyticsOverviewProps {
   bookedCallsData: DailyMetric[]
   spendData: DailyMetric[]
   totalAdSpend: number
+  leadsEnabled: boolean
   isExpanded: boolean
   setIsExpanded: (expanded: boolean) => void
 }
@@ -70,8 +67,16 @@ const CHART_RANGES: { label: string; value: ChartRange }[] = [
   { label: 'All', value: 'all' },
 ]
 
+// Series definitions for the Overview chart — order and colors match the metrics object
+const ALL_SERIES = [
+  { key: 'Impressions', color: '#3b82f6', leadsOnly: false },
+  { key: 'Clicks', color: '#22c55e', leadsOnly: false },
+  { key: 'Leads', color: '#a855f7', leadsOnly: true },
+  { key: 'Booked Calls', color: '#f97316', leadsOnly: true },
+  { key: 'Ad Spend', color: '#10b981', leadsOnly: false },
+] as const
+
 function toLocalDateStr(d: Date): string {
-  // Use local date parts to avoid UTC timezone shift
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
@@ -93,11 +98,13 @@ export function AnalyticsOverview({
   bookedCallsData,
   spendData,
   totalAdSpend,
+  leadsEnabled,
   isExpanded,
   setIsExpanded,
 }: AnalyticsOverviewProps) {
-  const [activeTab, setActiveTab] = useState("impressions")
+  const [activeTab, setActiveTab] = useState("overview")
   const [chartRange, setChartRange] = useState<ChartRange>('30d')
+  const [hiddenSeries, setHiddenSeries] = useState<Set<string>>(new Set())
 
   // Calculate totals scoped to the selected range
   const rangedImpressions = sliceRange(impressionsData, chartRange)
@@ -120,6 +127,7 @@ export function AnalyticsOverview({
   const callsConversionRate = totalLeads > 0 ? (totalBookedCalls / totalLeads) * 100 : 0
   const cpCall = totalBookedCalls > 0 ? rangeAdSpend / totalBookedCalls : 0
 
+  // Build metrics — conditionally include leads/bookedCalls
   const metrics: Record<string, MetricData> = {
     impressions: {
       name: "Impressions",
@@ -144,30 +152,32 @@ export function AnalyticsOverview({
       color: "#22c55e",
       bgColor: "bg-green-100 dark:bg-green-900",
     },
-    leads: {
-      name: "Leads",
-      dailyData: leadsData,
-      total: totalLeads,
-      adSpend: rangeAdSpend,
-      conversionRate: callsConversionRate,
-      cpa: cpa,
-      change: 15.7,
-      icon: Users,
-      color: "#a855f7",
-      bgColor: "bg-purple-100 dark:bg-purple-900",
-    },
-    bookedCalls: {
-      name: "Booked Calls",
-      dailyData: bookedCallsData,
-      total: totalBookedCalls,
-      adSpend: rangeAdSpend,
-      conversionRate: totalLeads > 0 ? (totalBookedCalls / totalLeads) * 100 : 0,
-      cpa: cpCall,
-      change: 23.1,
-      icon: Phone,
-      color: "#f97316",
-      bgColor: "bg-orange-100 dark:bg-orange-900",
-    },
+    ...(leadsEnabled ? {
+      leads: {
+        name: "Leads",
+        dailyData: leadsData,
+        total: totalLeads,
+        adSpend: rangeAdSpend,
+        conversionRate: callsConversionRate,
+        cpa: cpa,
+        change: 15.7,
+        icon: Users,
+        color: "#a855f7",
+        bgColor: "bg-purple-100 dark:bg-purple-900",
+      },
+      bookedCalls: {
+        name: "Booked Calls",
+        dailyData: bookedCallsData,
+        total: totalBookedCalls,
+        adSpend: rangeAdSpend,
+        conversionRate: totalLeads > 0 ? (totalBookedCalls / totalLeads) * 100 : 0,
+        cpa: cpCall,
+        change: 23.1,
+        icon: Phone,
+        color: "#f97316",
+        bgColor: "bg-orange-100 dark:bg-orange-900",
+      },
+    } : {}),
     spend: {
       name: "Ad Spend",
       dailyData: spendData,
@@ -182,8 +192,24 @@ export function AnalyticsOverview({
     },
   }
 
+  const metricKeys = Object.keys(metrics)
   const currentMetric = metrics[activeTab]
   const Icon = currentMetric?.icon ?? LayoutDashboard
+
+  // Series available for Overview chart (respects leadsEnabled)
+  const availableSeries = ALL_SERIES.filter((s) => !s.leadsOnly || leadsEnabled)
+
+  function toggleSeries(key: string) {
+    setHiddenSeries((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) {
+        next.delete(key)
+      } else {
+        next.add(key)
+      }
+      return next
+    })
+  }
 
   return (
     <div className={cn(
@@ -195,12 +221,8 @@ export function AnalyticsOverview({
           <div>
             <CardTitle className="text-2xl">Campaign Performance</CardTitle>
             <CardDescription>
-              Track your advertising metrics and conversion rates over the last 30 days
+              Track your advertising metrics and conversion rates
             </CardDescription>
-            {/* DEBUG — remove after verifying data */}
-            <p className="text-xs text-red-500 mt-1">
-              DEBUG: {spendData.length} days total | range={chartRange} | filtered={rangedSpend.length} | sum=${rangeAdSpend.toFixed(2)} | first={spendData[0]?.rawDate} last={spendData[spendData.length-1]?.rawDate}
-            </p>
           </div>
           <Button
             onClick={() => setIsExpanded(!isExpanded)}
@@ -215,8 +237,14 @@ export function AnalyticsOverview({
         </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-6 mb-6">
-            {Object.entries(metrics).map(([key, metric]) => {
+          {/* grid-cols-4 grid-cols-6 — keep both in source so Tailwind doesn't purge them */}
+          <TabsList className={cn("grid w-full mb-6", leadsEnabled ? "grid-cols-6" : "grid-cols-4")}>
+            <TabsTrigger value="overview" className="gap-2">
+              <LayoutDashboard className="h-4 w-4" />
+              Overview
+            </TabsTrigger>
+            {metricKeys.map((key) => {
+              const metric = metrics[key]
               const MetricIcon = metric.icon
               return (
                 <TabsTrigger key={key} value={key} className="gap-2">
@@ -225,10 +253,6 @@ export function AnalyticsOverview({
                 </TabsTrigger>
               )
             })}
-            <TabsTrigger value="overview" className="gap-2">
-              <LayoutDashboard className="h-4 w-4" />
-              Overview
-            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4">
@@ -256,6 +280,30 @@ export function AnalyticsOverview({
                 </div>
               </CardHeader>
               <CardContent>
+                {/* Series toggle pills */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {availableSeries.map((s) => {
+                    const isHidden = hiddenSeries.has(s.key)
+                    return (
+                      <button
+                        key={s.key}
+                        onClick={() => toggleSeries(s.key)}
+                        className={cn(
+                          'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-all border',
+                          isHidden
+                            ? 'opacity-40 line-through border-slate-200 text-slate-400'
+                            : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+                        )}
+                      >
+                        <span
+                          className="inline-block h-2.5 w-2.5 rounded-full"
+                          style={{ backgroundColor: isHidden ? '#cbd5e1' : s.color }}
+                        />
+                        {s.key}
+                      </button>
+                    )
+                  })}
+                </div>
                 {(() => {
                   // Merge all series by date — all arrays share the same dates/rawDates
                   const sliced = sliceRange(impressionsData, chartRange)
@@ -273,6 +321,7 @@ export function AnalyticsOverview({
                       'Ad Spend': spendDay?.value ?? 0,
                     }
                   })
+                  const visibleSeries = availableSeries.filter((s) => !hiddenSeries.has(s.key))
                   return (
                     <ResponsiveContainer width="100%" height={400}>
                       <LineChart data={combined}>
@@ -293,12 +342,17 @@ export function AnalyticsOverview({
                             borderRadius: "var(--radius)",
                           }}
                         />
-                        <Legend wrapperStyle={{ fontSize: 12 }} />
-                        <Line type="monotone" dataKey="Impressions" stroke="#3b82f6" strokeWidth={2} dot={{ fill: "#3b82f6", r: 4 }} activeDot={{ r: 6 }} />
-                        <Line type="monotone" dataKey="Clicks" stroke="#22c55e" strokeWidth={2} dot={{ fill: "#22c55e", r: 4 }} activeDot={{ r: 6 }} />
-                        <Line type="monotone" dataKey="Leads" stroke="#a855f7" strokeWidth={2} dot={{ fill: "#a855f7", r: 4 }} activeDot={{ r: 6 }} />
-                        <Line type="monotone" dataKey="Booked Calls" stroke="#f97316" strokeWidth={2} dot={{ fill: "#f97316", r: 4 }} activeDot={{ r: 6 }} />
-                        <Line type="monotone" dataKey="Ad Spend" stroke="#10b981" strokeWidth={2} dot={{ fill: "#10b981", r: 4 }} activeDot={{ r: 6 }} />
+                        {visibleSeries.map((s) => (
+                          <Line
+                            key={s.key}
+                            type="monotone"
+                            dataKey={s.key}
+                            stroke={s.color}
+                            strokeWidth={2}
+                            dot={{ fill: s.color, r: 4 }}
+                            activeDot={{ r: 6 }}
+                          />
+                        ))}
                       </LineChart>
                     </ResponsiveContainer>
                   )
@@ -307,7 +361,9 @@ export function AnalyticsOverview({
             </Card>
           </TabsContent>
 
-          {Object.entries(metrics).map(([key, metric]) => (
+          {metricKeys.map((key) => {
+            const metric = metrics[key]
+            return (
             <TabsContent key={key} value={key} className="space-y-6">
               {/* Meta Metrics */}
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -451,7 +507,8 @@ export function AnalyticsOverview({
                 </CardContent>
               </Card>
             </TabsContent>
-          ))}
+            )
+          })}
         </Tabs>
       </CardContent>
     </Card>

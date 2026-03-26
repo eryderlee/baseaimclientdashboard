@@ -73,6 +73,7 @@ interface DashboardOverviewProps {
   companyName?: string
   fbDailyData: FbDayData[] | null
   isFbConfigured: boolean
+  leadsEnabled: boolean
   documents: SerializedDocument[]
   activities: SerializedActivity[]
 }
@@ -84,6 +85,7 @@ export function DashboardOverview({
   companyName = 'Company',
   fbDailyData,
   isFbConfigured,
+  leadsEnabled,
   documents,
   activities,
 }: DashboardOverviewProps) {
@@ -406,6 +408,7 @@ export function DashboardOverview({
         bookedCallsData={analytics.bookedCalls}
         spendData={analytics.spend}
         totalAdSpend={analytics.totalAdSpend}
+        leadsEnabled={leadsEnabled}
         isExpanded={isChartExpanded}
         setIsExpanded={setIsChartExpanded}
       />

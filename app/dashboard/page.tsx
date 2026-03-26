@@ -63,6 +63,7 @@ export default async function DashboardPage() {
       companyName={client?.companyName || 'Company'}
       fbDailyData={fbDailyData}
       isFbConfigured={!!client?.adAccountId}
+      leadsEnabled={client?.leadsChartEnabled ?? false}
       documents={serializedDocuments}
       activities={serializedActivities}
     />

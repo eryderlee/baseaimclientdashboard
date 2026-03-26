@@ -296,7 +296,7 @@ export const getClientAdConfig = cache(async () => {
     if (!previewId) return null
     return prisma.client.findUnique({
       where: { id: previewId },
-      select: { id: true, adAccountId: true },
+      select: { id: true, adAccountId: true, leadsChartEnabled: true },
     })
   }
 
@@ -304,7 +304,7 @@ export const getClientAdConfig = cache(async () => {
 
   return prisma.client.findUnique({
     where: { userId },
-    select: { id: true, adAccountId: true },
+    select: { id: true, adAccountId: true, leadsChartEnabled: true },
   })
 })
 
@@ -1275,14 +1275,14 @@ export const getClientDashboardProfile = cache(async () => {
     // Query by clientId directly — works for both CLIENT and ADMIN-in-preview
     return prisma.client.findUnique({
       where: { id: clientId },
-      select: { id: true, companyName: true, adAccountId: true },
+      select: { id: true, companyName: true, adAccountId: true, leadsChartEnabled: true },
     })
   }
 
   // Fallback: query by userId (admin without preview context returns null)
   return prisma.client.findUnique({
     where: { userId },
-    select: { id: true, companyName: true, adAccountId: true },
+    select: { id: true, companyName: true, adAccountId: true, leadsChartEnabled: true },
   })
 })
 
