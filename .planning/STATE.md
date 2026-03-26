@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-15)
 
 **Core value:** Clients can see exactly where their project stands without having to ask
-**Current focus:** Phase 18 - Complete Analytics Page on the Admin Dashboard
+**Current focus:** Phase 18 complete — all phases done
 
 ## Current Position
 
-Phase: 18 of 18 (Complete Analytics Page on the Admin Dashboard) — In progress
-Plan: 1 of 2
-Status: In progress
-Last activity: 2026-03-26 — Completed 18-01-PLAN.md: Admin FB DAL functions and loading skeleton
+Phase: 18 of 18 (Complete Analytics Page on the Admin Dashboard) — Complete
+Plan: 2 of 2
+Status: All phases complete
+Last activity: 2026-03-26 — Completed 18-02-PLAN.md: FB analytics UI and Suspense streaming
 
-Progress: [██████████████████████████████████████░░] Phase 18: 1/2 plans complete
+Progress: [████████████████████████████████████████] Phase 18: 2/2 plans complete — ALL PHASES DONE
 
 ## Performance Metrics
 
@@ -267,6 +267,12 @@ Recent decisions affecting current work:
 - getClientAnalytics() uses select (not include) on documents/milestones/activities — fetch only needed fields for analytics computation
 - Dashboard home getCurrentUserName() reads from DB not session — DB is source of truth for display name
 
+**Phase 18 - Admin FB UI (from 18-02):**
+- AdminFbTrendSkeleton and AdminFbTrendSection co-located in app/admin/page.tsx as local (non-exported) functions — avoids new files for short, page-specific components
+- AdminFbTrendChart formats dates inline, no range selector — data is always 30d from getAdminFbDailyAggregation, range UI would be redundant
+- FB columns use hidden md:table-cell — prevents horizontal overflow on mobile without breaking existing table structure
+- Inline Suspense fallback JSX for filter/table skeletons — shapes are simple enough to express inline without dedicated skeleton files
+
 **Phase 18 - Admin FB DAL (from 18-01):**
 - getAdminFbPerClient: loop counter (not extracted ID) to correlate Promise.allSettled results with client list — allSettled preserves index order
 - getAdminFbDailyAggregation: Map<date, accumulator> pattern for multi-source date merging, then sort entries → array
@@ -311,9 +317,9 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-26
-Stopped at: Completed 18-01-PLAN.md — Admin FB DAL functions and loading skeleton
+Stopped at: Completed 18-02-PLAN.md — FB analytics UI and Suspense streaming (Phase 18 complete — all 18 phases done)
 Resume file: None
-Next: 18-02 (wire FB columns into admin table, render aggregate trend chart)
+Next: All phases complete. Project is at v1.0 production state.
 
 **Phase 13 - UI Polish (from 13-01):**
 - DashboardNav stays "use client" — all notification data fetched in layout server component, passed as serialized props
