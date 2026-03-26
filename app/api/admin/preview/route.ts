@@ -2,10 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
+function baseUrl(request: NextRequest): string {
+  const proto = request.headers.get('x-forwarded-proto') ?? 'https'
+  const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? 'localhost'
+  return `${proto}://${host}`
+}
+
 export async function GET(request: NextRequest) {
+  const base = baseUrl(request)
   const session = await auth()
   if (session?.user?.role !== 'ADMIN') {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+    return NextResponse.redirect(new URL('/dashboard', base))
   }
 
   const { searchParams } = new URL(request.url)
@@ -13,7 +20,7 @@ export async function GET(request: NextRequest) {
   const returnTo = searchParams.get('returnTo') || '/admin'
 
   if (!clientId) {
-    return NextResponse.redirect(new URL('/admin', request.url))
+    return NextResponse.redirect(new URL('/admin', base))
   }
 
   const client = await prisma.client.findUnique({
@@ -21,12 +28,12 @@ export async function GET(request: NextRequest) {
     select: { id: true },
   })
   if (!client) {
-    return NextResponse.redirect(new URL('/admin', request.url))
+    return NextResponse.redirect(new URL('/admin', base))
   }
 
   const safeReturnTo = returnTo.startsWith('/') ? returnTo : '/admin'
 
-  const response = NextResponse.redirect(new URL('/dashboard', request.url))
+  const response = NextResponse.redirect(new URL('/dashboard', base))
   const cookieOptions = {
     path: '/',
     httpOnly: true,
