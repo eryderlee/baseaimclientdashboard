@@ -247,19 +247,31 @@ export function AnalyticsOverview({
                   }))
                   return (
                     <ResponsiveContainer width="100%" height={400}>
-                      <ComposedChart data={combined} margin={{ top: 4, right: 24, left: 8, bottom: 4 }}>
+                      <LineChart data={combined}>
                         <CartesianGrid strokeDasharray="3 3" className="stroke-neutral-200 dark:stroke-neutral-800" />
-                        <XAxis dataKey="date" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
-                        <YAxis yAxisId="spend" orientation="left" tickFormatter={(v: number) => `$${v}`} tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
-                        <YAxis yAxisId="counts" orientation="right" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
-                        <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "var(--radius)", fontSize: 12 }} />
+                        <XAxis
+                          dataKey="date"
+                          tick={{ fontSize: 12 }}
+                          className="text-neutral-600 dark:text-neutral-400"
+                        />
+                        <YAxis
+                          tick={{ fontSize: 12 }}
+                          className="text-neutral-600 dark:text-neutral-400"
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "hsl(var(--card))",
+                            border: "1px solid hsl(var(--border))",
+                            borderRadius: "var(--radius)",
+                          }}
+                        />
                         <Legend wrapperStyle={{ fontSize: 12 }} />
-                        <Bar yAxisId="spend" dataKey="Ad Spend" fill="#10b981" barSize={16} radius={[2, 2, 0, 0]} />
-                        <Line yAxisId="counts" dataKey="Impressions" stroke="#3b82f6" strokeWidth={2} dot={false} />
-                        <Line yAxisId="counts" dataKey="Clicks" stroke="#22c55e" strokeWidth={2} dot={false} />
-                        <Line yAxisId="counts" dataKey="Leads" stroke="#a855f7" strokeWidth={2} dot={false} />
-                        <Line yAxisId="counts" dataKey="Booked Calls" stroke="#f97316" strokeWidth={2} dot={false} />
-                      </ComposedChart>
+                        <Line type="monotone" dataKey="Impressions" stroke="#3b82f6" strokeWidth={2} dot={{ fill: "#3b82f6", r: 4 }} activeDot={{ r: 6 }} />
+                        <Line type="monotone" dataKey="Clicks" stroke="#22c55e" strokeWidth={2} dot={{ fill: "#22c55e", r: 4 }} activeDot={{ r: 6 }} />
+                        <Line type="monotone" dataKey="Leads" stroke="#a855f7" strokeWidth={2} dot={{ fill: "#a855f7", r: 4 }} activeDot={{ r: 6 }} />
+                        <Line type="monotone" dataKey="Booked Calls" stroke="#f97316" strokeWidth={2} dot={{ fill: "#f97316", r: 4 }} activeDot={{ r: 6 }} />
+                        <Line type="monotone" dataKey="Ad Spend" stroke="#10b981" strokeWidth={2} dot={{ fill: "#10b981", r: 4 }} activeDot={{ r: 6 }} />
+                      </LineChart>
                     </ResponsiveContainer>
                   )
                 })()}
