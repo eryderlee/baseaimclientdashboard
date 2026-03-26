@@ -349,11 +349,11 @@ Deferred to future release. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PREV-01 | Phase 19 | Pending |
-| PREV-02 | Phase 19 | Pending |
-| PREV-03 | Phase 19 | Pending |
-| PREV-04 | Phase 19 | Pending |
-| STATUS-01 | Phase 19 | Pending |
+| PREV-01 | Phase 19 | Complete |
+| PREV-02 | Phase 19 | Complete |
+| PREV-03 | Phase 19 | Complete |
+| PREV-04 | Phase 19 | Complete |
+| STATUS-01 | Phase 19 | Complete |
 | CHART-01 | Phase 20 | Pending |
 | CHART-02 | Phase 20 | Pending |
 | CHART-03 | Phase 20 | Pending |

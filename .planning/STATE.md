@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-03-26)
 
 ## Current Position
 
-Phase: 19 — Admin Preview + Status Badge
-Plan: 01 of 02 (plan 01 complete)
-Status: In progress
-Last activity: 2026-03-26 — Completed 19-01-PLAN.md (Admin Preview Mode)
+Phase: 20 — Home Page Charts + Bug Fixes
+Plan: —
+Status: Ready to plan
+Last activity: 2026-03-26 — Phase 19 complete (Admin Preview + Status Badge)
 
-Progress: █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ v1.1: 1/10 plans complete
+Progress: ████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ v1.1: 1/5 phases complete
 
 ## Performance Metrics
 
@@ -336,12 +336,23 @@ Recent decisions affecting current work:
 - User has not created hosting account yet — Phase 15 will cover account setup + env var configuration
 - Human verification items from Phase 12 (Sentry live, rate limit live, security headers) to be completed in Phase 15
 
+**Phase 19 - Admin Preview + Status Badge (from 19-01, 19-02):**
+- httpOnly cookie approach for preview state — no DB state, no session mutation, cleared on exit
+- getCurrentClientId is the single preview-awareness hook — all DAL functions chain through it
+- FB DAL functions: throw changed to return null/[] for non-CLIENT roles — allows ADMIN-in-preview to flow through getClientAdConfig
+- getClientAdConfig patched to query by previewId when ADMIN + cookie set
+- AdminPreviewBanner uses form action pattern (not onClick) — works with Server Actions
+- exitPreview validates returnTo starts with '/' — prevents open redirect
+- setupComplete computed at page level from getAllClientsWithMilestones — no new DB query
+- setupMilestones.length >= 6 guard prevents .every() vacuous-truth on clients with <6 milestones
+- enterPreview server action exists but is dead code — route page handles cookie setup directly
+
 ## Session Continuity
 
 Last session: 2026-03-26
-Stopped at: Completed 19-01-PLAN.md — Admin Preview Mode with cookie impersonation
+Stopped at: Phase 19 complete — Admin Preview + Status Badge verified 5/5 must-haves
 Resume file: None
-Next: Phase 19 plan 02 (Status Badge) — or Phase 19 complete if plan 02 already done
+Next: Begin Phase 20 — Home Page Charts + Bug Fixes. Run /gsd:plan-phase 20
 
 **Phase 13 - UI Polish (from 13-01):**
 - DashboardNav stays "use client" — all notification data fetched in layout server component, passed as serialized props
