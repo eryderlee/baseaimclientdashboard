@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-03-26)
 ## Current Position
 
 Phase: 20 — Home Page Charts + Bug Fixes
-Plan: —
-Status: Ready to plan
-Last activity: 2026-03-26 — Phase 19 complete (Admin Preview + Status Badge)
+Plan: 01 of 2 (leadsChartEnabled Flag + Parameterized Daily Trend DAL)
+Status: In progress
+Last activity: 2026-03-26 — Completed 20-01-PLAN.md
 
 Progress: ████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ v1.1: 1/5 phases complete
 
@@ -347,12 +347,20 @@ Recent decisions affecting current work:
 - setupMilestones.length >= 6 guard prevents .every() vacuous-truth on clients with <6 milestones
 - enterPreview server action exists but is dead code — route page handles cookie setup directly
 
+**Phase 20 - Home Page Charts + Bug Fixes (from 20-01):**
+- leadsChartEnabled Boolean @default(false) on Client model — feature flag for per-client leads chart visibility
+- getClientFbDailyTrendByRange(datePreset) accepts DatePreset param, caches per (datePreset, clientId) — fixes home page date range bug
+- getClientAdConfig now returns leadsChartEnabled alongside id/adAccountId — both select branches updated
+- Switch toggle in admin edit form uses watch+setValue pattern (not register) — boolean fields don't bind naturally to register
+- Boolean leadsChartEnabled serialized explicitly as String('true'/'false') in FormData — bypasses generic truthy guard in onSubmit loop
+- db push unavailable (Supabase unreachable) — prisma validate + prisma generate confirmed schema valid; push deferred
+
 ## Session Continuity
 
 Last session: 2026-03-26
-Stopped at: Phase 19 complete — Admin Preview + Status Badge verified 5/5 must-haves
+Stopped at: Completed 20-01-PLAN.md — leadsChartEnabled flag + parameterized daily trend DAL
 Resume file: None
-Next: Begin Phase 20 — Home Page Charts + Bug Fixes. Run /gsd:plan-phase 20
+Next: Execute 20-02 — Home page chart rendering using leadsChartEnabled and getClientFbDailyTrendByRange
 
 **Phase 13 - UI Polish (from 13-01):**
 - DashboardNav stays "use client" — all notification data fetched in layout server component, passed as serialized props
