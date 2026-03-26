@@ -70,16 +70,19 @@ const CHART_RANGES: { label: string; value: ChartRange }[] = [
   { label: 'All', value: 'all' },
 ]
 
+function toLocalDateStr(d: Date): string {
+  // Use local date parts to avoid UTC timezone shift
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 function sliceRange(data: DailyMetric[], range: ChartRange): DailyMetric[] {
   if (range === 'all') return data
   const days = parseInt(range)
-  // Facebook's date presets (last_7d, last_30d) count N days ending YESTERDAY.
-  // Match that: cutoff = today - days, and exclude today.
+  // Facebook's last_7d = 7 days ending yesterday. Match that window.
   const today = new Date()
-  const todayStr = today.toISOString().slice(0, 10)
-  const cutoff = new Date()
-  cutoff.setDate(cutoff.getDate() - days)
-  const cutoffStr = cutoff.toISOString().slice(0, 10)
+  const todayStr = toLocalDateStr(today)
+  const cutoff = new Date(today.getFullYear(), today.getMonth(), today.getDate() - days)
+  const cutoffStr = toLocalDateStr(cutoff)
   return data.filter((d) => d.rawDate >= cutoffStr && d.rawDate < todayStr)
 }
 
