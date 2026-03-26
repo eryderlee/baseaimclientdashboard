@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-03-26)
 
 ## Current Position
 
-Phase: 21 — ROAS + Analytics Tab Charts
-Plan: 02 of 2 (Daily ROAS in FbTrendChart)
-Status: Phase complete — Plan 02 complete 2026-03-27
-Last activity: 2026-03-27 — Completed 21-02-PLAN.md (daily ROAS series in FbTrendChart)
+Phase: 22 — Ongoing Growth Roadmap
+Plan: 01 of 3 (Schema and DAL)
+Status: In progress — Plan 01 complete 2026-03-27
+Last activity: 2026-03-27 — Completed 22-01-PLAN.md (MilestoneType enum, DAL extension, auto-generation logic, add/remove server actions)
 
-Progress: █████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ v1.1: Phase 21 complete (Phase 20 done, Phase 21 done)
+Progress: ██████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ v1.1: Phase 20+21 done, Phase 22 Plan 01 done
 
 ## Performance Metrics
 
@@ -355,6 +355,18 @@ Recent decisions affecting current work:
 - Boolean leadsChartEnabled serialized explicitly as String('true'/'false') in FormData — bypasses generic truthy guard in onSubmit loop
 - db push unavailable (Supabase unreachable) — prisma validate + prisma generate confirmed schema valid; push deferred
 
+**Phase 22 - Ongoing Growth Roadmap (from 22-01):**
+- MilestoneType enum (SETUP | GROWTH) added to Prisma schema — single table discriminator, not separate model
+- milestoneType field @default(SETUP) — all existing milestones are automatically SETUP with no data loss
+- getSetupMilestones() and getGrowthMilestones() follow getMilestones() pattern with milestoneType filter in where clause
+- Auto-generation fires after prisma.$transaction(updates) completes — post-commit, outside atomic block
+- existingGrowth === 0 idempotency guard — prevents duplicate batch creation on re-save
+- 12 monthly GROWTH milestones from 1st of next month — toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+- removeGrowthMilestone refuses milestoneType !== 'GROWTH' — cannot delete SETUP milestones via this action
+- db push deferred (Supabase unreachable) — prisma validate + generate confirmed valid; push required before runtime use
+- getAllClientsWithMilestones now selects milestoneType — needed for admin page setupComplete filter
+- Admin page setupComplete now uses m.milestoneType === 'SETUP' instead of m.order <= 6
+
 **Phase 21 - ROAS + Analytics Tab Charts (from 21-01):**
 - purchase_roas is FbAction[] not string — Facebook returns ROAS as an action array (same pattern as outbound_clicks)
 - getRoas returns null (not 0) when purchase_roas absent — allows UI to display "—" vs "0.00x" for lead-gen clients
@@ -381,9 +393,9 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-27
-Stopped at: Completed 21-02-PLAN.md — daily ROAS series in FbTrendChart (Phase 21 complete)
+Stopped at: Completed 22-01-PLAN.md — MilestoneType enum, DAL type-filtered queries, auto-generation logic, add/remove server actions
 Resume file: None
-Next: Phase 22 (per roadmap)
+Next: 22-02-PLAN.md (Admin UI for growth milestones)
 
 **Phase 13 - UI Polish (from 13-01):**
 - DashboardNav stays "use client" — all notification data fetched in layout server component, passed as serialized props
