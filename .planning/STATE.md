@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-03-26)
 
 ## Current Position
 
-Phase: 22 — Ongoing Growth Roadmap ✅ COMPLETE
-Plan: 03 of 3 (Client UI)
-Status: Phase complete — verified 2026-03-27
-Last activity: 2026-03-27 — Phase 21 + 22 executed in single session
+Phase: 23 — Demo Environment (In Progress)
+Plan: 01 of 3
+Status: In progress — Plan 01 complete 2026-03-27
+Last activity: 2026-03-27 — Completed 23-01-PLAN.md (schema + DAL isolation)
 
-Progress: ████████████████████████████████░░░░░░░░ v1.1: 4/5 phases complete (Phase 22 done, Phase 23 next)
+Progress: ████████████████████████████████░░░░░░░░ v1.1: 4/5 phases (Phase 23 in progress, 1/3 plans done)
 
 ## Performance Metrics
 
@@ -355,6 +355,15 @@ Recent decisions affecting current work:
 - Boolean leadsChartEnabled serialized explicitly as String('true'/'false') in FormData — bypasses generic truthy guard in onSubmit loop
 - db push unavailable (Supabase unreachable) — prisma validate + prisma generate confirmed schema valid; push deferred
 
+**Phase 23 - Demo Environment (from 23-01):**
+- isDemo Boolean @default(false) + demoStableId String? @unique added to Client model
+- resolveClientIsDemoFilter() is NOT cache()-wrapped — always reads fresh email per call
+- Demo admin (khan@baseaim.co) → isDemo: true filter; real admin → isDemo: false filter
+- FbDailyInsight uses action_values (purchase revenue) not purchase_roas for daily ROAS
+- getAdminAllAds returns [] for demo admin — ads breakdown not provided for demo
+- demoStableId is a stable lookup key independent of DB row ID (for upsert idempotency in seed script)
+- Admin FB demo branches return static data BEFORE getSettings()/unstable_cache — no real FB API involvement
+
 **Phase 22 - Ongoing Growth Roadmap (from 22-03):**
 - setupComplete computed server-side in page.tsx (length >= 6 && all COMPLETED), passed as boolean prop to DashboardOverview — keeps client component dumb
 - serializeMilestone helper extracted in page.tsx to apply identical Date→ISO serialization to both setup and growth arrays
@@ -406,9 +415,9 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-27
-Stopped at: Completed 22-03-PLAN.md — Phase 22 complete, all 3 plans done
+Stopped at: Completed 23-01-PLAN.md — Phase 23 in progress, Plan 01/03 done
 Resume file: None
-Next: Phase 23 or next milestone as planned
+Next: 23-02-PLAN.md (demo client seeding)
 
 **Phase 13 - UI Polish (from 13-01):**
 - DashboardNav stays "use client" — all notification data fetched in layout server component, passed as serialized props
