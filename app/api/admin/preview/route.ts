@@ -40,14 +40,21 @@ export async function GET(request: NextRequest) {
 
   const safeReturnTo = returnTo.startsWith('/') ? returnTo : '/admin'
 
-  const response = NextResponse.redirect(new URL('/dashboard', base))
   const cookieOptions = {
     path: '/',
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax' as const,
   }
+
+  // Use HTML redirect instead of 302 so nginx cannot strip Set-Cookie headers
+  const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=/dashboard"></head><body>Redirecting...</body></html>`
+  const response = new NextResponse(html, {
+    status: 200,
+    headers: { 'Content-Type': 'text/html' },
+  })
   response.cookies.set('admin_preview_clientId', clientId, cookieOptions)
   response.cookies.set('admin_preview_return_to', safeReturnTo, cookieOptions)
+  console.log('[preview] sending HTML redirect with cookies')
   return response
 }
