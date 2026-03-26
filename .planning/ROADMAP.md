@@ -4,6 +4,7 @@
 
 - ✅ **v0.9 Foundation** - Phases 1-6 (shipped 2026-02-15)
 - ✅ **v1.0 Production Launch** - Phases 7-18 (shipped 2026-03-26)
+- 🚧 **v1.1 Dashboard Improvements** - Phases 19-23 (in progress)
 
 ## Phases
 
@@ -327,10 +328,99 @@ Plans:
 - [x] 18-01-PLAN.md — DAL: per-client FB data + aggregate daily trend functions, fix loading skeleton
 - [x] 18-02-PLAN.md — UI: FB columns in table, trend chart component, Suspense streaming, styled fallbacks
 
+### v1.1 Dashboard Improvements (In Progress)
+
+**Milestone Goal:** Improve the client-facing dashboard with charts, ROAS tracking, an ongoing growth roadmap, admin preview capability, and a realistic demo environment for sales purposes.
+
+**Phase Numbering:**
+- Integer phases (19, 20, 21, etc.): Planned milestone work
+- Decimal phases (19.1, 19.2): Urgent insertions (marked with INSERTED)
+
+Decimal phases appear between their surrounding integers in numeric order.
+
+#### Phase 19: Admin Preview + Status Badge
+**Goal**: Admin can preview any client's dashboard exactly as the client sees it, and the client list shows a setup completion badge
+**Depends on**: Phase 18
+**Requirements**: PREV-01, PREV-02, PREV-03, PREV-04, STATUS-01
+**Success Criteria** (what must be TRUE):
+  1. Admin clicks "View as client" on a client's admin page and lands on the client's home dashboard
+  2. A sticky banner reading "Viewing as [Client Name]" with an "Exit Preview" button is visible on all client pages during preview
+  3. All client pages (home, progress, analytics, billing, documents) are reachable without logging in as the client
+  4. Clicking "Exit Preview" returns admin to the exact page they navigated from
+  5. Admin client list table shows a "Setup Complete" or "Setting Up" badge per client, derived from whether all 6 setup milestones are complete
+**Plans:** 2 plans
+
+Plans:
+- [ ] 19-01-PLAN.md — Preview mode: route structure, session impersonation or query-param approach, exit-preview Server Action, sticky banner component
+- [ ] 19-02-PLAN.md — Status badge: DAL query for setup milestone completion, badge component, wire into admin client list
+
+#### Phase 20: Home Page Charts + Bug Fixes
+**Goal**: Client home page displays spend and leads charts with a working date range selector that actually fetches fresh data
+**Depends on**: Phase 19
+**Requirements**: CHART-01, CHART-02, CHART-03, CHART-05, CHART-06
+**Success Criteria** (what must be TRUE):
+  1. Client home page shows a daily ad spend chart for the active date range
+  2. Client home page shows a leads chart when admin has enabled it for that client
+  3. A combined chart with a legend is visible when multiple metrics are active
+  4. Changing the date range on the home page fetches new data from the Facebook Ads API (not just re-renders existing data)
+  5. Changing the date range on the campaign performance section also fetches fresh data from the API
+**Plans:** 2 plans
+
+Plans:
+- [ ] 20-01-PLAN.md — Bug fix: wire date range selectors on home page and campaign section to re-fetch API data; add leadsChartEnabled flag to Client model and admin toggle
+- [ ] 20-02-PLAN.md — Charts: daily spend chart, leads chart (conditional on flag), combined chart with legend on client home page
+
+#### Phase 21: ROAS + Analytics Tab Charts
+**Goal**: ROAS metric is visible on the client home page and all three charts appear on the analytics tab
+**Depends on**: Phase 20
+**Requirements**: CHART-04, CHART-07, CHART-08
+**Success Criteria** (what must be TRUE):
+  1. Client home page shows a ROAS metric card (purchase revenue ÷ ad spend) populated from Facebook Ads API
+  2. The analytics tab includes the spend chart, leads chart, and combined chart alongside existing analytics content
+  3. ROAS is included in the analytics tab charts as a visible data series or metric
+**Plans:** 2 plans
+
+Plans:
+- [ ] 21-01-PLAN.md — ROAS: extend FB API fetch to include purchase_roas action value, add ROAS card to home page metrics
+- [ ] 21-02-PLAN.md — Analytics tab: render spend, leads, and combined charts; include ROAS in chart data series
+
+#### Phase 22: Ongoing Growth Roadmap
+**Goal**: Clients who have completed setup see an ongoing monthly review roadmap instead of setup phase cards, and admin can manage it
+**Depends on**: Phase 21
+**Requirements**: GROWTH-01, GROWTH-02, GROWTH-03, GROWTH-04
+**Success Criteria** (what must be TRUE):
+  1. When admin marks all 6 setup milestones complete, 12 monthly review milestones are auto-generated starting the 1st of the following month
+  2. Admin can add a custom milestone to a client's ongoing roadmap from the admin interface
+  3. Admin can remove a milestone from a client's ongoing roadmap from the admin interface
+  4. Client home page shows the ongoing roadmap section (monthly review cards) instead of setup phase cards once setup is complete
+**Plans:** 3 plans
+
+Plans:
+- [ ] 22-01-PLAN.md — Schema and DAL: milestone type field (SETUP vs GROWTH), auto-generation logic triggered on setup completion, Zod schema updates
+- [ ] 22-02-PLAN.md — Admin UI: add and remove growth milestones from client admin page
+- [ ] 22-03-PLAN.md — Client UI: conditional home page rendering — setup roadmap vs ongoing growth roadmap based on setup completion state
+
+#### Phase 23: Demo Environment
+**Goal**: A single seed command creates a fully realistic demo environment with 5 fake clients, believable metrics, and no visible indicators that the data is not real
+**Depends on**: Phase 22
+**Requirements**: DEMO-01, DEMO-02, DEMO-03, DEMO-04, DEMO-05, DEMO-06, DEMO-07, DEMO-08, DEMO-09, DEMO-10, DEMO-11
+**Success Criteria** (what must be TRUE):
+  1. Running `npm run seed:demo` creates a demo admin account and 5 demo clients with all associated data, and re-running it produces the same result without duplicating records
+  2. The demo admin account sees only the 5 demo clients; the real admin account never sees demo clients in any list or analytics view
+  3. Two in-setup clients appear with realistic partial milestone progress (phases 1-2 and 3-4 respectively); three post-setup clients appear with growth roadmap milestones active
+  4. All three post-setup clients have realistic Facebook Ads metrics (spend, impressions, clicks, CTR, CPC, ROAS) stored as static data — no live API calls required
+  5. Each post-setup client has invoices and documents with realistic names, amounts, and dates that match the business narrative
+**Plans:** 3 plans
+
+Plans:
+- [ ] 23-01-PLAN.md — Schema: add isDemo flag to Client model, update DAL queries to filter demo clients by session role, prisma db push
+- [ ] 23-02-PLAN.md — Seed data design: define all 5 client profiles, milestone states, FB metrics, invoices, and document names
+- [ ] 23-03-PLAN.md — Seed script: implement idempotent `npm run seed:demo` command that creates all demo data in one pass
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23
 
 **v0.9 Foundation:**
 
@@ -359,3 +449,13 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 16. Performance Optimization | 4/4 | ✓ Complete | 2026-03-16 |
 | 17. VPS Self-Hosting Migration | 4/4 | ✓ Complete | 2026-03-26 |
 | 18. Complete Analytics Page on the Admin Dashboard | 2/2 | ✓ Complete | 2026-03-26 |
+
+**v1.1 Dashboard Improvements:**
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 19. Admin Preview + Status Badge | 0/2 | Not started | - |
+| 20. Home Page Charts + Bug Fixes | 0/2 | Not started | - |
+| 21. ROAS + Analytics Tab Charts | 0/2 | Not started | - |
+| 22. Ongoing Growth Roadmap | 0/3 | Not started | - |
+| 23. Demo Environment | 0/3 | Not started | - |

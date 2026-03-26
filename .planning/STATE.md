@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-03-26)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 19 — Admin Preview + Status Badge
 Plan: —
-Status: Defining requirements for v1.1
-Last activity: 2026-03-26 — Milestone v1.1 started
+Status: Planned, ready to execute
+Last activity: 2026-03-26 — v1.1 roadmap created (phases 19–23)
 
-Progress: ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ v1.1: 0 phases planned
+Progress: ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ v1.1: 0/5 phases complete
 
 ## Performance Metrics
 
@@ -113,6 +113,7 @@ Recent decisions affecting current work:
 ### Roadmap Evolution
 
 - Phase 18 added (2026-03-26): Complete analytics page on the admin dashboard
+- Phases 19–23 added (2026-03-26): v1.1 Dashboard Improvements milestone
 
 ### Pending Todos
 
@@ -324,9 +325,9 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-26
-Stopped at: Completed ad-hoc 18-03 — Comprehensive admin analytics page with FB per-client metrics, campaigns table, KPI row, and project health
+Stopped at: Roadmap created for v1.1 (phases 19–23) — ready to begin Phase 19
 Resume file: None
-Next: All phases complete. Project is at v1.0 production state.
+Next: Begin Phase 19 — Admin Preview + Status Badge. Run `/gsd:plan-phase 19`
 
 **Phase 13 - UI Polish (from 13-01):**
 - DashboardNav stays "use client" — all notification data fetched in layout server component, passed as serialized props
