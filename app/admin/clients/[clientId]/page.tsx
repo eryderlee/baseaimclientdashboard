@@ -24,7 +24,7 @@ export default async function ClientMilestonePage({
   const client = await getClientWithMilestones(clientId)
 
   // 4. Serialize milestone dates and compute progress
-  const serializedMilestones = client.milestones.map((milestone) => {
+  const allSerializedMilestones = client.milestones.map((milestone) => {
     // Pass notes as-is (they're already JSON from database)
     // They should be MilestoneNote[] objects with id, content, createdAt, createdBy
     const notesData = Array.isArray(milestone.notes) ? milestone.notes : []
@@ -34,6 +34,7 @@ export default async function ClientMilestonePage({
       title: milestone.title,
       description: milestone.description,
       status: milestone.status,
+      milestoneType: milestone.milestoneType as 'SETUP' | 'GROWTH',
       dueDate: milestone.dueDate ? milestone.dueDate.toISOString() : null,
       startDate: milestone.startDate ? milestone.startDate.toISOString() : null,
       notes: notesData,
@@ -45,6 +46,14 @@ export default async function ClientMilestonePage({
       order: milestone.order,
     }
   })
+
+  // 5. Partition milestones by type
+  const serializedSetupMilestones = allSerializedMilestones.filter(
+    (m) => m.milestoneType === 'SETUP'
+  )
+  const serializedGrowthMilestones = allSerializedMilestones.filter(
+    (m) => m.milestoneType === 'GROWTH'
+  )
 
   return (
     <div className="space-y-6">
@@ -78,7 +87,8 @@ export default async function ClientMilestonePage({
 
       <MilestoneEditTable
         clientId={clientId}
-        initialMilestones={serializedMilestones}
+        initialMilestones={serializedSetupMilestones}
+        growthMilestones={serializedGrowthMilestones}
       />
     </div>
   )
