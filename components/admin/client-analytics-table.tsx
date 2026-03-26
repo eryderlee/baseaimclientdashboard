@@ -27,6 +27,8 @@ interface ClientData {
   riskLevel: 'none' | 'low' | 'medium' | 'high'
   riskReasons: string[]
   nextDueDate: string | null
+  fbSpend?: number | null
+  fbLeads?: number | null
   user: {
     name: string
     email: string
@@ -109,6 +111,8 @@ export function ClientAnalyticsTable({ clients }: ClientAnalyticsTableProps) {
           <TableHead>Risk</TableHead>
           <TableHead>Status</TableHead>
           <TableHead>Next Due Date</TableHead>
+          <TableHead className="hidden md:table-cell">FB Spend</TableHead>
+          <TableHead className="hidden md:table-cell">FB Leads</TableHead>
           <TableHead>Actions</TableHead>
         </TableRow>
       </TableHeader>
@@ -152,6 +156,14 @@ export function ClientAnalyticsTable({ clients }: ClientAnalyticsTableProps) {
                     year: 'numeric',
                   }).format(new Date(client.nextDueDate))
                 : '-'}
+            </TableCell>
+            <TableCell className="hidden md:table-cell">
+              {client.fbSpend != null
+                ? '$' + client.fbSpend.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                : '-'}
+            </TableCell>
+            <TableCell className="hidden md:table-cell">
+              {client.fbLeads != null ? client.fbLeads.toString() : '-'}
             </TableCell>
             <TableCell>
               <div className="flex items-center gap-1">
