@@ -2,40 +2,32 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
-function baseUrl(request: NextRequest): string {
-  const proto = request.headers.get('x-forwarded-proto') ?? 'https'
-  const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? 'localhost'
-  return `${proto}://${host}`
-}
+/**
+ * POST-only preview route. POST prevents browser prefetch/duplicate requests
+ * that caused race conditions with GET.
+ */
+export async function POST(request: NextRequest) {
+  const body = await request.json().catch(() => ({}))
+  const clientId = body.clientId as string | undefined
+  const returnTo = (body.returnTo as string) || '/admin'
+  console.log('[preview] POST clientId:', clientId, 'returnTo:', returnTo)
 
-export async function GET(request: NextRequest) {
-  const base = baseUrl(request)
-  console.log('[preview] GET', request.url, 'base:', base)
   const session = await auth()
-  console.log('[preview] role:', session?.user?.role ?? 'no session', 'cookies:', request.headers.get('cookie')?.includes('next-auth') ? 'has next-auth cookie' : 'no next-auth cookie')
+  console.log('[preview] role:', session?.user?.role ?? 'no session')
   if (session?.user?.role !== 'ADMIN') {
-    console.log('[preview] not admin, redirecting to /dashboard')
-    return NextResponse.redirect(new URL('/dashboard', base))
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { searchParams } = new URL(request.url)
-  const clientId = searchParams.get('clientId')
-  const returnTo = searchParams.get('returnTo') || '/admin'
-  console.log('[preview] clientId:', clientId, 'returnTo:', returnTo)
-
   if (!clientId) {
-    console.log('[preview] no clientId, redirecting to /admin')
-    return NextResponse.redirect(new URL('/admin', base))
+    return NextResponse.json({ error: 'Missing clientId' }, { status: 400 })
   }
 
   const client = await prisma.client.findUnique({
     where: { id: clientId },
     select: { id: true },
   })
-  console.log('[preview] client found:', !!client)
   if (!client) {
-    console.log('[preview] client not found, redirecting to /admin')
-    return NextResponse.redirect(new URL('/admin', base))
+    return NextResponse.json({ error: 'Client not found' }, { status: 404 })
   }
 
   const safeReturnTo = returnTo.startsWith('/') ? returnTo : '/admin'
@@ -47,14 +39,9 @@ export async function GET(request: NextRequest) {
     sameSite: 'lax' as const,
   }
 
-  // Use HTML redirect instead of 302 so nginx cannot strip Set-Cookie headers
-  const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=/dashboard"></head><body>Redirecting...</body></html>`
-  const response = new NextResponse(html, {
-    status: 200,
-    headers: { 'Content-Type': 'text/html' },
-  })
+  const response = NextResponse.json({ ok: true })
   response.cookies.set('admin_preview_clientId', clientId, cookieOptions)
   response.cookies.set('admin_preview_return_to', safeReturnTo, cookieOptions)
-  console.log('[preview] sending HTML redirect with cookies')
+  console.log('[preview] cookies set, responding ok')
   return response
 }
