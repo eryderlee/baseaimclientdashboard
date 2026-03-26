@@ -14,6 +14,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Pencil, ListChecks, Eye, FolderOpen, Receipt } from 'lucide-react'
+import { enterPreviewFromForm } from '@/lib/actions/preview'
 import { RiskBadge } from '@/components/admin/at-risk-indicator'
 import { StatusToggleButton } from '@/components/admin/status-toggle-button'
 
@@ -181,14 +182,14 @@ export function ClientAnalyticsTable({ clients }: ClientAnalyticsTableProps) {
             </TableCell>
             <TableCell>
               <div className="flex items-center gap-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => { window.location.href = `/api/admin/preview?clientId=${client.id}&returnTo=${encodeURIComponent(pathname)}` }}
-                >
-                  <Eye className="h-3 w-3 mr-1" />
-                  View
-                </Button>
+                <form action={enterPreviewFromForm}>
+                  <input type="hidden" name="clientId" value={client.id} />
+                  <input type="hidden" name="returnTo" value={pathname} />
+                  <Button variant="outline" size="sm" type="submit">
+                    <Eye className="h-3 w-3 mr-1" />
+                    View
+                  </Button>
+                </form>
                 <Button variant="outline" size="sm" asChild>
                   <Link href={`/admin/clients/${client.id}/edit`}>
                     <Pencil className="h-3 w-3 mr-1" />

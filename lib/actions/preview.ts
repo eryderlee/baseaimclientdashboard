@@ -21,6 +21,12 @@ const COOKIE_OPTS = {
  *
  * ADMIN role only.
  */
+export async function enterPreviewFromForm(formData: FormData) {
+  const clientId = formData.get('clientId') as string
+  const returnTo = formData.get('returnTo') as string | undefined
+  return enterPreview(clientId, returnTo ?? '/admin')
+}
+
 export async function enterPreview(clientId: string, returnTo?: string) {
   const { userRole } = await verifySession()
   if (userRole !== 'ADMIN') {
