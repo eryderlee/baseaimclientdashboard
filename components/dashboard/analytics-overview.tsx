@@ -87,26 +87,33 @@ export function AnalyticsOverview({
   const [activeTab, setActiveTab] = useState("impressions")
   const [chartRange, setChartRange] = useState<ChartRange>('30d')
 
-  // Calculate totals
-  const totalImpressions = impressionsData.reduce((sum, d) => sum + d.value, 0)
-  const totalClicks = clicksData.reduce((sum, d) => sum + d.value, 0)
-  const totalLeads = leadsData.reduce((sum, d) => sum + d.value, 0)
-  const totalBookedCalls = bookedCallsData.reduce((sum, d) => sum + d.value, 0)
+  // Calculate totals scoped to the selected range
+  const rangedImpressions = sliceRange(impressionsData, chartRange)
+  const rangedClicks = sliceRange(clicksData, chartRange)
+  const rangedLeads = sliceRange(leadsData, chartRange)
+  const rangedBookedCalls = sliceRange(bookedCallsData, chartRange)
+  const rangedSpend = sliceRange(spendData, chartRange)
 
-  // Calculate metrics
+  const totalImpressions = rangedImpressions.reduce((sum, d) => sum + d.value, 0)
+  const totalClicks = rangedClicks.reduce((sum, d) => sum + d.value, 0)
+  const totalLeads = rangedLeads.reduce((sum, d) => sum + d.value, 0)
+  const totalBookedCalls = rangedBookedCalls.reduce((sum, d) => sum + d.value, 0)
+  const rangeAdSpend = rangedSpend.reduce((sum, d) => sum + d.value, 0)
+
+  // Calculate metrics from range-scoped data
   const ctr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0
-  const cpc = totalClicks > 0 ? totalAdSpend / totalClicks : 0
+  const cpc = totalClicks > 0 ? rangeAdSpend / totalClicks : 0
   const leadsConversionRate = totalClicks > 0 ? (totalLeads / totalClicks) * 100 : 0
-  const cpa = totalLeads > 0 ? totalAdSpend / totalLeads : 0
+  const cpa = totalLeads > 0 ? rangeAdSpend / totalLeads : 0
   const callsConversionRate = totalLeads > 0 ? (totalBookedCalls / totalLeads) * 100 : 0
-  const cpCall = totalBookedCalls > 0 ? totalAdSpend / totalBookedCalls : 0
+  const cpCall = totalBookedCalls > 0 ? rangeAdSpend / totalBookedCalls : 0
 
   const metrics: Record<string, MetricData> = {
     impressions: {
       name: "Impressions",
       dailyData: impressionsData,
       total: totalImpressions,
-      adSpend: totalAdSpend,
+      adSpend: rangeAdSpend,
       conversionRate: ctr,
       change: 12.5,
       icon: Eye,
@@ -117,7 +124,7 @@ export function AnalyticsOverview({
       name: "Clicks",
       dailyData: clicksData,
       total: totalClicks,
-      adSpend: totalAdSpend,
+      adSpend: rangeAdSpend,
       conversionRate: leadsConversionRate,
       cpc: cpc,
       change: 8.3,
@@ -129,7 +136,7 @@ export function AnalyticsOverview({
       name: "Leads",
       dailyData: leadsData,
       total: totalLeads,
-      adSpend: totalAdSpend,
+      adSpend: rangeAdSpend,
       conversionRate: callsConversionRate,
       cpa: cpa,
       change: 15.7,
@@ -141,7 +148,7 @@ export function AnalyticsOverview({
       name: "Booked Calls",
       dailyData: bookedCallsData,
       total: totalBookedCalls,
-      adSpend: totalAdSpend,
+      adSpend: rangeAdSpend,
       conversionRate: totalLeads > 0 ? (totalBookedCalls / totalLeads) * 100 : 0,
       cpa: cpCall,
       change: 23.1,
@@ -152,8 +159,8 @@ export function AnalyticsOverview({
     spend: {
       name: "Ad Spend",
       dailyData: spendData,
-      total: totalAdSpend,
-      adSpend: totalAdSpend,
+      total: rangeAdSpend,
+      adSpend: rangeAdSpend,
       conversionRate: ctr,
       cpc: cpc,
       change: 0,
