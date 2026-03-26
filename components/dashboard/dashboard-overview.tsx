@@ -1,9 +1,8 @@
-﻿"use client"
+"use client"
 
 import { useState } from "react"
 import Link from "next/link"
 import GradientBG from "@/components/GradientBG"
-import { AnalyticsOverview } from "@/components/dashboard/analytics-overview"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -15,22 +14,9 @@ import {
   ArrowUpRight,
   ArrowRight,
   Clock,
-  CreditCard,
   FileText,
-  Send,
-  TrendingUp,
   Upload,
 } from "lucide-react"
-
-// Shape of one day's FB data passed from the server
-interface FbDayData {
-  date: string
-  impressions: number
-  clicks: number
-  spend: number
-  leads: number
-  bookedCalls: number
-}
 
 interface SerializedMilestone {
   id: string
@@ -70,8 +56,6 @@ interface DashboardOverviewProps {
   }
   clientName?: string
   companyName?: string
-  fbDailyData: FbDayData[] | null
-  isFbConfigured: boolean
   documents: SerializedDocument[]
   activities: SerializedActivity[]
 }
@@ -81,21 +65,13 @@ export function DashboardOverview({
   chatSettings,
   clientName = 'Client',
   companyName = 'Company',
-  fbDailyData,
-  isFbConfigured,
   documents,
   activities,
 }: DashboardOverviewProps) {
   const [isChartExpanded, setIsChartExpanded] = useState(false)
 
-  // Build chart series from real FB daily data, falling back to zeros if not configured
-  const analytics = {
-    impressions: (fbDailyData ?? []).map((d) => ({ date: d.date, value: d.impressions })),
-    clicks: (fbDailyData ?? []).map((d) => ({ date: d.date, value: d.clicks })),
-    leads: (fbDailyData ?? []).map((d) => ({ date: d.date, value: d.leads })),
-    bookedCalls: (fbDailyData ?? []).map((d) => ({ date: d.date, value: d.bookedCalls })),
-    totalAdSpend: (fbDailyData ?? []).reduce((sum, d) => sum + d.spend, 0),
-  }
+  const analytics = { totalAdSpend: 0 }
+  const isFbConfigured = false
 
   const stats = {
     totalDocuments: documents.length,
@@ -121,14 +97,6 @@ export function DashboardOverview({
   const orderedMilestones = [...milestones].sort(
     (a, b) => (a.order ?? 0) - (b.order ?? 0)
   )
-  const totalImpressions = analytics.impressions.reduce((sum, d) => sum + d.value, 0)
-  const totalClicks = analytics.clicks.reduce((sum, d) => sum + d.value, 0)
-  const totalLeads = analytics.leads.reduce((sum, d) => sum + d.value, 0)
-  const totalBookedCalls = analytics.bookedCalls.reduce((sum, d) => sum + d.value, 0)
-  const pipelineConversion = totalLeads ? (totalBookedCalls / totalLeads) * 100 : 0
-  const averageCpa = totalLeads ? analytics.totalAdSpend / totalLeads : 0
-  const averageCostPerCall = totalBookedCalls ? analytics.totalAdSpend / totalBookedCalls : 0
-  const ctr = totalImpressions ? (totalClicks / totalImpressions) * 100 : 0
 
   const inProgressMilestone = milestones.find((milestone) => milestone.status === "IN_PROGRESS")
   const nextMilestone = milestones.find((milestone) => milestone.status === "NOT_STARTED")
@@ -172,28 +140,6 @@ export function DashboardOverview({
         : "—",
       detail: isFbConfigured ? "Total ad spend (30d)" : "Ad account not connected",
       accent: "from-[#f97316]/20 via-[#fb923c]/30 to-transparent",
-    },
-  ]
-  const heroStats = [
-    {
-      label: "Qualified Calls (30d)",
-      value: totalBookedCalls.toLocaleString(),
-      caption: "Booked calls logged in Baseaim",
-    },
-    {
-      label: "Leads -> Calls",
-      value: `${pipelineConversion.toFixed(1)}%`,
-      caption: "Conversion rate across funnels",
-    },
-    {
-      label: "Avg CPA",
-      value: `$${averageCpa.toFixed(2)}`,
-      caption: `CTR ${ctr.toFixed(1)}% / Media efficiency`,
-    },
-    {
-      label: "Cost / Booked Call",
-      value: `$${averageCostPerCall.toFixed(2)}`,
-      caption: "Goal: <$450 per consultation",
     },
   ]
 
@@ -283,29 +229,6 @@ export function DashboardOverview({
               </Button>
             </div>
           </div>
-
-            <div className="grid flex-1 gap-4 sm:grid-cols-2">
-              {heroStats.map((item) => (
-                <div
-                  key={item.label}
-                  className="relative overflow-hidden rounded-2xl border border-white/70 bg-gradient-to-br from-white via-white/90 to-slate-50 p-5 text-slate-700 shadow-[0_28px_90px_rgba(15,23,42,0.2)] ring-1 ring-white/70 transition-all duration-200 hover:shadow-lg dark:border-slate-800/60 dark:bg-slate-900/70 dark:ring-slate-800/70"
-                >
-                  <div className="pointer-events-none absolute inset-0 -z-10 opacity-[0.45]" aria-hidden="true">
-                    <div className="absolute inset-y-0 left-[-10%] w-2/3 bg-gradient-to-br from-primary/25 via-sky-200/35 to-transparent blur-3xl" />
-                    <div className="absolute inset-y-0 right-[-5%] w-1/2 bg-gradient-to-br from-cyan-200/35 via-white/40 to-transparent blur-3xl" />
-                  </div>
-                  <div className="relative">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
-                      {item.label}
-                    </p>
-                    <p className="mt-3 text-3xl font-heading text-slate-900 dark:text-white">
-                      {item.value}
-                    </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{item.caption}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
         </div>
       </section>
 
@@ -396,16 +319,6 @@ export function DashboardOverview({
           </CardContent>
         </Card>
       </div>
-
-      <AnalyticsOverview
-        impressionsData={analytics.impressions}
-        clicksData={analytics.clicks}
-        leadsData={analytics.leads}
-        bookedCallsData={analytics.bookedCalls}
-        totalAdSpend={analytics.totalAdSpend}
-        isExpanded={isChartExpanded}
-        setIsExpanded={setIsChartExpanded}
-      />
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="glass-card rounded-3xl border border-white/60 shadow-lg shadow-sky-100 dark:border-slate-800/70">
