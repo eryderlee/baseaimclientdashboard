@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   const base = baseUrl(request)
   console.log('[preview] GET', request.url, 'base:', base)
   const session = await auth()
-  console.log('[preview] role:', session?.user?.role ?? 'no session')
+  console.log('[preview] role:', session?.user?.role ?? 'no session', 'cookies:', request.headers.get('cookie')?.includes('next-auth') ? 'has next-auth cookie' : 'no next-auth cookie')
   if (session?.user?.role !== 'ADMIN') {
     console.log('[preview] not admin, redirecting to /dashboard')
     return NextResponse.redirect(new URL('/dashboard', base))
