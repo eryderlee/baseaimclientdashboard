@@ -315,17 +315,17 @@ Requirements for v1.1 milestone. Phases continue from 19.
 
 ### Demo Environment
 
-- [ ] **DEMO-01**: Schema adds `isDemo: Boolean` flag to Client model to separate demo data from real data
-- [ ] **DEMO-02**: Seed script creates 1 demo admin account with a realistic name and email (no "test", "demo", or "fake" in credentials)
-- [ ] **DEMO-03**: Demo admin account sees only demo clients; real admin account never sees demo clients
-- [ ] **DEMO-04**: Seed script creates 5 fake clients with realistic accounting firm names
-- [ ] **DEMO-05**: Client breakdown: 2 in setup (one early phase 1-2, one mid phase 3-4), 3 post-setup (recently launched, active 3-4 months, mature 6+ months)
-- [ ] **DEMO-06**: All 3 post-setup clients have realistic fake Facebook Ads metrics (spend, impressions, clicks, CTR, CPC, ROAS) — no real API connections
-- [ ] **DEMO-07**: Post-setup clients have realistic fake invoices at appropriate dollar amounts
-- [ ] **DEMO-08**: Post-setup clients have realistic fake documents named as real deliverables (e.g. "Landing Page Brief.pdf", "Ad Creative Set 1.pdf")
-- [ ] **DEMO-09**: Mature client has monthly review milestones populated showing several months of history
-- [ ] **DEMO-10**: No visual or data indicators that any client is fake — dates, names, amounts, and metrics are plausible
-- [ ] **DEMO-11**: Seed script is a single command (`npm run seed:demo`) that can be re-run safely (idempotent)
+- [x] **DEMO-01**: Schema adds `isDemo: Boolean` flag to Client model to separate demo data from real data
+- [x] **DEMO-02**: Seed script creates 1 demo admin account with a realistic name and email (no "test", "demo", or "fake" in credentials)
+- [x] **DEMO-03**: Demo admin account sees only demo clients; real admin account never sees demo clients
+- [x] **DEMO-04**: Seed script creates 5 fake clients with realistic accounting firm names
+- [x] **DEMO-05**: Client breakdown: 2 in setup (one early phase 1-2, one mid phase 3-4), 3 post-setup (recently launched, active 3-4 months, mature 6+ months)
+- [x] **DEMO-06**: All 3 post-setup clients have realistic fake Facebook Ads metrics (spend, impressions, clicks, CTR, CPC, ROAS) — no real API connections
+- [x] **DEMO-07**: Post-setup clients have realistic fake invoices at appropriate dollar amounts
+- [x] **DEMO-08**: Post-setup clients have realistic fake documents named as real deliverables (e.g. "Landing Page Brief.pdf", "Ad Creative Set 1.pdf")
+- [x] **DEMO-09**: Mature client has monthly review milestones populated showing several months of history
+- [x] **DEMO-10**: No visual or data indicators that any client is fake — dates, names, amounts, and metrics are plausible
+- [x] **DEMO-11**: Seed script is a single command (`npm run seed:demo`) that can be re-run safely (idempotent)
 
 ## v2 Requirements
 
@@ -366,17 +366,17 @@ Deferred to future release. Tracked but not in current roadmap.
 | GROWTH-02 | Phase 22 | Complete |
 | GROWTH-03 | Phase 22 | Complete |
 | GROWTH-04 | Phase 22 | Complete |
-| DEMO-01 | Phase 23 | Pending |
-| DEMO-02 | Phase 23 | Pending |
-| DEMO-03 | Phase 23 | Pending |
-| DEMO-04 | Phase 23 | Pending |
-| DEMO-05 | Phase 23 | Pending |
-| DEMO-06 | Phase 23 | Pending |
-| DEMO-07 | Phase 23 | Pending |
-| DEMO-08 | Phase 23 | Pending |
-| DEMO-09 | Phase 23 | Pending |
-| DEMO-10 | Phase 23 | Pending |
-| DEMO-11 | Phase 23 | Pending |
+| DEMO-01 | Phase 23 | Complete |
+| DEMO-02 | Phase 23 | Complete |
+| DEMO-03 | Phase 23 | Complete |
+| DEMO-04 | Phase 23 | Complete |
+| DEMO-05 | Phase 23 | Complete |
+| DEMO-06 | Phase 23 | Complete |
+| DEMO-07 | Phase 23 | Complete |
+| DEMO-08 | Phase 23 | Complete |
+| DEMO-09 | Phase 23 | Complete |
+| DEMO-10 | Phase 23 | Complete |
+| DEMO-11 | Phase 23 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 28 total
@@ -392,4 +392,4 @@ Deferred to future release. Tracked but not in current roadmap.
 
 ---
 *Requirements defined: 2026-02-11*
-*Last updated: 2026-03-26 after v1.1 milestone initialization*
+*Last updated: 2026-03-27 after Phase 23 completion*

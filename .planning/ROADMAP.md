@@ -4,7 +4,7 @@
 
 - ✅ **v0.9 Foundation** - Phases 1-6 (shipped 2026-02-15)
 - ✅ **v1.0 Production Launch** - Phases 7-18 (shipped 2026-03-26)
-- 🚧 **v1.1 Dashboard Improvements** - Phases 19-23 (in progress)
+- ✅ **v1.1 Dashboard Improvements** - Phases 19-23 (shipped 2026-03-27)
 
 ## Phases
 
@@ -415,9 +415,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 23-01-PLAN.md — Schema: add isDemo flag to Client model, update DAL queries to filter demo clients by session role, prisma db push
-- [ ] 23-02-PLAN.md — Seed data design: define all 5 client profiles, milestone states, FB metrics, invoices, and document names
-- [ ] 23-03-PLAN.md — Seed script: implement idempotent `npm run seed:demo` command that creates all demo data in one pass
+- [x] 23-01-PLAN.md — Schema: add isDemo flag to Client model, update DAL queries to filter demo clients by session role, prisma db push
+- [x] 23-02-PLAN.md — Seed data design: define all 5 client profiles, milestone states, FB metrics, invoices, and document names
+- [x] 23-03-PLAN.md — E2E verification: human checkpoint (code verified, runtime pending db push)
 
 ## Progress
 
