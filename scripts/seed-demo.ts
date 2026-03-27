@@ -60,7 +60,7 @@ const DEMO_PROFILES = [
         startDate: new Date('2026-03-15'),
         dueDate: new Date('2026-03-25'),
         completedAt: null,
-        notes: [] as unknown[],
+        notes: undefined,
       },
       {
         title: 'Landing Page Development',
@@ -71,7 +71,7 @@ const DEMO_PROFILES = [
         startDate: null,
         dueDate: null,
         completedAt: null,
-        notes: [] as unknown[],
+        notes: undefined,
       },
       {
         title: 'Campaign Build',
@@ -82,7 +82,7 @@ const DEMO_PROFILES = [
         startDate: null,
         dueDate: null,
         completedAt: null,
-        notes: [] as unknown[],
+        notes: undefined,
       },
       {
         title: 'Launch',
@@ -93,7 +93,7 @@ const DEMO_PROFILES = [
         startDate: null,
         dueDate: null,
         completedAt: null,
-        notes: [] as unknown[],
+        notes: undefined,
       },
       {
         title: 'Ongoing Optimization',
@@ -104,7 +104,7 @@ const DEMO_PROFILES = [
         startDate: null,
         dueDate: null,
         completedAt: null,
-        notes: [] as unknown[],
+        notes: undefined,
       },
     ],
     invoices: [] as InvoiceInput[],
@@ -187,7 +187,7 @@ const DEMO_PROFILES = [
         startDate: new Date('2026-03-12'),
         dueDate: new Date('2026-03-22'),
         completedAt: null,
-        notes: [] as unknown[],
+        notes: undefined,
       },
       {
         title: 'Launch',
@@ -198,7 +198,7 @@ const DEMO_PROFILES = [
         startDate: null,
         dueDate: null,
         completedAt: null,
-        notes: [] as unknown[],
+        notes: undefined,
       },
       {
         title: 'Ongoing Optimization',
@@ -209,7 +209,7 @@ const DEMO_PROFILES = [
         startDate: null,
         dueDate: null,
         completedAt: null,
-        notes: [] as unknown[],
+        notes: undefined,
       },
     ],
     invoices: [] as InvoiceInput[],
@@ -256,7 +256,7 @@ const DEMO_PROFILES = [
         completedAt: new Date('2026-01-27'),
         startDate: new Date('2026-01-21'),
         dueDate: new Date('2026-01-27'),
-        notes: [] as unknown[],
+        notes: undefined,
       },
       {
         title: 'Landing Page Development',
@@ -267,7 +267,7 @@ const DEMO_PROFILES = [
         completedAt: new Date('2026-02-05'),
         startDate: new Date('2026-01-28'),
         dueDate: new Date('2026-02-05'),
-        notes: [] as unknown[],
+        notes: undefined,
       },
       {
         title: 'Campaign Build',
@@ -278,7 +278,7 @@ const DEMO_PROFILES = [
         completedAt: new Date('2026-02-12'),
         startDate: new Date('2026-02-06'),
         dueDate: new Date('2026-02-12'),
-        notes: [] as unknown[],
+        notes: undefined,
       },
       {
         title: 'Launch',
@@ -307,7 +307,7 @@ const DEMO_PROFILES = [
         completedAt: new Date('2026-02-20'),
         startDate: new Date('2026-02-18'),
         dueDate: new Date('2026-02-20'),
-        notes: [] as unknown[],
+        notes: undefined,
       },
       // Growth milestones
       {
@@ -319,7 +319,7 @@ const DEMO_PROFILES = [
         startDate: new Date('2026-03-01'),
         dueDate: new Date('2026-03-31'),
         completedAt: null,
-        notes: [] as unknown[],
+        notes: undefined,
       },
       {
         title: 'Monthly Review — April 2026',
@@ -330,7 +330,7 @@ const DEMO_PROFILES = [
         startDate: null,
         dueDate: new Date('2026-04-30'),
         completedAt: null,
-        notes: [] as unknown[],
+        notes: undefined,
       },
     ],
     invoices: [
@@ -382,7 +382,7 @@ const DEMO_PROFILES = [
         completedAt: new Date('2025-11-20'),
         startDate: new Date('2025-11-15'),
         dueDate: new Date('2025-11-20'),
-        notes: [] as unknown[],
+        notes: undefined,
       },
       {
         title: 'Ad Account Setup',
@@ -393,7 +393,7 @@ const DEMO_PROFILES = [
         completedAt: new Date('2025-11-28'),
         startDate: new Date('2025-11-21'),
         dueDate: new Date('2025-11-28'),
-        notes: [] as unknown[],
+        notes: undefined,
       },
       {
         title: 'Landing Page Development',
@@ -404,7 +404,7 @@ const DEMO_PROFILES = [
         completedAt: new Date('2025-12-05'),
         startDate: new Date('2025-11-29'),
         dueDate: new Date('2025-12-05'),
-        notes: [] as unknown[],
+        notes: undefined,
       },
       {
         title: 'Campaign Build',
@@ -415,7 +415,7 @@ const DEMO_PROFILES = [
         completedAt: new Date('2025-12-12'),
         startDate: new Date('2025-12-06'),
         dueDate: new Date('2025-12-12'),
-        notes: [] as unknown[],
+        notes: undefined,
       },
       {
         title: 'Launch',
@@ -444,7 +444,7 @@ const DEMO_PROFILES = [
         completedAt: new Date('2025-12-20'),
         startDate: new Date('2025-12-18'),
         dueDate: new Date('2025-12-20'),
-        notes: [] as unknown[],
+        notes: undefined,
       },
       // Growth milestones
       {
@@ -492,7 +492,7 @@ const DEMO_PROFILES = [
         startDate: new Date('2026-03-01'),
         dueDate: new Date('2026-03-31'),
         completedAt: null,
-        notes: [] as unknown[],
+        notes: undefined,
       },
       {
         title: 'Monthly Review — April 2026',
@@ -503,7 +503,7 @@ const DEMO_PROFILES = [
         startDate: null,
         dueDate: new Date('2026-04-30'),
         completedAt: null,
-        notes: [] as unknown[],
+        notes: undefined,
       },
     ],
     invoices: [
@@ -584,7 +584,7 @@ const DEMO_PROFILES = [
         completedAt: new Date('2025-08-20'),
         startDate: new Date('2025-08-15'),
         dueDate: new Date('2025-08-20'),
-        notes: [] as unknown[],
+        notes: undefined,
       },
       {
         title: 'Ad Account Setup',
@@ -595,7 +595,7 @@ const DEMO_PROFILES = [
         completedAt: new Date('2025-08-28'),
         startDate: new Date('2025-08-21'),
         dueDate: new Date('2025-08-28'),
-        notes: [] as unknown[],
+        notes: undefined,
       },
       {
         title: 'Landing Page Development',
@@ -606,7 +606,7 @@ const DEMO_PROFILES = [
         completedAt: new Date('2025-09-05'),
         startDate: new Date('2025-08-29'),
         dueDate: new Date('2025-09-05'),
-        notes: [] as unknown[],
+        notes: undefined,
       },
       {
         title: 'Campaign Build',
@@ -617,7 +617,7 @@ const DEMO_PROFILES = [
         completedAt: new Date('2025-09-12'),
         startDate: new Date('2025-09-06'),
         dueDate: new Date('2025-09-12'),
-        notes: [] as unknown[],
+        notes: undefined,
       },
       {
         title: 'Launch',
@@ -646,7 +646,7 @@ const DEMO_PROFILES = [
         completedAt: new Date('2025-09-20'),
         startDate: new Date('2025-09-18'),
         dueDate: new Date('2025-09-20'),
-        notes: [] as unknown[],
+        notes: undefined,
       },
       // Growth milestones
       {
@@ -748,7 +748,7 @@ const DEMO_PROFILES = [
         startDate: new Date('2026-03-01'),
         dueDate: new Date('2026-03-31'),
         completedAt: null,
-        notes: [] as unknown[],
+        notes: undefined,
       },
       {
         title: 'Monthly Review — April 2026',
@@ -759,7 +759,7 @@ const DEMO_PROFILES = [
         startDate: null,
         dueDate: new Date('2026-04-30'),
         completedAt: null,
-        notes: [] as unknown[],
+        notes: undefined,
       },
     ],
     invoices: [
@@ -940,7 +940,7 @@ async function seed() {
           startDate: m.startDate ?? null,
           dueDate: m.dueDate ?? null,
           completedAt: m.completedAt ?? null,
-          notes: m.notes,
+          notes: m.notes as any,
         })),
       })
     }
