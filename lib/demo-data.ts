@@ -204,22 +204,27 @@ function makeDay(
   baseLeads: number,
   baseImpressions: number,
   baseClicks: number,
-  roasMultiplier: number
+  roasMultiplier: number,
+  baseBookedCalls: number = 0
 ): FbDailyInsight {
   const factor = isWeekend ? 0.65 : 1.0
   const spend = (baseSpend * factor).toFixed(2)
   const impressions = Math.round(baseImpressions * factor)
   const clicks = Math.round(baseClicks * factor)
   const leads = Math.max(0, Math.round(baseLeads * factor))
+  const bookedCalls = Math.max(0, Math.round(baseBookedCalls * factor))
   // action_values represents purchase revenue: spend * ROAS = revenue
   const purchaseRevenue = (parseFloat(spend) * roasMultiplier).toFixed(2)
+  const actions: { action_type: string; value: string }[] = []
+  if (leads > 0) actions.push({ action_type: 'lead', value: String(leads) })
+  if (bookedCalls > 0) actions.push({ action_type: 'offsite_conversion.fb_pixel_custom', value: String(bookedCalls) })
   return {
     date_start: date,
     date_stop: date,
     spend,
     impressions: String(impressions),
     clicks: String(clicks),
-    actions: leads > 0 ? [{ action_type: 'lead', value: String(leads) }] : [],
+    actions,
     action_values: [{ action_type: 'omni_purchase', value: purchaseRevenue }],
   }
 }
@@ -252,31 +257,34 @@ const MF_DAILY_SPEND = 141.1   // 3840 / (30 * 0.907)
 const MF_DAILY_LEADS = 4.66    // 127 / (30 * 0.907)
 const MF_DAILY_IMPRESSIONS = 5240
 const MF_DAILY_CLICKS = 157
+const MF_DAILY_BOOKED = 1.10   // ~30 booked calls / (30 * 0.907) ≈ 24% of leads
 
 const AT_DAILY_SPEND = 338.0   // 9200 / (30 * 0.907)
 const AT_DAILY_LEADS = 11.47   // 312 / (30 * 0.907)
 const AT_DAILY_IMPRESSIONS = 11692
 const AT_DAILY_CLICKS = 339
+const AT_DAILY_BOOKED = 3.12   // ~85 booked calls / (30 * 0.907) ≈ 27% of leads
 
 const HA_DAILY_SPEND = 679.9   // 18500 / (30 * 0.907)
 const HA_DAILY_LEADS = 25.52   // 694 / (30 * 0.907)
 const HA_DAILY_IMPRESSIONS = 22813
 const HA_DAILY_CLICKS = 673
+const HA_DAILY_BOOKED = 7.17   // ~195 booked calls / (30 * 0.907) ≈ 28% of leads
 
 export const DEMO_FB_DAILY_TREND: Record<string, FbDailyInsight[]> = {
   'demo-meridian-financial': DEMO_DATES.map(date => {
     const dow = dayOfWeek(date)
     const isWeekend = dow === 0 || dow === 6
-    return makeDay(date, isWeekend, MF_DAILY_SPEND, MF_DAILY_LEADS, MF_DAILY_IMPRESSIONS, MF_DAILY_CLICKS, 1.82)
+    return makeDay(date, isWeekend, MF_DAILY_SPEND, MF_DAILY_LEADS, MF_DAILY_IMPRESSIONS, MF_DAILY_CLICKS, 1.82, MF_DAILY_BOOKED)
   }),
   'demo-apex-tax': DEMO_DATES.map(date => {
     const dow = dayOfWeek(date)
     const isWeekend = dow === 0 || dow === 6
-    return makeDay(date, isWeekend, AT_DAILY_SPEND, AT_DAILY_LEADS, AT_DAILY_IMPRESSIONS, AT_DAILY_CLICKS, 2.41)
+    return makeDay(date, isWeekend, AT_DAILY_SPEND, AT_DAILY_LEADS, AT_DAILY_IMPRESSIONS, AT_DAILY_CLICKS, 2.41, AT_DAILY_BOOKED)
   }),
   'demo-hargrove-associates': DEMO_DATES.map(date => {
     const dow = dayOfWeek(date)
     const isWeekend = dow === 0 || dow === 6
-    return makeDay(date, isWeekend, HA_DAILY_SPEND, HA_DAILY_LEADS, HA_DAILY_IMPRESSIONS, HA_DAILY_CLICKS, 3.15)
+    return makeDay(date, isWeekend, HA_DAILY_SPEND, HA_DAILY_LEADS, HA_DAILY_IMPRESSIONS, HA_DAILY_CLICKS, 3.15, HA_DAILY_BOOKED)
   }),
 }
