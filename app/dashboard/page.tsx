@@ -1,4 +1,4 @@
-import { getSetupMilestones, getGrowthMilestones, getChatSettings, getClientFbDailyInsights, getClientDashboardProfile, getCurrentUserName, getClientRecentDocuments, getRecentActivities, getClientFbInsights } from "@/lib/dal"
+import { getSetupMilestones, getGrowthMilestones, getChatSettings, getClientFbDailyTrend, getClientDashboardProfile, getCurrentUserName, getClientRecentDocuments, getRecentActivities, getClientFbInsights } from "@/lib/dal"
 import { getActionValue, getRoas } from "@/lib/facebook-ads"
 import { DashboardOverview } from "@/components/dashboard/dashboard-overview"
 
@@ -7,7 +7,7 @@ export default async function DashboardPage() {
     getSetupMilestones(),
     getGrowthMilestones(),
     getChatSettings(),
-    getClientFbDailyInsights(),
+    getClientFbDailyTrend(),
     getClientDashboardProfile(),
     getCurrentUserName(),
     getClientRecentDocuments(),
