@@ -51,9 +51,9 @@ export default async function ClientMilestonePage({
   const serializedSetupMilestones = allSerializedMilestones.filter(
     (m) => m.milestoneType === 'SETUP'
   )
-  const serializedGrowthMilestones = allSerializedMilestones.filter(
-    (m) => m.milestoneType === 'GROWTH'
-  )
+  const serializedGrowthMilestones = allSerializedMilestones
+    .filter((m) => m.milestoneType === 'GROWTH')
+    .sort((a, b) => (a.dueDate ?? '').localeCompare(b.dueDate ?? ''))
 
   return (
     <div className="space-y-6">

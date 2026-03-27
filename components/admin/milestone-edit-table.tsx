@@ -58,14 +58,15 @@ export function MilestoneEditTable({
 }: MilestoneEditTableProps) {
   const router = useRouter()
   const [milestones, setMilestones] = useState<MilestoneData[]>(initialMilestones)
-  const [growthMilestones, setGrowthMilestones] = useState<GrowthMilestoneData[]>(
-    initialGrowthMilestones ?? []
+  const [growthMilestones, setGrowthMilestones] = useState<MilestoneData[]>(
+    (initialGrowthMilestones ?? []) as MilestoneData[]
   )
   const [growthTitle, setGrowthTitle] = useState("")
   const [growthDueDate, setGrowthDueDate] = useState("")
   const [isGrowthPending, startGrowthTransition] = useTransition()
+  const allMilestones = [...milestones, ...growthMilestones]
   const [newNotes, setNewNotes] = useState<Record<string, string>>(
-    Object.fromEntries(initialMilestones.map((m) => [m.id, ""]))
+    Object.fromEntries(allMilestones.map((m) => [m.id, ""]))
   )
   const [hasChanges, setHasChanges] = useState(false)
   const [isPending, startTransition] = useTransition()
@@ -75,55 +76,58 @@ export function MilestoneEditTable({
   const [editingNote, setEditingNote] = useState<{ milestoneId: string; noteId: string; content: string } | null>(null)
   const [deletingNoteId, setDeletingNoteId] = useState<{ milestoneId: string; noteId: string } | null>(null)
 
+  const updateMilestoneInList = (
+    setter: typeof setMilestones,
+    milestoneId: string,
+    updater: (m: MilestoneData) => MilestoneData
+  ) => {
+    setter((prev) => {
+      const idx = prev.findIndex((m) => m.id === milestoneId)
+      if (idx === -1) return prev
+      return prev.map((m) => (m.id === milestoneId ? updater(m) : m))
+    })
+  }
+
+  const findMilestoneList = (milestoneId: string) => {
+    if (milestones.some((m) => m.id === milestoneId)) return setMilestones
+    if (growthMilestones.some((m) => m.id === milestoneId)) return setGrowthMilestones
+    return null
+  }
+
   const handleStatusChange = (milestoneId: string, newStatus: MilestoneStatus) => {
-    setMilestones((prev) =>
-      prev.map((m) => {
-        if (m.id !== milestoneId) return m
+    const setter = findMilestoneList(milestoneId)
+    if (!setter) return
 
-        // Auto-set startDate if transitioning TO IN_PROGRESS and no startDate exists
-        const updatedStartDate =
-          newStatus === "IN_PROGRESS" && !m.startDate
-            ? new Date().toISOString()
-            : m.startDate
+    updateMilestoneInList(setter, milestoneId, (m) => {
+      const updatedStartDate =
+        newStatus === "IN_PROGRESS" && !m.startDate
+          ? new Date().toISOString()
+          : m.startDate
 
-        // Recalculate progress with new status
-        const newProgress = calculateMilestoneProgress(
-          newStatus,
-          updatedStartDate ? new Date(updatedStartDate) : null,
-          m.dueDate ? new Date(m.dueDate) : null
-        )
+      const newProgress = calculateMilestoneProgress(
+        newStatus,
+        updatedStartDate ? new Date(updatedStartDate) : null,
+        m.dueDate ? new Date(m.dueDate) : null
+      )
 
-        return {
-          ...m,
-          status: newStatus,
-          startDate: updatedStartDate,
-          progress: newProgress,
-        }
-      })
-    )
+      return { ...m, status: newStatus, startDate: updatedStartDate, progress: newProgress }
+    })
     setHasChanges(true)
     setSuccess(false)
   }
 
   const handleDueDateChange = (milestoneId: string, newDueDate: string) => {
-    setMilestones((prev) =>
-      prev.map((m) => {
-        if (m.id !== milestoneId) return m
+    const setter = findMilestoneList(milestoneId)
+    if (!setter) return
 
-        // Recalculate progress with new due date
-        const newProgress = calculateMilestoneProgress(
-          m.status as MilestoneStatus,
-          m.startDate ? new Date(m.startDate) : null,
-          newDueDate ? new Date(newDueDate) : null
-        )
-
-        return {
-          ...m,
-          dueDate: newDueDate || null,
-          progress: newProgress,
-        }
-      })
-    )
+    updateMilestoneInList(setter, milestoneId, (m) => {
+      const newProgress = calculateMilestoneProgress(
+        m.status as MilestoneStatus,
+        m.startDate ? new Date(m.startDate) : null,
+        newDueDate ? new Date(newDueDate) : null
+      )
+      return { ...m, dueDate: newDueDate || null, progress: newProgress }
+    })
     setHasChanges(true)
     setSuccess(false)
   }
@@ -153,7 +157,7 @@ export function MilestoneEditTable({
         toast.error(result.error)
       } else {
         // Update local state so the edited content shows immediately
-        setMilestones((prev) =>
+        const updateNoteInList = (prev: MilestoneData[]) =>
           prev.map((m) => {
             if (m.id !== editingNote.milestoneId) return m
             const notes = Array.isArray(m.notes) ? m.notes : []
@@ -166,7 +170,8 @@ export function MilestoneEditTable({
               }),
             }
           })
-        )
+        setMilestones(updateNoteInList)
+        setGrowthMilestones(updateNoteInList)
         setEditingNote(null)
         toast.success("Note updated")
         router.refresh()
@@ -195,7 +200,7 @@ export function MilestoneEditTable({
         toast.error(result.error)
       } else {
         // Remove from local state so it disappears immediately
-        setMilestones((prev) =>
+        const removeNoteFromList = (prev: MilestoneData[]) =>
           prev.map((m) => {
             if (m.id !== milestoneId) return m
             const notes = Array.isArray(m.notes) ? m.notes : []
@@ -204,7 +209,8 @@ export function MilestoneEditTable({
               notes: notes.filter((note: any) => (note?.id ?? note) !== noteId),
             }
           })
-        )
+        setMilestones(removeNoteFromList)
+        setGrowthMilestones(removeNoteFromList)
         toast.success("Note deleted")
         router.refresh()
       }
@@ -216,8 +222,9 @@ export function MilestoneEditTable({
       setError(null)
       setSuccess(false)
 
+      const allToSave = [...milestones, ...growthMilestones]
       const payload = {
-        milestones: milestones.map((m) => ({
+        milestones: allToSave.map((m) => ({
           id: m.id,
           status: m.status,
           dueDate: m.dueDate,
@@ -233,7 +240,7 @@ export function MilestoneEditTable({
       } else {
         setHasChanges(false)
         setSuccess(true)
-        setNewNotes(Object.fromEntries(milestones.map((m) => [m.id, ""])))
+        setNewNotes(Object.fromEntries(allToSave.map((m) => [m.id, ""])))
         toast.success("Milestones saved")
         router.refresh()
       }
@@ -596,7 +603,7 @@ export function MilestoneEditTable({
         <>
           <CardHeader className="pt-0 border-t border-neutral-100 mt-2">
             <div>
-              <CardTitle>Growth Milestones</CardTitle>
+              <CardTitle>Post-Setup Milestones</CardTitle>
               <p className="text-sm text-neutral-500 mt-1">
                 Ongoing monthly review roadmap
               </p>
@@ -639,11 +646,11 @@ export function MilestoneEditTable({
               </Button>
             </div>
 
-            {/* Growth milestones list */}
+            {/* Post-setup milestones list */}
             {growthMilestones.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-white/70 bg-white/60 p-6 text-center">
                 <p className="text-sm font-medium text-neutral-500">
-                  No growth milestones yet.
+                  No post-setup milestones yet.
                 </p>
                 <p className="text-xs text-neutral-400 mt-1">
                   Complete all setup phases to auto-generate the monthly roadmap, or add one manually above.
@@ -654,67 +661,164 @@ export function MilestoneEditTable({
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">#</TableHead>
-                    <TableHead>Milestone</TableHead>
-                    <TableHead className="w-36">Due Date</TableHead>
-                    <TableHead className="w-36">Status</TableHead>
+                    <TableHead className="w-48">Milestone</TableHead>
+                    <TableHead className="w-40">Status</TableHead>
+                    <TableHead className="w-40">Due Date</TableHead>
+                    <TableHead className="min-w-64">Notes</TableHead>
+                    <TableHead className="w-32">Progress</TableHead>
                     <TableHead className="w-16"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {growthMilestones.map((milestone) => (
-                    <TableRow key={milestone.id}>
-                      <TableCell className="font-medium text-neutral-500">
-                        {milestone.order}
-                      </TableCell>
-                      <TableCell className="font-semibold">
-                        {milestone.title}
-                      </TableCell>
-                      <TableCell className="text-sm text-neutral-600">
-                        {milestone.dueDate
-                          ? new Date(milestone.dueDate).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                            })
-                          : "No date"}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={
-                            milestone.status === "COMPLETED"
-                              ? "text-green-600 border-green-600"
-                              : milestone.status === "IN_PROGRESS"
-                              ? "text-blue-600 border-blue-600"
-                              : milestone.status === "BLOCKED"
-                              ? "text-red-600 border-red-600"
-                              : "text-neutral-500 border-neutral-300"
-                          }
-                        >
-                          {milestone.status === "NOT_STARTED"
-                            ? "Not Started"
-                            : milestone.status === "IN_PROGRESS"
-                            ? "In Progress"
-                            : milestone.status === "COMPLETED"
-                            ? "Completed"
-                            : "Blocked"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveGrowthMilestone(milestone.id)}
-                          disabled={isGrowthPending}
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
-                          title="Remove milestone"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {growthMilestones.map((milestone) => {
+                    const notesArray = Array.isArray(milestone.notes) ? milestone.notes : []
+                    return (
+                      <TableRow key={milestone.id}>
+                        <TableCell className="font-medium text-neutral-500">
+                          {milestone.order}
+                        </TableCell>
+                        <TableCell className="font-semibold">
+                          {milestone.title}
+                        </TableCell>
+                        <TableCell>
+                          <select
+                            value={milestone.status}
+                            onChange={(e) =>
+                              handleStatusChange(milestone.id, e.target.value as MilestoneStatus)
+                            }
+                            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm hover:bg-neutral-50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                          >
+                            <option value="NOT_STARTED">Not Started</option>
+                            <option value="IN_PROGRESS">In Progress</option>
+                            <option value="COMPLETED">Completed</option>
+                            <option value="BLOCKED">Blocked</option>
+                          </select>
+                        </TableCell>
+                        <TableCell>
+                          <input
+                            type="date"
+                            value={milestone.dueDate ? milestone.dueDate.split("T")[0] : ""}
+                            onChange={(e) => handleDueDateChange(milestone.id, e.target.value)}
+                            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm hover:bg-neutral-50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-2">
+                            {notesArray.length > 0 && (
+                              <div className="space-y-1">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleNotesExpanded(milestone.id)}
+                                  className="flex items-center gap-1 text-xs font-medium text-neutral-600 hover:text-neutral-800"
+                                >
+                                  {expandedNotes[milestone.id] ? (
+                                    <ChevronUp className="h-3 w-3" />
+                                  ) : (
+                                    <ChevronDown className="h-3 w-3" />
+                                  )}
+                                  {notesArray.length} note{notesArray.length !== 1 ? 's' : ''}
+                                </button>
+                                {expandedNotes[milestone.id] && (
+                                  <div className="space-y-1 max-h-60 overflow-y-auto">
+                                    {notesArray.map((note, noteIndex) => {
+                                      const noteObj = typeof note === 'object' && note !== null ? note as any : null
+                                      const noteId = noteObj?.id || (typeof note === 'string' ? note : `note-${noteIndex}`)
+                                      const content = noteObj?.content || (typeof note === 'string' ? note : '')
+                                      const createdAt = noteObj?.createdAt
+                                      const createdBy = noteObj?.createdBy
+                                      const isEditing = editingNote?.milestoneId === milestone.id && editingNote?.noteId === noteId
+
+                                      return (
+                                        <div key={noteId} className="rounded bg-neutral-100 px-2 py-1.5 text-xs">
+                                          {isEditing ? (
+                                            <div className="space-y-2">
+                                              <textarea
+                                                value={editingNote.content}
+                                                onChange={(e) => setEditingNote({ ...editingNote, content: e.target.value })}
+                                                className="w-full rounded border border-neutral-300 px-2 py-1 text-xs resize-none"
+                                                rows={2}
+                                              />
+                                              <div className="flex gap-1">
+                                                <Button type="button" size="sm" onClick={handleSaveEditedNote} disabled={isPending} className="h-6 text-xs px-2">Save</Button>
+                                                <Button type="button" size="sm" variant="outline" onClick={handleCancelEdit} disabled={isPending} className="h-6 text-xs px-2">Cancel</Button>
+                                              </div>
+                                            </div>
+                                          ) : (
+                                            <>
+                                              <div className="flex items-start justify-between gap-2">
+                                                <p className="flex-1 text-neutral-700">{content}</p>
+                                                <div className="flex gap-1 shrink-0 items-center">
+                                                  {deletingNoteId?.noteId === noteId ? (
+                                                    <>
+                                                      <span className="text-xs text-red-600">Delete?</span>
+                                                      <button type="button" onClick={() => handleDeleteNote(milestone.id, noteId)} className="text-red-600 hover:text-red-800" title="Confirm delete"><Check className="h-3 w-3" /></button>
+                                                      <button type="button" onClick={() => setDeletingNoteId(null)} className="text-neutral-500 hover:text-neutral-700" title="Cancel"><X className="h-3 w-3" /></button>
+                                                    </>
+                                                  ) : (
+                                                    <>
+                                                      <button type="button" onClick={() => handleEditNote(milestone.id, noteId, content)} className="text-neutral-500 hover:text-blue-600" title="Edit note"><Edit2 className="h-3 w-3" /></button>
+                                                      <button type="button" onClick={() => handleDeleteNote(milestone.id, noteId)} className="text-neutral-500 hover:text-red-600" title="Delete note"><X className="h-3 w-3" /></button>
+                                                    </>
+                                                  )}
+                                                </div>
+                                              </div>
+                                              {(createdAt || createdBy) && (
+                                                <p className="text-neutral-500 mt-1">
+                                                  {createdBy && <span>{createdBy}</span>}
+                                                  {createdAt && createdBy && <span> • </span>}
+                                                  {createdAt && <span>{new Date(createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>}
+                                                </p>
+                                              )}
+                                            </>
+                                          )}
+                                        </div>
+                                      )
+                                    })}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            <div>
+                              <label className="text-xs font-medium text-neutral-600 mb-1 block">Add New Note:</label>
+                              <textarea
+                                value={newNotes[milestone.id] || ""}
+                                onChange={(e) => handleNoteChange(milestone.id, e.target.value)}
+                                placeholder="Type a new note..."
+                                rows={2}
+                                className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm hover:bg-neutral-50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                              />
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className={`rounded-full px-2 py-1 text-xs font-medium ${getProgressBgColor(milestone.progress)} ${getProgressColor(milestone.progress)}`}>
+                              {milestone.progress}%
+                            </div>
+                            <div className="h-2 w-12 rounded-full bg-neutral-200">
+                              <div
+                                className={`h-2 rounded-full ${milestone.progress === 100 ? "bg-green-600" : milestone.progress >= 50 ? "bg-yellow-500" : "bg-neutral-400"}`}
+                                style={{ width: `${milestone.progress}%` }}
+                              />
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveGrowthMilestone(milestone.id)}
+                            disabled={isGrowthPending}
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
+                            title="Remove milestone"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
                 </TableBody>
               </Table>
             )}

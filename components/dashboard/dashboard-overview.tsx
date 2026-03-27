@@ -146,7 +146,7 @@ export function DashboardOverview({
   const completedGrowth = serializedGrowthMilestones.filter((m) => m.status === 'COMPLETED').length
   const totalGrowth = serializedGrowthMilestones.length
   const nextGrowthMilestone = [...serializedGrowthMilestones]
-    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    .sort((a, b) => (a.dueDate ?? '').localeCompare(b.dueDate ?? ''))
     .find((m) => m.status !== 'COMPLETED')
 
   const inProgressMilestone = milestones.find((milestone) => milestone.status === "IN_PROGRESS")
@@ -157,7 +157,7 @@ export function DashboardOverview({
   const recentCompletedMilestone = [...sortedMilestones]
     .reverse()
     .find((milestone) => milestone.status === "COMPLETED")
-  const recentMilestone = inProgressMilestone || recentCompletedMilestone || sortedMilestones[0]
+  const recentMilestone = recentCompletedMilestone || sortedMilestones[0]
   const currentPhase = inProgressMilestone || nextMilestone || orderedMilestones[0]
   const currentPhaseNumber = currentPhase
     ? currentPhase.order || orderedMilestones.findIndex((m) => m.id === currentPhase.id) + 1
@@ -174,10 +174,12 @@ export function DashboardOverview({
     },
     {
       label: "Next Milestone",
-      value: nextMilestone?.title || "Scheduling",
-      detail: nextMilestone
-        ? `Begins after ${nextMilestone.dueDate?.toLocaleDateString() || "TBD"}`
-        : "Coordinating in chat",
+      value: inProgressMilestone?.title || nextMilestone?.title || "Scheduling",
+      detail: inProgressMilestone
+        ? `In progress -> Due ${inProgressMilestone.dueDate?.toLocaleDateString() || "TBD"}`
+        : nextMilestone
+          ? `Begins after ${nextMilestone.dueDate?.toLocaleDateString() || "TBD"}`
+          : "Coordinating in chat",
       accent: "from-cyan-300/25 via-blue-200/30 to-transparent",
     },
     {
@@ -339,7 +341,7 @@ export function DashboardOverview({
           {setupComplete ? (
             <>
               <CardHeader>
-                <CardTitle className="font-heading text-2xl">Ongoing Growth</CardTitle>
+                <CardTitle className="font-heading text-2xl">Post-Setup Milestones</CardTitle>
                 <CardDescription>Monthly performance reviews and optimization sessions.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">

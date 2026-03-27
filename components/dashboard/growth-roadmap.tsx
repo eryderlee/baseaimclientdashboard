@@ -62,15 +62,30 @@ export function GrowthRoadmap({ milestones }: GrowthRoadmapProps) {
     return (
       <div className="rounded-2xl border border-dashed border-white/70 bg-white/60 p-6 text-center dark:border-slate-800 dark:bg-slate-900/50">
         <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-          Your growth roadmap will appear here once monthly reviews are generated.
+          Your post-setup milestones will appear here once monthly reviews are generated.
+        </p>
+      </div>
+    )
+  }
+
+  // Show only the next 5 upcoming milestones (non-completed first, ordered by dueDate from DAL)
+  const upcoming = milestones
+    .filter((m) => m.status !== "COMPLETED")
+    .slice(0, 5)
+
+  if (upcoming.length === 0) {
+    return (
+      <div className="rounded-2xl border border-dashed border-white/70 bg-white/60 p-6 text-center dark:border-slate-800 dark:bg-slate-900/50">
+        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+          All post-setup milestones are complete!
         </p>
       </div>
     )
   }
 
   return (
-    <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
-      {milestones.map((milestone) => {
+    <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+      {upcoming.map((milestone) => {
         const theme = getPhaseTheme(milestone.status)
         return (
           <div
