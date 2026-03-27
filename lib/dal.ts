@@ -714,6 +714,11 @@ export const getClientFbDailyInsights = cache(async () => {
 
   const client = await getClientAdConfig()
 
+  // Demo client short-circuit: return static daily data instead of calling FB API
+  if (client?.isDemo && client?.demoStableId) {
+    return DEMO_FB_DAILY_TREND[client.demoStableId] ?? null
+  }
+
   if (!client?.adAccountId) return null
 
   const settings = await getSettings()
@@ -1490,14 +1495,14 @@ export const getClientDashboardProfile = cache(async () => {
     // Query by clientId directly — works for both CLIENT and ADMIN-in-preview
     return prisma.client.findUnique({
       where: { id: clientId },
-      select: { id: true, companyName: true, adAccountId: true, leadsChartEnabled: true },
+      select: { id: true, companyName: true, adAccountId: true, leadsChartEnabled: true, isDemo: true },
     })
   }
 
   // Fallback: query by userId (admin without preview context returns null)
   return prisma.client.findUnique({
     where: { userId },
-    select: { id: true, companyName: true, adAccountId: true, leadsChartEnabled: true },
+    select: { id: true, companyName: true, adAccountId: true, leadsChartEnabled: true, isDemo: true },
   })
 })
 

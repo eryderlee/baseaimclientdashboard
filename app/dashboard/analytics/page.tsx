@@ -36,7 +36,7 @@ async function FbAdsSection({ dateRange }: { dateRange: DateRange }) {
     getClientAdConfig(),
   ])
 
-  const isConfigured = !!clientAdConfig?.adAccountId
+  const isConfigured = !!clientAdConfig?.adAccountId || !!clientAdConfig?.isDemo
 
   return (
     <div className="space-y-4">
