@@ -1,5 +1,6 @@
 import { Suspense } from "react"
-import { getClientFbInsights, getClientFbCampaigns, getClientFbPlatformBreakdown, getClientFbDailyTrend, getClientAdConfig, getClientAnalytics } from "@/lib/dal"
+import { redirect } from "next/navigation"
+import { getClientFbInsights, getClientFbCampaigns, getClientFbPlatformBreakdown, getClientFbDailyTrend, getClientAdConfig, getClientAnalytics, verifySession, getCurrentClientId } from "@/lib/dal"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FbAdsMetrics } from "@/components/dashboard/fb-ads-metrics"
 import { FbTrendChart } from "@/components/dashboard/fb-trend-chart"
@@ -132,6 +133,13 @@ export default async function AnalyticsPage({
 }: {
   searchParams: Promise<{ range?: string }>
 }) {
+  // Admin without preview context has no client — redirect to admin analytics
+  const { userRole } = await verifySession()
+  if (userRole === 'ADMIN') {
+    const clientId = await getCurrentClientId()
+    if (!clientId) redirect('/admin/analytics')
+  }
+
   // Resolve searchParams (Next.js 15 async pattern)
   const resolvedParams = await searchParams
   const rawRange = resolvedParams?.range

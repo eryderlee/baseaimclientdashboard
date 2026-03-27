@@ -1,8 +1,15 @@
-import { getSetupMilestones, getGrowthMilestones, getChatSettings, getClientFbDailyTrend, getClientDashboardProfile, getCurrentUserName, getClientRecentDocuments, getRecentActivities, getClientFbInsights } from "@/lib/dal"
+import { getSetupMilestones, getGrowthMilestones, getChatSettings, getClientFbDailyTrend, getClientDashboardProfile, getCurrentUserName, getClientRecentDocuments, getRecentActivities, getClientFbInsights, verifySession, getCurrentClientId } from "@/lib/dal"
 import { getActionValue, getRoas } from "@/lib/facebook-ads"
 import { DashboardOverview } from "@/components/dashboard/dashboard-overview"
+import { redirect } from "next/navigation"
 
 export default async function DashboardPage() {
+  // Admin without preview context has no client — redirect to admin home
+  const { userRole } = await verifySession()
+  if (userRole === 'ADMIN') {
+    const clientId = await getCurrentClientId()
+    if (!clientId) redirect('/admin')
+  }
   const [setupMilestones, growthMilestones, chatSettings, dailyInsights, client, userName, documents, activities, fbInsights] = await Promise.all([
     getSetupMilestones(),
     getGrowthMilestones(),
