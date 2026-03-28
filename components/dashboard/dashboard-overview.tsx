@@ -197,12 +197,6 @@ export function DashboardOverview({
       detail: isFbConfigured ? "Total ad spend (30d)" : "Ad account not connected",
       accent: "from-[#f97316]/20 via-[#fb923c]/30 to-transparent",
     },
-    {
-      label: "ROAS (30d)",
-      value: roas !== null ? `${roas.toFixed(2)}x` : isFbConfigured ? "No purchase data" : "—",
-      detail: roas !== null ? "Purchase revenue / ad spend" : isFbConfigured ? "Configure purchase pixel to track" : "Ad account not connected",
-      accent: "from-emerald-300/25 via-green-200/30 to-transparent",
-    },
   ]
   const heroStats = [
     {
@@ -211,9 +205,9 @@ export function DashboardOverview({
       caption: "Booked calls logged in Baseaim",
     },
     {
-      label: "Leads -> Calls",
-      value: `${pipelineConversion.toFixed(1)}%`,
-      caption: "Conversion rate across funnels",
+      label: "ROAS (30d)",
+      value: roas !== null ? `${roas.toFixed(2)}x` : isFbConfigured ? "N/A" : "—",
+      caption: roas !== null ? "Purchase revenue / ad spend" : isFbConfigured ? "Configure purchase pixel to track" : "Ad account not connected",
     },
     {
       label: "Avg CPA",
@@ -270,7 +264,7 @@ export function DashboardOverview({
                 Everything active on your Baseaim build.
               </h1>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {workflowHighlights.map((item) => (
                 <div
                   key={item.label}
@@ -382,8 +376,8 @@ export function DashboardOverview({
           ) : (
             <>
               <CardHeader>
-                <CardTitle className="font-heading text-2xl">Growth Roadmap</CardTitle>
-                <CardDescription>Track each funnel phase from strategy through optimization.</CardDescription>
+                <CardTitle className="font-heading text-2xl">Setup Milestones</CardTitle>
+                <CardDescription>Track each phase from onboarding through launch.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid gap-4 sm:grid-cols-2">

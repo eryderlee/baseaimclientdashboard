@@ -8,11 +8,13 @@ import { calculateMilestoneProgress } from '@/lib/utils/progress'
 
 // ─── Growth Milestone Schemas ────────────────────────────────────────────────
 
-const addGrowthMilestoneSchema = z.object({
+const addMilestoneSchema = z.object({
   clientId: z.string().cuid(),
   title: z.string().min(1).max(200).trim(),
   dueDate: z.string().datetime().nullable().optional(),
 })
+
+const addGrowthMilestoneSchema = addMilestoneSchema
 
 const removeGrowthMilestoneSchema = z.object({
   clientId: z.string().cuid(),
@@ -500,6 +502,67 @@ export async function addGrowthMilestone(clientId: string, rawData: unknown) {
   } catch (error) {
     console.error('Failed to add growth milestone:', error)
     return { error: 'Failed to add growth milestone' }
+  }
+}
+
+/**
+ * Add a custom SETUP milestone to a client's setup phase.
+ */
+export async function addSetupMilestone(clientId: string, rawData: unknown) {
+  // 1. Verify admin role
+  try {
+    const { userRole } = await verifySession()
+    if (userRole !== 'ADMIN') {
+      return { error: 'Unauthorized' }
+    }
+  } catch {
+    return { error: 'Unauthorized' }
+  }
+
+  // 2. Validate input
+  let validClientId: string
+  let validTitle: string
+  let validDueDate: string | null | undefined
+  try {
+    const parsed = addMilestoneSchema.parse({ clientId, ...(rawData as object) })
+    validClientId = parsed.clientId
+    validTitle = parsed.title
+    validDueDate = parsed.dueDate
+  } catch {
+    return { error: 'Invalid input' }
+  }
+
+  try {
+    // 3. Find max order among existing SETUP milestones
+    const aggregate = await prisma.milestone.aggregate({
+      where: { clientId: validClientId, milestoneType: 'SETUP' },
+      _max: { order: true },
+    })
+    const nextOrder = (aggregate._max.order ?? 0) + 1
+
+    // 4. Create the SETUP milestone
+    await prisma.milestone.create({
+      data: {
+        clientId: validClientId,
+        title: validTitle,
+        milestoneType: 'SETUP',
+        order: nextOrder,
+        status: 'NOT_STARTED',
+        progress: 0,
+        dueDate: validDueDate ? new Date(validDueDate) : null,
+        notes: [],
+      },
+    })
+
+    // 5. Revalidate paths
+    revalidatePath('/dashboard')
+    revalidatePath('/dashboard/progress')
+    revalidatePath(`/admin/clients/${validClientId}`)
+
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to add setup milestone:', error)
+    return { error: 'Failed to add setup milestone' }
   }
 }
 

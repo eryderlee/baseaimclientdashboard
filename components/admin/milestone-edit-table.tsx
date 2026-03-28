@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { updateMilestones, deleteNote, updateNote, addGrowthMilestone, removeGrowthMilestone } from "@/app/admin/clients/[clientId]/actions"
+import { updateMilestones, deleteNote, updateNote, addGrowthMilestone, removeGrowthMilestone, addSetupMilestone } from "@/app/admin/clients/[clientId]/actions"
 import { calculateMilestoneProgress } from "@/lib/utils/progress"
 import { MilestoneStatus } from "@prisma/client"
 import { toast } from "sonner"
@@ -64,6 +64,9 @@ export function MilestoneEditTable({
   const [growthTitle, setGrowthTitle] = useState("")
   const [growthDueDate, setGrowthDueDate] = useState("")
   const [isGrowthPending, startGrowthTransition] = useTransition()
+  const [setupTitle, setSetupTitle] = useState("")
+  const [setupDueDate, setSetupDueDate] = useState("")
+  const [isSetupPending, startSetupTransition] = useTransition()
   const allMilestones = [...milestones, ...growthMilestones]
   const [newNotes, setNewNotes] = useState<Record<string, string>>(
     Object.fromEntries(allMilestones.map((m) => [m.id, ""]))
@@ -284,6 +287,31 @@ export function MilestoneEditTable({
       } else {
         setGrowthMilestones((prev) => prev.filter((m) => m.id !== milestoneId))
         toast.success("Milestone removed")
+        router.refresh()
+      }
+    })
+  }
+
+  const handleAddSetupMilestone = () => {
+    const trimmedTitle = setupTitle.trim()
+    if (!trimmedTitle) return
+
+    startSetupTransition(async () => {
+      const dueDateIso = setupDueDate
+        ? new Date(setupDueDate).toISOString()
+        : undefined
+
+      const result = await addSetupMilestone(clientId, {
+        title: trimmedTitle,
+        dueDate: dueDateIso ?? null,
+      })
+
+      if (result.error) {
+        toast.error(result.error)
+      } else {
+        toast.success("Setup milestone added")
+        setSetupTitle("")
+        setSetupDueDate("")
         router.refresh()
       }
     })
@@ -597,6 +625,42 @@ export function MilestoneEditTable({
             })}
           </TableBody>
         </Table>
+
+        {/* Add custom setup phase */}
+        <div className="flex items-end gap-3 mt-4">
+          <div className="flex-1">
+            <label className="text-xs font-medium text-neutral-600 mb-1 block">
+              Add Custom Phase
+            </label>
+            <input
+              type="text"
+              value={setupTitle}
+              onChange={(e) => setSetupTitle(e.target.value)}
+              placeholder="e.g. Website Redesign"
+              className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm hover:bg-neutral-50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-neutral-600 mb-1 block">
+              Due Date (optional)
+            </label>
+            <input
+              type="date"
+              value={setupDueDate}
+              onChange={(e) => setSetupDueDate(e.target.value)}
+              className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm hover:bg-neutral-50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+          </div>
+          <Button
+            type="button"
+            onClick={handleAddSetupMilestone}
+            disabled={isSetupPending || !setupTitle.trim()}
+            size="sm"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            {isSetupPending ? "Adding..." : "Add Phase"}
+          </Button>
+        </div>
       </CardContent>
 
       {initialGrowthMilestones !== undefined && (
