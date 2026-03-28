@@ -20,11 +20,8 @@ import {
   TrendingUp,
   DollarSign,
   LayoutDashboard,
-  Maximize2,
-  Minimize2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 
 interface DailyMetric {
   date: string
@@ -54,8 +51,7 @@ interface AnalyticsOverviewProps {
   spendData: DailyMetric[]
   totalAdSpend: number
   leadsEnabled: boolean
-  isExpanded: boolean
-  setIsExpanded: (expanded: boolean) => void
+  daysCampaignRunning: number | null
 }
 
 type ChartRange = '7d' | '30d' | '90d' | 'all'
@@ -99,8 +95,7 @@ export function AnalyticsOverview({
   spendData,
   totalAdSpend,
   leadsEnabled,
-  isExpanded,
-  setIsExpanded,
+  daysCampaignRunning,
 }: AnalyticsOverviewProps) {
   const [activeTab, setActiveTab] = useState("overview")
   const [chartRange, setChartRange] = useState<ChartRange>('30d')
@@ -212,10 +207,7 @@ export function AnalyticsOverview({
   }
 
   return (
-    <div className={cn(
-      "transition-all duration-300",
-      isExpanded ? "lg:col-span-3" : "lg:col-span-2"
-    )}>
+    <div className="lg:col-span-2">
       <Card className="w-full h-full">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
@@ -224,16 +216,11 @@ export function AnalyticsOverview({
               Track your advertising metrics and conversion rates
             </CardDescription>
           </div>
-          <Button
-            onClick={() => setIsExpanded(!isExpanded)}
-            aria-expanded={isExpanded}
-            aria-label={isExpanded ? "Collapse chart to normal size" : "Expand chart to full width"}
-            variant="outline"
-            size="icon"
-            className="hidden lg:flex"
-          >
-            {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-          </Button>
+          {daysCampaignRunning != null && daysCampaignRunning > 0 && (
+            <span className="text-xs font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
+              Running for {daysCampaignRunning} {daysCampaignRunning === 1 ? 'day' : 'days'}
+            </span>
+          )}
         </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>

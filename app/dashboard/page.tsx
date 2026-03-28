@@ -87,6 +87,7 @@ export default async function DashboardPage() {
       roas={roas}
       documents={serializedDocuments}
       activities={serializedActivities}
+      campaignStartDate={dailyInsights?.[0]?.date_start ?? null}
     />
   )
 }

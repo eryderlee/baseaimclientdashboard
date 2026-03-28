@@ -1,6 +1,5 @@
 ﻿"use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import GradientBG from "@/components/GradientBG"
 import { AnalyticsOverview } from "@/components/dashboard/analytics-overview"
@@ -81,6 +80,7 @@ interface DashboardOverviewProps {
   roas: number | null
   documents: SerializedDocument[]
   activities: SerializedActivity[]
+  campaignStartDate: string | null
 }
 
 export function DashboardOverview({
@@ -96,8 +96,11 @@ export function DashboardOverview({
   roas,
   documents,
   activities,
+  campaignStartDate,
 }: DashboardOverviewProps) {
-  const [isChartExpanded, setIsChartExpanded] = useState(false)
+  const daysCampaignRunning = campaignStartDate
+    ? Math.ceil((Date.now() - new Date(campaignStartDate).getTime()) / 86400000)
+    : null
 
   // Build chart series from real FB daily data, falling back to zeros if not configured
   const analytics = {
@@ -474,8 +477,7 @@ export function DashboardOverview({
         spendData={analytics.spend}
         totalAdSpend={analytics.totalAdSpend}
         leadsEnabled={leadsEnabled}
-        isExpanded={isChartExpanded}
-        setIsExpanded={setIsChartExpanded}
+        daysCampaignRunning={daysCampaignRunning}
       />
 
       <div className="grid gap-6 md:grid-cols-2">
