@@ -52,10 +52,10 @@ interface ClientDemoConfig {
   seed: number
   dayCount: number
   startDate: string
-  baseSpend: number       // daily average spend
-  baseImpressions: number // daily average impressions
-  baseClicks: number      // daily average clicks (spend/clicks ≈ target CPC)
-  baseLeads: number       // daily average leads
+  dailyBudget: number     // Meta daily budget setting — 7-day spend won't exceed this × 7
+  baseImpressions: number // daily average impressions at full budget
+  baseClicks: number      // daily average clicks at full budget (budget/clicks ≈ target CPC)
+  baseLeads: number       // daily average leads at full budget
   bookedCallProb: number  // probability of booked calls on a given day (0-1)
   roasMultiplier: number
   campaigns: Array<{
@@ -67,15 +67,15 @@ interface ClientDemoConfig {
 }
 
 const CLIENT_CONFIGS: Record<string, ClientDemoConfig> = {
-  // Meridian: newer client, 20 days, low CPC (~$0.75), smaller budget
+  // Meridian: newer client, 20 days, $100/day budget, low CPC (~$0.75)
   'demo-meridian-financial': {
     seed: 42,
     dayCount: 20,
     startDate: '2026-03-08',
-    baseSpend: 128,         // ~$2560 total over 20 days
-    baseImpressions: 5200,
-    baseClicks: 171,        // CPC ≈ $0.75
-    baseLeads: 4.5,
+    dailyBudget: 100,       // $100/day → ~$2000 total over 20 days
+    baseImpressions: 4100,
+    baseClicks: 133,        // CPC ≈ $0.75
+    baseLeads: 3.5,
     bookedCallProb: 0.35,
     roasMultiplier: 1.82,
     campaigns: [
@@ -84,15 +84,15 @@ const CLIENT_CONFIGS: Record<string, ClientDemoConfig> = {
       { id: 'demo-mf-camp-003', name: 'Brand Awareness - Local', spendShare: 0.17, leadShare: 0.16 },
     ],
   },
-  // Apex: mid-range client, 45 days, mid CPC (~$1.40)
+  // Apex: mid-range client, 45 days, $250/day budget, mid CPC (~$1.40)
   'demo-apex-tax': {
     seed: 137,
     dayCount: 45,
     startDate: '2026-02-10',
-    baseSpend: 310,         // ~$13,950 total over 45 days
-    baseImpressions: 9800,
-    baseClicks: 221,        // CPC ≈ $1.40
-    baseLeads: 8.2,
+    dailyBudget: 250,       // $250/day → ~$11,250 total over 45 days
+    baseImpressions: 7900,
+    baseClicks: 179,        // CPC ≈ $1.40
+    baseLeads: 6.5,
     bookedCallProb: 0.50,
     roasMultiplier: 2.41,
     campaigns: [
@@ -101,15 +101,15 @@ const CLIENT_CONFIGS: Record<string, ClientDemoConfig> = {
       { id: 'demo-at-camp-003', name: 'Retargeting - Landing Page Visitors', spendShare: 0.18, leadShare: 0.17 },
     ],
   },
-  // Hargrove: mature client, 120 days, higher CPC (~$2.20), big budget
+  // Hargrove: mature client, 120 days, $450/day budget, higher CPC (~$2.20)
   'demo-hargrove-associates': {
     seed: 271,
     dayCount: 120,
     startDate: '2025-11-28',
-    baseSpend: 520,         // ~$62,400 total over 120 days
-    baseImpressions: 15200,
-    baseClicks: 236,        // CPC ≈ $2.20
-    baseLeads: 12.5,
+    dailyBudget: 450,       // $450/day → ~$54,000 total over 120 days
+    baseImpressions: 13200,
+    baseClicks: 205,        // CPC ≈ $2.20
+    baseLeads: 10.5,
     bookedCallProb: 0.65,
     roasMultiplier: 3.15,
     campaigns: [
@@ -120,38 +120,69 @@ const CLIENT_CONFIGS: Record<string, ClientDemoConfig> = {
   },
 }
 
+// ─── Meta-style 7-day budget pacing ──────────────────────────────────────────
+//
+// Meta distributes a daily budget across a rolling 7-day window: on any given
+// day spend can be up to ~20% above or below the daily budget, but the 7-day
+// total will not exceed dailyBudget × 7.  We pre-generate per-day spend for
+// each client in 7-day chunks so the windowed constraint holds.
+
+function generateWeeklyPacedSpend(
+  dayCount: number,
+  dailyBudget: number,
+  rng: () => number,
+): number[] {
+  const weeklyMax = dailyBudget * 7
+
+  // Step 1: generate raw daily spends with ±20% jitter
+  const spends: number[] = []
+  for (let i = 0; i < dayCount; i++) {
+    spends.push(dailyBudget * (0.80 + rng() * 0.40))
+  }
+
+  // Step 2: sliding-window correction — ensure every 7-day window ≤ weeklyMax
+  // Two passes to converge (forward + backward)
+  for (let pass = 0; pass < 2; pass++) {
+    for (let i = 0; i <= spends.length - 7; i++) {
+      let windowSum = 0
+      for (let j = i; j < i + 7; j++) windowSum += spends[j]
+      if (windowSum > weeklyMax) {
+        // Scale down all days in this window proportionally
+        const scale = weeklyMax / windowSum
+        for (let j = i; j < i + 7; j++) spends[j] *= scale
+      }
+    }
+  }
+
+  return spends
+}
+
 // ─── Day generation with realistic variation ─────────────────────────────────
 
 function makeDay(
   date: string,
+  daySpend: number,
   config: ClientDemoConfig,
   rng: () => number,
 ): FbDailyInsight {
   const dow = dayOfWeek(date)
   const isWeekend = dow === 0 || dow === 6
 
-  // Base weekend/weekday factor
-  let baseFactor = isWeekend ? 0.65 : 1.0
+  // spendRatio: how today's spend compares to the daily budget
+  // Other metrics scale proportionally — more spend = more delivery
+  const spendRatio = daySpend / config.dailyBudget
 
-  // ~10% chance of a "dip day" — correlated drop across all metrics
-  const isDipDay = rng() < 0.10
-  const dipMultiplier = isDipDay ? 0.50 + rng() * 0.20 : 1.0 // 50-70% of normal
+  // Impressions: scale with spend, plus independent jitter (±15%)
+  const impressionsJitter = 0.85 + rng() * 0.30
+  const impressions = Math.max(0, Math.round(config.baseImpressions * spendRatio * impressionsJitter))
 
-  // Spend: tighter jitter (±10%) — should be "somewhat consistent"
-  const spendJitter = 0.90 + rng() * 0.20
-  const spend = Math.max(0, config.baseSpend * baseFactor * spendJitter * dipMultiplier)
-
-  // Impressions: wider jitter (±20%)
-  const impressionsJitter = 0.80 + rng() * 0.40
-  const impressions = Math.max(0, Math.round(config.baseImpressions * baseFactor * impressionsJitter * dipMultiplier))
-
-  // Clicks: independent jitter (±18%)
+  // Clicks: scale with spend, independent jitter (±18%)
   const clicksJitter = 0.82 + rng() * 0.36
-  const clicks = Math.min(impressions, Math.max(0, Math.round(config.baseClicks * baseFactor * clicksJitter * dipMultiplier)))
+  const clicks = Math.min(impressions, Math.max(0, Math.round(config.baseClicks * spendRatio * clicksJitter)))
 
   // Leads: wider jitter (±25%) — more volatile
   const leadsJitter = 0.75 + rng() * 0.50
-  const leads = Math.max(0, Math.round(config.baseLeads * baseFactor * leadsJitter * dipMultiplier))
+  const leads = Math.max(0, Math.round(config.baseLeads * spendRatio * leadsJitter))
 
   // Booked calls: sporadic — some days 0, some days a few
   let bookedCalls = 0
@@ -167,7 +198,7 @@ function makeDay(
 
   // Purchase revenue for ROAS
   const roasJitter = 0.85 + rng() * 0.30
-  const purchaseRevenue = (spend * config.roasMultiplier * roasJitter).toFixed(2)
+  const purchaseRevenue = (daySpend * config.roasMultiplier * roasJitter).toFixed(2)
 
   const actions: Array<{ action_type: string; value: string }> = []
   if (leads > 0) actions.push({ action_type: 'lead', value: String(leads) })
@@ -176,7 +207,7 @@ function makeDay(
   return {
     date_start: date,
     date_stop: date,
-    spend: spend.toFixed(2),
+    spend: daySpend.toFixed(2),
     impressions: String(impressions),
     clicks: String(clicks),
     actions,
@@ -191,7 +222,8 @@ export const DEMO_FB_DAILY_TREND: Record<string, FbDailyInsight[]> = {}
 for (const [stableId, config] of Object.entries(CLIENT_CONFIGS)) {
   const rng = mulberry32(config.seed)
   const dates = buildDates(config.startDate, config.dayCount)
-  DEMO_FB_DAILY_TREND[stableId] = dates.map(date => makeDay(date, config, rng))
+  const dailySpends = generateWeeklyPacedSpend(config.dayCount, config.dailyBudget, rng)
+  DEMO_FB_DAILY_TREND[stableId] = dates.map((date, i) => makeDay(date, dailySpends[i], config, rng))
 }
 
 // ─── Compute aggregated insights from daily data (guarantees consistency) ────
