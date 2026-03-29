@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   LineChart,
   Line,
@@ -49,12 +50,11 @@ interface AnalyticsOverviewProps {
   leadsData: DailyMetric[]
   bookedCallsData: DailyMetric[]
   spendData: DailyMetric[]
-  totalAdSpend: number
   leadsEnabled: boolean
   daysCampaignRunning: number | null
 }
 
-type ChartRange = '7d' | '30d' | '90d' | 'all'
+type ChartRange = '7d' | '30d' | '90d' | 'all' | 'month'
 
 const CHART_RANGES: { label: string; value: ChartRange }[] = [
   { label: '7D', value: '7d' },
@@ -76,10 +76,24 @@ function toLocalDateStr(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-function sliceRange(data: DailyMetric[], range: ChartRange): DailyMetric[] {
-  if (range === 'all') return data
+function aggregateToMonthly(data: DailyMetric[]): DailyMetric[] {
+  const map = new Map<string, { sum: number; rawDate: string; date: string }>()
+  for (const d of data) {
+    const key = d.rawDate.slice(0, 7) // 'YYYY-MM'
+    if (map.has(key)) {
+      map.get(key)!.sum += d.value
+    } else {
+      const label = new Date(d.rawDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+      map.set(key, { sum: d.value, rawDate: key + '-01', date: label })
+    }
+  }
+  return Array.from(map.values()).map(v => ({ date: v.date, rawDate: v.rawDate, value: v.sum }))
+}
+
+function sliceRange(data: DailyMetric[], range: ChartRange, customMonth?: string | null): DailyMetric[] {
+  if (range === 'all') return aggregateToMonthly(data)
+  if (range === 'month' && customMonth) return data.filter(d => d.rawDate.startsWith(customMonth))
   const days = parseInt(range)
-  // Facebook's last_7d = 7 days ending yesterday. Match that window.
   const today = new Date()
   const todayStr = toLocalDateStr(today)
   const cutoff = new Date(today.getFullYear(), today.getMonth(), today.getDate() - days)
@@ -93,20 +107,35 @@ export function AnalyticsOverview({
   leadsData,
   bookedCallsData,
   spendData,
-  totalAdSpend,
   leadsEnabled,
   daysCampaignRunning,
 }: AnalyticsOverviewProps) {
   const [activeTab, setActiveTab] = useState("overview")
   const [chartRange, setChartRange] = useState<ChartRange>('30d')
+  const [customMonth, setCustomMonth] = useState<string | null>(null)
   const [hiddenSeries, setHiddenSeries] = useState<Set<string>>(new Set())
 
+  // Available months derived from the data
+  const availableMonths = Array.from(
+    new Set(impressionsData.map(d => d.rawDate.slice(0, 7)))
+  ).sort().reverse()
+
+  function handleRangeClick(range: ChartRange) {
+    setChartRange(range)
+    setCustomMonth(null)
+  }
+
+  function handleMonthSelect(month: string) {
+    setCustomMonth(month)
+    setChartRange('month')
+  }
+
   // Calculate totals scoped to the selected range
-  const rangedImpressions = sliceRange(impressionsData, chartRange)
-  const rangedClicks = sliceRange(clicksData, chartRange)
-  const rangedLeads = sliceRange(leadsData, chartRange)
-  const rangedBookedCalls = sliceRange(bookedCallsData, chartRange)
-  const rangedSpend = sliceRange(spendData, chartRange)
+  const rangedImpressions = sliceRange(impressionsData, chartRange, customMonth)
+  const rangedClicks = sliceRange(clicksData, chartRange, customMonth)
+  const rangedLeads = sliceRange(leadsData, chartRange, customMonth)
+  const rangedBookedCalls = sliceRange(bookedCallsData, chartRange, customMonth)
+  const rangedSpend = sliceRange(spendData, chartRange, customMonth)
 
   const totalImpressions = rangedImpressions.reduce((sum, d) => sum + d.value, 0)
   const totalClicks = rangedClicks.reduce((sum, d) => sum + d.value, 0)
@@ -121,6 +150,12 @@ export function AnalyticsOverview({
   const cpa = totalLeads > 0 ? rangeAdSpend / totalLeads : 0
   const callsConversionRate = totalLeads > 0 ? (totalBookedCalls / totalLeads) * 100 : 0
   const cpCall = totalBookedCalls > 0 ? rangeAdSpend / totalBookedCalls : 0
+
+  const rangeLabel = chartRange === 'all'
+    ? 'All time'
+    : chartRange === 'month' && customMonth
+      ? new Date(customMonth + '-01T00:00:00').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+      : chartRange.toUpperCase()
 
   // Build metrics — conditionally include leads/bookedCalls
   const metrics: Record<string, MetricData> = {
@@ -206,6 +241,46 @@ export function AnalyticsOverview({
     })
   }
 
+  const rangeControls = (
+    <div className="flex items-center gap-1 flex-wrap">
+      {CHART_RANGES.map((r) => (
+        <button
+          key={r.value}
+          onClick={() => handleRangeClick(r.value)}
+          className={cn(
+            'rounded px-2.5 py-1 text-xs font-medium transition-colors',
+            chartRange === r.value && !customMonth
+              ? 'bg-blue-600 text-white'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          )}
+        >
+          {r.label}
+        </button>
+      ))}
+      <Select
+        value={customMonth ?? ''}
+        onValueChange={handleMonthSelect}
+      >
+        <SelectTrigger
+          className={cn(
+            'h-7 w-[110px] text-xs border-0 shadow-none',
+            chartRange === 'month' && customMonth
+              ? 'bg-blue-600 text-white'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          )}
+        >
+          <SelectValue placeholder="Month" />
+        </SelectTrigger>
+        <SelectContent>
+          {availableMonths.map(m => {
+            const label = new Date(m + '-01T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+            return <SelectItem key={m} value={m}>{label}</SelectItem>
+          })}
+        </SelectContent>
+      </Select>
+    </div>
+  )
+
   return (
     <div className="lg:col-span-2">
       <Card className="w-full h-full">
@@ -249,22 +324,7 @@ export function AnalyticsOverview({
                   <CardTitle>All Metrics</CardTitle>
                   <CardDescription>Daily performance across all channels</CardDescription>
                 </div>
-                <div className="flex gap-1">
-                  {CHART_RANGES.map((r) => (
-                    <button
-                      key={r.value}
-                      onClick={() => setChartRange(r.value)}
-                      className={cn(
-                        'rounded px-2.5 py-1 text-xs font-medium transition-colors',
-                        chartRange === r.value
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      )}
-                    >
-                      {r.label}
-                    </button>
-                  ))}
-                </div>
+                {rangeControls}
               </CardHeader>
               <CardContent>
                 {/* Series toggle pills */}
@@ -292,22 +352,20 @@ export function AnalyticsOverview({
                   })}
                 </div>
                 {(() => {
-                  // Merge all series by date — all arrays share the same dates/rawDates
-                  const sliced = sliceRange(impressionsData, chartRange)
-                  const combined = sliced.map((d) => {
-                    const clickDay = clicksData.find((c) => c.rawDate === d.rawDate)
-                    const leadDay = leadsData.find((l) => l.rawDate === d.rawDate)
-                    const callDay = bookedCallsData.find((b) => b.rawDate === d.rawDate)
-                    const spendDay = spendData.find((s) => s.rawDate === d.rawDate)
-                    return {
-                      date: d.date,
-                      Impressions: d.value,
-                      Clicks: clickDay?.value ?? 0,
-                      Leads: leadDay?.value ?? 0,
-                      'Booked Calls': callDay?.value ?? 0,
-                      'Ad Spend': spendDay?.value ?? 0,
-                    }
-                  })
+                  // Merge all series by index — all arrays share same dates in same order
+                  const sliced = sliceRange(impressionsData, chartRange, customMonth)
+                  const slicedClicks = sliceRange(clicksData, chartRange, customMonth)
+                  const slicedLeads = sliceRange(leadsData, chartRange, customMonth)
+                  const slicedCalls = sliceRange(bookedCallsData, chartRange, customMonth)
+                  const slicedSpend = sliceRange(spendData, chartRange, customMonth)
+                  const combined = sliced.map((d, i) => ({
+                    date: d.date,
+                    Impressions: d.value,
+                    Clicks: slicedClicks[i]?.value ?? 0,
+                    Leads: slicedLeads[i]?.value ?? 0,
+                    'Booked Calls': slicedCalls[i]?.value ?? 0,
+                    'Ad Spend': slicedSpend[i]?.value ?? 0,
+                  }))
                   const visibleSeries = availableSeries.filter((s) => !hiddenSeries.has(s.key))
                   return (
                     <ResponsiveContainer width="100%" height={400}>
@@ -387,10 +445,10 @@ export function AnalyticsOverview({
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      ${metric.adSpend.toLocaleString()}
+                      ${metric.adSpend.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </div>
                     <p className="text-xs text-neutral-500 mt-1">
-                      Total investment
+                      {rangeLabel} investment
                     </p>
                   </CardContent>
                 </Card>
@@ -444,26 +502,11 @@ export function AnalyticsOverview({
                       Daily performance over the selected range
                     </CardDescription>
                   </div>
-                  <div className="flex gap-1">
-                    {CHART_RANGES.map((r) => (
-                      <button
-                        key={r.value}
-                        onClick={() => setChartRange(r.value)}
-                        className={cn(
-                          'rounded px-2.5 py-1 text-xs font-medium transition-colors',
-                          chartRange === r.value
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                        )}
-                      >
-                        {r.label}
-                      </button>
-                    ))}
-                  </div>
+                  {rangeControls}
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={350}>
-                    <LineChart data={sliceRange(metric.dailyData, chartRange)}>
+                    <LineChart data={sliceRange(metric.dailyData, chartRange, customMonth)}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-neutral-200 dark:stroke-neutral-800" />
                       <XAxis
                         dataKey="date"

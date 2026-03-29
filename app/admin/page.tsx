@@ -49,7 +49,7 @@ async function getAdminData() {
       nextDueDate: nextDueDate ? nextDueDate.toISOString() : null,
       setupComplete,
       fbSpend: fbData?.spend ?? null,
-      fbLeads: fbData?.leads ?? null,
+      fbBookedCalls: fbData?.bookedCalls ?? null,
       user: {
         name: client.user.name || '',
         email: client.user.email,

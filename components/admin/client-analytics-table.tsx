@@ -29,7 +29,7 @@ interface ClientData {
   nextDueDate: string | null
   setupComplete: boolean
   fbSpend?: number | null
-  fbLeads?: number | null
+  fbBookedCalls?: number | null
   user: {
     name: string
     email: string
@@ -115,7 +115,7 @@ export function ClientAnalyticsTable({ clients }: ClientAnalyticsTableProps) {
           <TableHead>Setup</TableHead>
           <TableHead>Next Due Date</TableHead>
           <TableHead className="hidden md:table-cell">FB Spend</TableHead>
-          <TableHead className="hidden md:table-cell">FB Leads</TableHead>
+          <TableHead className="hidden md:table-cell">Booked Calls</TableHead>
           <TableHead>Actions</TableHead>
         </TableRow>
       </TableHeader>
@@ -177,7 +177,7 @@ export function ClientAnalyticsTable({ clients }: ClientAnalyticsTableProps) {
                 : '-'}
             </TableCell>
             <TableCell className="hidden md:table-cell">
-              {client.fbLeads != null ? client.fbLeads.toString() : '-'}
+              {client.fbBookedCalls != null ? client.fbBookedCalls.toString() : '-'}
             </TableCell>
             <TableCell>
               <div className="flex items-center gap-1">

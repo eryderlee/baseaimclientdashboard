@@ -38,6 +38,7 @@ async function FbAdsSection({ dateRange }: { dateRange: DateRange }) {
   ])
 
   const isConfigured = !!clientAdConfig?.adAccountId || !!clientAdConfig?.isDemo
+  const leadsEnabled = clientAdConfig?.leadsChartEnabled ?? true
 
   return (
     <div className="space-y-4">
@@ -47,6 +48,7 @@ async function FbAdsSection({ dateRange }: { dateRange: DateRange }) {
         isConfigured={isConfigured}
         campaigns={campaigns}
         platforms={platforms}
+        leadsEnabled={leadsEnabled}
       />
 
       {/* Extended sections — only shown when FB is configured and has data */}
@@ -55,7 +57,7 @@ async function FbAdsSection({ dateRange }: { dateRange: DateRange }) {
           {/* Spend & Leads Trend */}
           <div className="mt-6">
             <h3 className="text-sm font-semibold text-slate-700 mb-3">Spend & Leads Trend</h3>
-            <FbTrendChart data={dailyTrend ? buildTrendData(dailyTrend) : []} />
+            <FbTrendChart data={dailyTrend ? buildTrendData(dailyTrend) : []} leadsEnabled={leadsEnabled} />
           </div>
 
           {/* Top Campaigns */}

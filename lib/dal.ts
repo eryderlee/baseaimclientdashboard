@@ -1062,7 +1062,7 @@ export const getAdminFbAggregation = cache(async () => {
  * verifySession() called BEFORE unstable_cache boundary.
  * ADMIN role only.
  */
-export const getAdminFbPerClient = cache(async (): Promise<Record<string, { spend: number; leads: number }>> => {
+export const getAdminFbPerClient = cache(async (): Promise<Record<string, { spend: number; bookedCalls: number }>> => {
   const { userRole } = await verifySession()
   if (userRole !== 'ADMIN') throw new Error('Unauthorized: Admin access required')
 
@@ -1074,13 +1074,13 @@ export const getAdminFbPerClient = cache(async (): Promise<Record<string, { spen
       where: { isDemo: true },
       select: { id: true, demoStableId: true },
     })
-    const perClient: Record<string, { spend: number; leads: number }> = {}
+    const perClient: Record<string, { spend: number; bookedCalls: number }> = {}
     for (const dc of demoClients) {
       if (dc.demoStableId && DEMO_FB_INSIGHTS[dc.demoStableId]) {
         const insight = DEMO_FB_INSIGHTS[dc.demoStableId]
         perClient[dc.id] = {
           spend: parseFloat(insight.spend || '0'),
-          leads: getActionValue(insight.actions, 'lead'),
+          bookedCalls: getActionValue(insight.actions, 'offsite_conversion.fb_pixel_custom'),
         }
       }
     }
@@ -1112,14 +1112,14 @@ export const getAdminFbPerClient = cache(async (): Promise<Record<string, { spen
         )
       )
 
-      const perClient: Record<string, { spend: number; leads: number }> = {}
+      const perClient: Record<string, { spend: number; bookedCalls: number }> = {}
 
       for (let i = 0; i < results.length; i++) {
         const result = results[i]
         if (result.status === 'fulfilled' && result.value) {
           perClient[clients[i].id] = {
             spend: parseFloat(result.value.spend || '0'),
-            leads: getActionValue(result.value.actions, 'lead'),
+            bookedCalls: getActionValue(result.value.actions, 'offsite_conversion.fb_pixel_custom'),
           }
         }
       }

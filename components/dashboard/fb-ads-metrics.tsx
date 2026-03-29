@@ -26,6 +26,7 @@ interface FbAdsMetricsProps {
   isConfigured: boolean
   campaigns?: FbCampaignInsight[]
   platforms?: FbPlatformRow[]
+  leadsEnabled?: boolean
 }
 
 const DATE_RANGES = [
@@ -98,6 +99,12 @@ function getCpl(spend: string, actions?: FbAction[]): string {
   return `$${(parseFloat(spend) / leads).toFixed(2)}`
 }
 
+function getCostPerBookedCall(spend: string, actions?: FbAction[]): string {
+  const calls = getActionValue(actions, 'offsite_conversion.fb_pixel_custom')
+  if (!calls) return '--'
+  return `$${(parseFloat(spend) / calls).toFixed(2)}`
+}
+
 function getOutboundClicks(outboundClicks?: FbAction[]): number {
   if (!outboundClicks) return 0
   return outboundClicks.reduce((sum, a) => sum + parseFloat(a.value || '0'), 0)
@@ -111,6 +118,7 @@ export function FbAdsMetrics({
   isConfigured,
   campaigns,
   platforms,
+  leadsEnabled = true,
 }: FbAdsMetricsProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -280,27 +288,37 @@ export function FbAdsMetrics({
               </CardContent>
             </Card>
 
-            {/* Card 9: Leads */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Leads</CardTitle>
-                <UserPlus className="h-4 w-4 text-neutral-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{String(getLeads(insights.actions))}</div>
-                <p className="text-xs text-neutral-500 mt-1">Total lead conversions</p>
-              </CardContent>
-            </Card>
+            {/* Card 9: Leads (hidden when leadsEnabled=false) */}
+            {leadsEnabled && (
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Leads</CardTitle>
+                  <UserPlus className="h-4 w-4 text-neutral-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{String(getLeads(insights.actions))}</div>
+                  <p className="text-xs text-neutral-500 mt-1">Total lead conversions</p>
+                </CardContent>
+              </Card>
+            )}
 
-            {/* Card 10: Cost Per Lead */}
+            {/* Card 10: Cost Per Lead / Cost Per Booked Call */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Cost Per Lead</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  {leadsEnabled ? 'Cost Per Lead' : 'Cost Per Booked Call'}
+                </CardTitle>
                 <DollarSign className="h-4 w-4 text-neutral-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{getCpl(insights.spend, insights.actions)}</div>
-                <p className="text-xs text-neutral-500 mt-1">Average cost per lead</p>
+                <div className="text-2xl font-bold">
+                  {leadsEnabled
+                    ? getCpl(insights.spend, insights.actions)
+                    : getCostPerBookedCall(insights.spend, insights.actions)}
+                </div>
+                <p className="text-xs text-neutral-500 mt-1">
+                  {leadsEnabled ? 'Average cost per lead' : 'Average cost per booked call'}
+                </p>
               </CardContent>
             </Card>
 

@@ -469,7 +469,6 @@ export function DashboardOverview({
         leadsData={analytics.leads}
         bookedCallsData={analytics.bookedCalls}
         spendData={analytics.spend}
-        totalAdSpend={analytics.totalAdSpend}
         leadsEnabled={leadsEnabled}
         daysCampaignRunning={daysCampaignRunning}
       />

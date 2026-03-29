@@ -298,6 +298,7 @@ export async function fetchFacebookPlatformBreakdown(
 
 export interface TrendDataPoint {
   date: string
+  rawDate: string  // ISO date e.g. "2026-03-20" — used for monthly aggregation and filtering
   spend: number
   leads: number
   roas: number
@@ -354,6 +355,7 @@ export function buildTrendData(daily: FbDailyInsight[]): TrendDataPoint[] {
         month: 'short',
         day: 'numeric',
       }),
+      rawDate: d.date_start,
       spend,
       leads:
         getActionValue(d.actions, 'lead') +
