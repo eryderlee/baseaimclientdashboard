@@ -4,6 +4,7 @@ import { AdminPreviewBanner } from "@/components/dashboard/admin-preview-banner"
 import { exitPreview } from "@/lib/actions/preview"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { isSetupComplete } from "@/lib/dal"
 
 export default async function DashboardLayout({
   children,
@@ -50,13 +51,16 @@ export default async function DashboardLayout({
         })
       : null
 
+  const setupComplete =
+    user.role !== 'CLIENT' || (await isSetupComplete())
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-transparent">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(79,195,247,0.25),_transparent_60%)] blur-3xl opacity-70" />
       {previewClient && (
         <AdminPreviewBanner clientName={previewClient.companyName} exitAction={exitPreview} />
       )}
-      <DashboardNav user={user} notifications={notifications} />
+      <DashboardNav user={user} notifications={notifications} setupComplete={setupComplete} />
       <main className="relative z-10 w-full px-4 py-8 md:px-8 lg:px-12 lg:py-12">
         {children}
       </main>

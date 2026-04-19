@@ -17,6 +17,7 @@ import {
   Clock,
   CreditCard,
   FileText,
+  Lock,
   Send,
   TrendingUp,
   Upload,
@@ -322,10 +323,19 @@ export function DashboardOverview({
                     <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
                       {item.label}
                     </p>
-                    <p className="mt-3 text-3xl font-heading text-slate-900 dark:text-white">
-                      {item.value}
+                    {!setupComplete ? (
+                      <div className="mt-3 flex items-center gap-2">
+                        <Lock className="h-5 w-5 text-slate-300 dark:text-slate-600" />
+                        <span className="text-sm text-slate-400 dark:text-slate-500">Launches after setup</span>
+                      </div>
+                    ) : (
+                      <p className="mt-3 text-3xl font-heading text-slate-900 dark:text-white">
+                        {item.value}
+                      </p>
+                    )}
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      {!setupComplete ? 'Available once your campaigns go live' : item.caption}
                     </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{item.caption}</p>
                   </div>
                 </div>
               ))}
@@ -463,15 +473,23 @@ export function DashboardOverview({
         </Card>
       </div>
 
-      <AnalyticsOverview
-        impressionsData={analytics.impressions}
-        clicksData={analytics.clicks}
-        leadsData={analytics.leads}
-        bookedCallsData={analytics.bookedCalls}
-        spendData={analytics.spend}
-        leadsEnabled={leadsEnabled}
-        daysCampaignRunning={daysCampaignRunning}
-      />
+      {setupComplete ? (
+        <AnalyticsOverview
+          impressionsData={analytics.impressions}
+          clicksData={analytics.clicks}
+          leadsData={analytics.leads}
+          bookedCallsData={analytics.bookedCalls}
+          spendData={analytics.spend}
+          leadsEnabled={leadsEnabled}
+          daysCampaignRunning={daysCampaignRunning}
+        />
+      ) : (
+        <div className="rounded-3xl border border-dashed border-slate-200 bg-white/60 p-12 text-center dark:border-slate-800 dark:bg-slate-900/50">
+          <Lock className="mx-auto mb-4 h-10 w-10 text-slate-300 dark:text-slate-600" />
+          <p className="text-base font-semibold text-slate-500 dark:text-slate-400">Campaign Performance</p>
+          <p className="mt-1 text-sm text-slate-400 dark:text-slate-500">Your analytics will appear here once your campaigns are live.</p>
+        </div>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="glass-card rounded-3xl border border-white/60 shadow-lg shadow-sky-100 dark:border-slate-800/70">

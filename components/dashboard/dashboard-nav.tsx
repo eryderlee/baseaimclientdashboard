@@ -31,6 +31,7 @@ import {
   TrendingUp,
   LogOut,
   Menu,
+  Lock,
 } from "lucide-react"
 import { NotificationCenter } from "@/components/dashboard/notification-center"
 
@@ -44,6 +45,8 @@ interface SerializedNotification {
   createdAt: string // ISO string from server
 }
 
+const SETUP_LOCKED = ['/dashboard/analytics', '/dashboard/settings']
+
 interface DashboardNavProps {
   user: {
     name?: string | null
@@ -52,6 +55,7 @@ interface DashboardNavProps {
     role?: string
   }
   notifications?: SerializedNotification[]
+  setupComplete?: boolean
 }
 
 const navItems = [
@@ -64,7 +68,7 @@ const navItems = [
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ]
 
-export function DashboardNav({ user, notifications: propNotifications }: DashboardNavProps) {
+export function DashboardNav({ user, notifications: propNotifications, setupComplete = true }: DashboardNavProps) {
   const pathname = usePathname()
 
   const notifications = propNotifications ?? []
@@ -113,6 +117,19 @@ export function DashboardNav({ user, notifications: propNotifications }: Dashboa
                   {navItems.map((item) => {
                     const Icon = item.icon
                     const isActive = pathname === item.href
+                    const isLocked = !setupComplete && SETUP_LOCKED.includes(item.href)
+                    if (isLocked) {
+                      return (
+                        <span
+                          key={item.href}
+                          title="Complete your setup to unlock this section"
+                          className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-300 cursor-not-allowed select-none dark:text-slate-600"
+                        >
+                          <Lock className="h-4 w-4" />
+                          {item.label}
+                        </span>
+                      )
+                    }
                     return (
                       <Link
                         key={item.href}
@@ -138,6 +155,19 @@ export function DashboardNav({ user, notifications: propNotifications }: Dashboa
               {navItems.map((item) => {
                 const Icon = item.icon
                 const isActive = pathname === item.href
+                const isLocked = !setupComplete && SETUP_LOCKED.includes(item.href)
+                if (isLocked) {
+                  return (
+                    <span
+                      key={item.href}
+                      title="Complete your setup to unlock this section"
+                      className="flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium text-slate-300 cursor-not-allowed select-none dark:text-slate-600"
+                    >
+                      <Lock className="h-3 w-3" />
+                      {item.label}
+                    </span>
+                  )
+                }
                 return (
                   <Link
                     key={item.href}

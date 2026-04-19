@@ -113,6 +113,19 @@ export const getSetupMilestones = cache(async () => {
   })
 })
 
+export const isSetupComplete = cache(async () => {
+  const milestones = await getSetupMilestones()
+  if (milestones.length === 0) return true
+  return milestones.every(m => m.status === 'COMPLETED')
+})
+
+export async function requireSetupComplete() {
+  const { userRole } = await verifySession()
+  if (userRole === 'ADMIN') return
+  const complete = await isSetupComplete()
+  if (!complete) redirect('/dashboard/progress')
+}
+
 export const getGrowthMilestones = cache(async () => {
   const clientId = await getCurrentClientId()
 

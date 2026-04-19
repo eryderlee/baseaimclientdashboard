@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { requireSetupComplete } from "@/lib/dal"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { SettingsForm } from "@/components/dashboard/settings-form"
 import { ChangePasswordForm } from "@/components/dashboard/change-password-form"
@@ -16,6 +17,7 @@ async function getUserSettings(userId: string) {
 }
 
 export default async function SettingsPage() {
+  await requireSetupComplete()
   const session = await auth()
   const user = await getUserSettings(session!.user!.id)
 
