@@ -197,6 +197,7 @@ export function DashboardOverview({
         : "—",
       detail: isFbConfigured ? "Total ad spend (30d)" : "Ad account not connected",
       accent: "from-[#f97316]/20 via-[#fb923c]/30 to-transparent",
+      locked: !setupComplete,
     },
   ]
   const heroStats = [
@@ -278,10 +279,19 @@ export function DashboardOverview({
                     <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-300">
                       {item.label}
                     </p>
-                    <p className="mt-2 text-lg font-heading text-slate-900 dark:text-white">
-                      {item.value}
+                    {'locked' in item && item.locked ? (
+                      <div className="mt-2 flex items-center gap-1.5">
+                        <Lock className="h-4 w-4 text-slate-300 dark:text-slate-600" />
+                        <span className="text-sm text-slate-400 dark:text-slate-500">Launches after setup</span>
+                      </div>
+                    ) : (
+                      <p className="mt-2 text-lg font-heading text-slate-900 dark:text-white">
+                        {item.value}
+                      </p>
+                    )}
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {'locked' in item && item.locked ? 'Available once campaigns go live' : item.detail}
                     </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{item.detail}</p>
                   </div>
                 </div>
               ))}

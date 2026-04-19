@@ -51,8 +51,9 @@ export default async function DashboardLayout({
         })
       : null
 
+  // Show locks even for admins in preview mode (so they see the client's actual state)
   const setupComplete =
-    user.role !== 'CLIENT' || (await isSetupComplete())
+    (user.role === 'ADMIN' && !previewClientId) || (await isSetupComplete())
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-transparent">
