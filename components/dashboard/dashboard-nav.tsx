@@ -45,7 +45,7 @@ interface SerializedNotification {
   createdAt: string // ISO string from server
 }
 
-const SETUP_LOCKED = ['/dashboard/analytics', '/dashboard/settings']
+const SETUP_LOCKED = ['/dashboard/analytics']
 
 interface DashboardNavProps {
   user: {
@@ -91,8 +91,8 @@ export function DashboardNav({ user, notifications: propNotifications, setupComp
                 Baseaim Client Hub
               </p>
               <div className="flex items-center gap-1.5 mt-0.5">
-                <span className={`h-1.5 w-1.5 rounded-full ${setupComplete ? 'bg-emerald-500' : 'bg-amber-400'}`} />
-                <span className={`text-[10px] font-semibold uppercase tracking-[0.15em] ${setupComplete ? 'text-emerald-600' : 'text-amber-500'}`}>
+                <span className={`h-2 w-2 rounded-full ${setupComplete ? 'bg-emerald-500' : 'bg-amber-400'}`} />
+                <span className={`text-xs font-bold uppercase tracking-wider ${setupComplete ? 'text-emerald-600' : 'text-amber-500'}`}>
                   {setupComplete ? 'Live' : 'Setting Up'}
                 </span>
               </div>
