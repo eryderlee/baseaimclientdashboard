@@ -1,7 +1,7 @@
 'use server'
 
 import { prisma } from '@/lib/prisma'
-import { sendPasswordResetEmail } from '@/lib/email'
+import { sendPasswordResetEmail, sendMagicLinkEmail } from '@/lib/email'
 import { auth } from '@/lib/auth'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
@@ -222,5 +222,47 @@ export async function resetPassword(
   } catch (error) {
     console.error('Password reset error:', error)
     return { error: 'Failed to reset password. Please try again.' }
+  }
+}
+
+/**
+ * Resend a magic link to an existing user
+ * Called from the expired-token page
+ * Returns success regardless of whether email exists (prevent enumeration)
+ *
+ * Note: Does NOT delete existing tokens before creating — avoids wiping
+ * a pending password-reset token that may be in the same table.
+ */
+export async function resendMagicLink(
+  email: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, name: true, email: true },
+    })
+
+    // Don't reveal whether email exists
+    if (!user) return { success: true }
+
+    const token = crypto.randomUUID()
+    const expiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000) // 72 hours
+
+    await prisma.passwordResetToken.create({
+      data: { email, token, expiresAt },
+    })
+
+    const magicLinkUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/magic-link/${token}`
+
+    await sendMagicLinkEmail({
+      clientName: user.name || 'there',
+      email,
+      magicLinkUrl,
+    })
+
+    return { success: true }
+  } catch (error) {
+    console.error('resendMagicLink error:', error)
+    return { success: false, error: 'Failed to send link. Please try again.' }
   }
 }
