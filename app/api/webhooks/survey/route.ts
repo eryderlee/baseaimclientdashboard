@@ -163,14 +163,20 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       return { id: client.id, userId: user.id }
     })
   } catch (error) {
+    // P2002 = unique constraint violation — duplicate email from a concurrent request
+    if (error instanceof Error && 'code' in error && (error as { code: string }).code === 'P2002') {
+      return NextResponse.json({ error: 'Email already registered' }, { status: 409 })
+    }
     console.error('Survey webhook: transaction failed', error)
     return NextResponse.json({ error: 'Failed to create client' }, { status: 500 })
   }
 
   // 5. Generate magic link token (72-hour expiry)
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const token = crypto.randomUUID()
   const expiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000)
 
+  let tokenCreated = false
   try {
     await prisma.passwordResetToken.create({
       data: {
@@ -179,19 +185,21 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         expiresAt,
       },
     })
+    tokenCreated = true
   } catch (error) {
     // Token creation failure is non-fatal — client exists, they can request a new link
     console.error('Survey webhook: magic link token creation failed', error)
   }
 
-  // 6. Send magic link email (fire-and-forget — don't block the response)
-  const magicLinkUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/magic-link/${token}`
-
-  sendMagicLinkEmail({
-    clientName: body.name,
-    email: body.email,
-    magicLinkUrl,
-  }).catch((err) => console.error('Survey webhook: magic link email failed', err))
+  // 6. Send magic link email only if token was successfully stored
+  if (tokenCreated) {
+    const magicLinkUrl = `${appUrl}/auth/magic-link/${token}`
+    sendMagicLinkEmail({
+      clientName: body.name,
+      email: body.email,
+      magicLinkUrl,
+    }).catch((err) => console.error('Survey webhook: magic link email failed', err))
+  }
 
   // 7. Welcome notification (fire-and-forget)
   prisma.notification.create({
