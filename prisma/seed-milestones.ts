@@ -13,10 +13,20 @@ const prisma = new PrismaClient();
  */
 export const STANDARD_MILESTONES = [
   {
-    title: "Client Onboarding",
+    title: "Complete intake",
     description:
-      "Initial setup, requirements gathering, and strategy alignment. We learn about your business, goals, and target audience.",
+      "Initial intake form completed. We have everything we need to design your kickoff call.",
     order: 1,
+    status: "NOT_STARTED" as const,
+    progress: 0,
+    dueDate: null,
+    notes: [],
+  },
+  {
+    title: "Kickoff call",
+    description:
+      "Walk through the first 30 days, confirm strategy, and make sure it's a fit both ways.",
+    order: 2,
     status: "NOT_STARTED" as const,
     progress: 0,
     dueDate: null,
@@ -25,8 +35,8 @@ export const STANDARD_MILESTONES = [
   {
     title: "Ad Account Setup",
     description:
-      "Connect Google Ads and Meta Ads accounts, grant BaseAim access, and configure tracking pixels.",
-    order: 2,
+      "Connect Meta Ads account, grant BaseAim access, and configure tracking pixels.",
+    order: 3,
     status: "NOT_STARTED" as const,
     progress: 0,
     dueDate: null,
@@ -35,8 +45,8 @@ export const STANDARD_MILESTONES = [
   {
     title: "Landing Page Development",
     description:
-      "Design and build conversion-optimized landing pages tailored to your campaigns and target audience.",
-    order: 3,
+      "Design and build conversion-optimised landing pages tailored to your campaigns and target audience.",
+    order: 4,
     status: "NOT_STARTED" as const,
     progress: 0,
     dueDate: null,
@@ -46,7 +56,7 @@ export const STANDARD_MILESTONES = [
     title: "Campaign Build",
     description:
       "Create ad campaigns, define audiences, develop ad creatives, and set up conversion tracking.",
-    order: 4,
+    order: 5,
     status: "NOT_STARTED" as const,
     progress: 0,
     dueDate: null,
@@ -55,18 +65,18 @@ export const STANDARD_MILESTONES = [
   {
     title: "Launch",
     description:
-      "Go live with your ad campaigns, monitor initial performance, and make early optimizations.",
-    order: 5,
+      "Go live with your ad campaigns, monitor initial performance, and make early optimisations.",
+    order: 6,
     status: "NOT_STARTED" as const,
     progress: 0,
     dueDate: null,
     notes: [],
   },
   {
-    title: "Ongoing Optimization",
+    title: "Ongoing Optimisation",
     description:
       "Continuous improvement of ad performance, regular reporting, scaling successful campaigns, and testing new strategies.",
-    order: 6,
+    order: 7,
     status: "NOT_STARTED" as const,
     progress: 0,
     dueDate: null,
