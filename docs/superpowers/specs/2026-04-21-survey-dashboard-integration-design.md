@@ -263,4 +263,194 @@ The dashboard handles everything from here — account creation, welcome email, 
 
 ---
 
+### Completion Screen — Onboarding Progress Tracker
+
+On the completion screen, show the following progress tracker. It mirrors what the client will see when they log into their dashboard, so it feels like a seamless handoff.
+
+**Visual states:**
+- **Step 1 — Complete intake:** green / done
+- **Step 2 — Kickoff call:** amber / in-progress, shows booking date if available, otherwise "Booked"
+- **Step 3 — Campaign setup:** grey / coming up
+- **Step 4 — First leads delivered:** grey / coming up
+
+Drop the following HTML and CSS directly into your completion screen. No external dependencies required.
+
+#### HTML
+
+```html
+<div class="onboarding-tracker">
+  <p class="onboarding-tracker__label">Your onboarding journey</p>
+  <div class="onboarding-tracker__steps">
+
+    <!-- Step 1: Complete intake — always DONE -->
+    <div class="ot-step ot-step--completed">
+      <div class="ot-step__icon">✓</div>
+      <div class="ot-step__body">
+        <div class="ot-step__title">Complete intake</div>
+        <div class="ot-step__sub">Done</div>
+      </div>
+    </div>
+
+    <!-- Step 2: Kickoff call — IN PROGRESS -->
+    <!-- If Cal.com returns a date, replace "Booked" with e.g. "Booked for 1 May, 10:00 am" -->
+    <div class="ot-step ot-step--active">
+      <div class="ot-step__icon">●</div>
+      <div class="ot-step__body">
+        <div class="ot-step__title">Kickoff call</div>
+        <div class="ot-step__sub" id="ot-kickoff-sub">Booked</div>
+      </div>
+    </div>
+
+    <!-- Step 3: Campaign setup — PENDING -->
+    <div class="ot-step ot-step--pending">
+      <div class="ot-step__icon">○</div>
+      <div class="ot-step__body">
+        <div class="ot-step__title">Campaign setup</div>
+        <div class="ot-step__sub">Coming up</div>
+      </div>
+    </div>
+
+    <!-- Step 4: First leads delivered — PENDING -->
+    <div class="ot-step ot-step--pending">
+      <div class="ot-step__icon">○</div>
+      <div class="ot-step__body">
+        <div class="ot-step__title">First leads delivered</div>
+        <div class="ot-step__sub">Coming up</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+```
+
+#### CSS
+
+```css
+.onboarding-tracker {
+  max-width: 360px;
+  font-family: inherit;
+}
+
+.onboarding-tracker__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  margin: 0 0 1rem 0;
+}
+
+.onboarding-tracker__steps {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Each step row */
+.ot-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  position: relative;
+  padding-bottom: 1.5rem;
+}
+
+.ot-step:last-child {
+  padding-bottom: 0;
+}
+
+/* Vertical connector line between steps */
+.ot-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 0.6rem;
+  top: 1.4rem;
+  bottom: 0;
+  width: 2px;
+  background-color: #e5e7eb;
+}
+
+.ot-step--completed:not(:last-child)::after {
+  background-color: #22c55e;
+}
+
+/* Step icon circle */
+.ot-step__icon {
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.ot-step--completed .ot-step__icon {
+  background-color: #22c55e;
+  color: #ffffff;
+}
+
+.ot-step--active .ot-step__icon {
+  background-color: #f59e0b;
+  color: #ffffff;
+}
+
+.ot-step--pending .ot-step__icon {
+  background-color: #e5e7eb;
+  color: #9ca3af;
+}
+
+/* Step text */
+.ot-step__title {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.35rem;
+  color: #111827;
+}
+
+.ot-step--pending .ot-step__title {
+  color: #9ca3af;
+}
+
+.ot-step__sub {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin-top: 0.1rem;
+}
+
+.ot-step--pending .ot-step__sub {
+  color: #d1d5db;
+}
+```
+
+#### Injecting the booking date (optional)
+
+If Cal.com returns the booking date/time after the user books, inject it into the kickoff step with a small JavaScript snippet:
+
+```js
+// Run this after Cal.com confirms the booking
+// bookingDate should be a JS Date object or ISO string
+function setKickoffDate(bookingDate) {
+  const el = document.getElementById('ot-kickoff-sub');
+  if (!el || !bookingDate) return;
+  const d = new Date(bookingDate);
+  const formatted = d.toLocaleDateString('en-AU', {
+    day: 'numeric',
+    month: 'long',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+  el.textContent = 'Booked for ' + formatted;
+}
+
+// Example: setKickoffDate('2026-05-01T10:00:00Z')
+// Output:  "Booked for 1 May, 10:00 am"
+```
+
+If Cal.com does not expose the booking date, leave the element as "Booked" — no change needed.
+
+---
+
 *End of developer instructions.*
