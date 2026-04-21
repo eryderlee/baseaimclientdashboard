@@ -18,12 +18,18 @@ function ExpiredPageInner() {
   const email = searchParams.get('email') || ''
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(false)
 
   async function handleResend() {
     setLoading(true)
-    await resendMagicLink(email)
+    setError(false)
+    const result = await resendMagicLink(email)
     setLoading(false)
-    setSent(true)
+    if (result?.success) {
+      setSent(true)
+    } else {
+      setError(true)
+    }
   }
 
   return (
@@ -40,6 +46,10 @@ function ExpiredPageInner() {
             <div className="rounded-lg bg-green-50 p-4 text-sm text-green-800">
               A new login link has been sent to{' '}
               <strong>{email || 'your email'}</strong>. Check your inbox.
+            </div>
+          ) : error ? (
+            <div className="rounded-lg bg-red-50 p-4 text-sm text-red-800">
+              Failed to send link. Please try again.
             </div>
           ) : (
             <Button

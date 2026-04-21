@@ -30,11 +30,10 @@ export function MagicLinkConsumer({ token }: MagicLinkConsumerProps) {
   }, [token])
 
   if (error) {
+    window.location.href = '/auth/magic-link/expired'
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <p className="text-sm text-slate-500">
-          Something went wrong. Please request a new link.
-        </p>
+        <p className="text-sm text-slate-500">Redirecting…</p>
       </div>
     )
   }
