@@ -1,6 +1,6 @@
 /**
  * Standard milestone template for all BaseAim clients
- * Reflects the standard service process: onboarding → ad account → landing page → campaign → launch → optimization
+ * Reflects the standard service process: intake → kickoff → ad account → landing page → campaign → launch → optimisation
  */
 
 import { PrismaClient } from "@prisma/client";
@@ -8,7 +8,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 /**
- * Standard 6-milestone template for all BaseAim clients
+ * Standard 7-milestone template for all BaseAim clients
  * Every client follows this same service process
  */
 export const STANDARD_MILESTONES = [
