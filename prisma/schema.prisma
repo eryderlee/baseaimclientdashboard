@@ -86,6 +86,7 @@ model Client {
   milestones      Milestone[]
   invoices        Invoice[]
   subscriptions   Subscription[]
+  intake          ClientIntake?
 
   @@map("clients")
 }
@@ -265,4 +266,29 @@ model PasswordResetToken {
   @@map("password_reset_tokens")
   @@index([email])
   @@index([token])
+}
+
+model ClientIntake {
+  id                  String    @id @default(cuid())
+  clientId            String    @unique
+  decisionMaker       String
+  state               String
+  servicesOffered     Json
+  hasRunPaidAds       Boolean
+  hasSocialPage       Boolean
+  targetServices      Json
+  idealClients        Json
+  excludedClientTypes String?
+  monthlyCapacity     String
+  goals90Day          Json
+  currentSituation    Json
+  mainConcern         String?
+  kickoffCallBooked   Boolean   @default(false)
+  kickoffCallDate     DateTime?
+  createdAt           DateTime  @default(now())
+
+  client              Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("client_intakes")
+  @@index([clientId])
 }
