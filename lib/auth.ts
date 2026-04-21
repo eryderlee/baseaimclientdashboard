@@ -9,8 +9,47 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        magicToken: { label: "Magic Token", type: "text" },
       },
       async authorize(credentials) {
+        // --- Magic link path ---
+        if (credentials?.magicToken) {
+          const magicToken = credentials.magicToken as string
+
+          // Atomically validate + consume the token
+          const user = await prisma.$transaction(async (tx) => {
+            const tokenRecord = await tx.passwordResetToken.findUnique({
+              where: { token: magicToken },
+            })
+
+            if (!tokenRecord || tokenRecord.expiresAt < new Date()) return null
+
+            const foundUser = await tx.user.findUnique({
+              where: { email: tokenRecord.email },
+            })
+
+            if (!foundUser) return null
+
+            // Delete token — one-use only
+            await tx.passwordResetToken.delete({
+              where: { token: magicToken },
+            })
+
+            return foundUser
+          })
+
+          if (!user) return null
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            image: user.image,
+          }
+        }
+
+        // --- Email + password path (unchanged) ---
         if (!credentials?.email || !credentials?.password) {
           return null
         }
