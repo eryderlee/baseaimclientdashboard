@@ -7,6 +7,7 @@ import { InvoiceCreatedEmail } from '@/emails/invoice-created'
 import { PaymentConfirmationEmail } from '@/emails/payment-confirmation'
 import { DocumentUploadedEmail } from '@/emails/document-uploaded'
 import { CardSetupEmail } from '@/emails/card-setup-email'
+import { MagicLinkEmail } from '@/emails/magic-link-email'
 
 interface SendEmailParams {
   to: string
@@ -240,5 +241,28 @@ export async function sendDocumentUploadedEmail({
       uploadedBy,
       viewUrl,
     }),
+  })
+}
+
+interface MagicLinkEmailParams {
+  clientName: string
+  email: string
+  magicLinkUrl: string
+}
+
+/**
+ * Send magic link welcome email to survey-created clients
+ * No credentials — single button to access dashboard
+ * Link expires in 72 hours
+ */
+export async function sendMagicLinkEmail({
+  clientName,
+  email,
+  magicLinkUrl,
+}: MagicLinkEmailParams): Promise<SendEmailResult> {
+  return sendEmail({
+    to: email,
+    subject: "You're in — access your BaseAim dashboard",
+    react: MagicLinkEmail({ clientName, magicLinkUrl }),
   })
 }
