@@ -16,6 +16,8 @@ const DEMO_CLIENT_EMAILS = [
   'lin@whitfieldassociates.com',
   'priya@summitridgeaccounting.com',
   'rachel@cysaccountants.com',
+  'sarah@thorntonadvisory.com.au',
+  'david@parksidetax.com.au',
 ]
 
 // ---------------------------------------------------------------------------
@@ -52,12 +54,31 @@ type MilestoneInput = {
   notes: any
 }
 
+type IntakeInput = {
+  decisionMaker: string
+  state: string
+  servicesOffered: string[]
+  hasRunPaidAds: boolean
+  hasSocialPage: boolean
+  targetServices: string[]
+  idealClients: string[]
+  excludedClientTypes?: string
+  monthlyCapacity: string
+  goals90Day: string[]
+  currentSituation: string[]
+  mainConcern?: string
+  targetGeography: string[]
+  targetRegions?: string
+  geographyExclusions?: string
+  kickoffCallBooked: boolean
+  kickoffCallDate?: Date
+}
+
 // ---------------------------------------------------------------------------
-// Helper: standard 6 setup milestones, all COMPLETED
+// Helper: standard 7 setup milestones, all COMPLETED
 // ---------------------------------------------------------------------------
 
 function completedSetupMilestones(setupStart: Date): MilestoneInput[] {
-  // Each phase takes ~7 days, a few days gap between
   const phase = (idx: number) => {
     const start = new Date(setupStart)
     start.setDate(start.getDate() + idx * 10)
@@ -69,12 +90,13 @@ function completedSetupMilestones(setupStart: Date): MilestoneInput[] {
   }
 
   const titles = [
-    'Client Onboarding',
+    'Complete intake',
+    'Kickoff call',
     'Ad Account Setup',
     'Landing Page Development',
     'Campaign Build',
     'Launch',
-    'Ongoing Optimization',
+    'Ongoing Optimisation',
   ]
 
   return titles.map((title, i) => {
@@ -90,10 +112,15 @@ function completedSetupMilestones(setupStart: Date): MilestoneInput[] {
       completedAt: p.completed,
       notes: i === 0 ? [{
         id: `note-setup-${i}`,
+        content: 'Intake form completed. All business details confirmed.',
+        createdAt: p.completed.toISOString(),
+        createdBy: 'BaseAim Team',
+      }] : i === 1 ? [{
+        id: `note-setup-${i}`,
         content: 'Kickoff call completed. Business goals and ad budget discussed.',
         createdAt: p.completed.toISOString(),
         createdBy: 'BaseAim Team',
-      }] : i === 4 ? [{
+      }] : i === 5 ? [{
         id: `note-setup-${i}`,
         content: 'All campaigns live. Monitoring performance closely.',
         createdAt: p.completed.toISOString(),
@@ -159,7 +186,7 @@ function makeInvoices(setupDate: Date, monthsActive: number): InvoiceInput[] {
   // Monthly invoices
   for (let i = 0; i < monthsActive; i++) {
     const d = new Date(setupDate)
-    d.setMonth(d.getMonth() + 2 + i) // first month = month after setup
+    d.setMonth(d.getMonth() + 2 + i)
     const dueDate = new Date(d.getFullYear(), d.getMonth(), 1)
     const now = new Date('2026-03-28')
     const isPaid = dueDate < now
@@ -202,10 +229,23 @@ function docsWithReports(monthlyReportNames: string[]): DocumentInput[] {
 }
 
 // ---------------------------------------------------------------------------
-// Demo client profile definitions — 8 clients
+// Demo client profile definitions — 10 clients
 // ---------------------------------------------------------------------------
 
-const DEMO_PROFILES = [
+const DEMO_PROFILES: Array<{
+  stableId: string
+  email: string
+  name: string
+  companyName: string
+  industry: string
+  onboardingStep: number
+  adAccountId: string | null
+  leadsChartEnabled: boolean
+  milestones: MilestoneInput[]
+  invoices: InvoiceInput[]
+  documents: DocumentInput[]
+  intake?: IntakeInput
+}> = [
   // ── 1. Hargrove & Associates — 365d, $25/day ──
   {
     stableId: 'demo-hargrove-associates',
@@ -214,11 +254,11 @@ const DEMO_PROFILES = [
     companyName: 'Hargrove & Associates',
     industry: 'Accounting, Tax & Business Consulting',
     onboardingStep: 6,
-    adAccountId: 'act_demo_hargrove' as string | null,
+    adAccountId: 'act_demo_hargrove',
     leadsChartEnabled: false,
     milestones: [
       ...completedSetupMilestones(new Date('2025-03-01')),
-      ...growthMilestones(2025, 4, 12, 7).map((m, i) => ({
+      ...growthMilestones(2025, 4, 12, 8).map((m, i) => ({
         ...m,
         notes: i === 0 ? [{
           id: 'note-hargrove-apr',
@@ -232,7 +272,7 @@ const DEMO_PROFILES = [
           createdBy: 'BaseAim Team',
         }] : m.notes,
       })),
-    ] as MilestoneInput[],
+    ],
     invoices: makeInvoices(new Date('2025-03-01'), 12),
     documents: docsWithReports([
       'Monthly Report — April 2025',
@@ -261,11 +301,11 @@ const DEMO_PROFILES = [
     companyName: 'Apex Tax & Advisory',
     industry: 'Tax Planning & Business Advisory',
     onboardingStep: 6,
-    adAccountId: 'act_demo_apex' as string | null,
+    adAccountId: 'act_demo_apex',
     leadsChartEnabled: false,
     milestones: [
       ...completedSetupMilestones(new Date('2025-03-01')),
-      ...growthMilestones(2025, 4, 12, 7).map((m, i) => ({
+      ...growthMilestones(2025, 4, 12, 8).map((m, i) => ({
         ...m,
         notes: i === 3 ? [{
           id: 'note-apex-jul',
@@ -279,7 +319,7 @@ const DEMO_PROFILES = [
           createdBy: 'BaseAim Team',
         }] : m.notes,
       })),
-    ] as MilestoneInput[],
+    ],
     invoices: makeInvoices(new Date('2025-03-01'), 12),
     documents: docsWithReports([
       'Monthly Report — April 2025',
@@ -304,11 +344,11 @@ const DEMO_PROFILES = [
     companyName: 'Calloway & Klein CPAs',
     industry: 'Tax & Financial Advisory',
     onboardingStep: 6,
-    adAccountId: 'act_demo_calloway' as string | null,
+    adAccountId: 'act_demo_calloway',
     leadsChartEnabled: false,
     milestones: [
       ...completedSetupMilestones(new Date('2025-03-01')),
-      ...growthMilestones(2025, 4, 12, 7).map((m, i) => ({
+      ...growthMilestones(2025, 4, 12, 8).map((m, i) => ({
         ...m,
         notes: i === 0 ? [{
           id: 'note-calloway-apr',
@@ -317,7 +357,7 @@ const DEMO_PROFILES = [
           createdBy: 'BaseAim Team',
         }] : m.notes,
       })),
-    ] as MilestoneInput[],
+    ],
     invoices: makeInvoices(new Date('2025-03-01'), 12),
     documents: docsWithReports([
       'Monthly Report — April 2025',
@@ -342,11 +382,11 @@ const DEMO_PROFILES = [
     companyName: 'Meridian Financial Group',
     industry: 'Financial Planning & Wealth Management',
     onboardingStep: 6,
-    adAccountId: 'act_demo_meridian' as string | null,
+    adAccountId: 'act_demo_meridian',
     leadsChartEnabled: false,
     milestones: [
       ...completedSetupMilestones(new Date('2025-09-01')),
-      ...growthMilestones(2025, 10, 6, 7).map((m, i) => ({
+      ...growthMilestones(2025, 10, 6, 8).map((m, i) => ({
         ...m,
         notes: i === 0 ? [{
           id: 'note-meridian-oct',
@@ -355,7 +395,7 @@ const DEMO_PROFILES = [
           createdBy: 'BaseAim Team',
         }] : m.notes,
       })),
-    ] as MilestoneInput[],
+    ],
     invoices: makeInvoices(new Date('2025-09-01'), 6),
     documents: docsWithReports([
       'Monthly Report — October 2025',
@@ -374,11 +414,11 @@ const DEMO_PROFILES = [
     companyName: 'Prestige Ledger Group',
     industry: 'Corporate Accounting & Auditing',
     onboardingStep: 6,
-    adAccountId: 'act_demo_prestige' as string | null,
+    adAccountId: 'act_demo_prestige',
     leadsChartEnabled: false,
     milestones: [
       ...completedSetupMilestones(new Date('2025-11-01')),
-      ...growthMilestones(2025, 12, 4, 7).map((m, i) => ({
+      ...growthMilestones(2025, 12, 4, 8).map((m, i) => ({
         ...m,
         notes: i === 0 ? [{
           id: 'note-prestige-dec',
@@ -387,7 +427,7 @@ const DEMO_PROFILES = [
           createdBy: 'BaseAim Team',
         }] : m.notes,
       })),
-    ] as MilestoneInput[],
+    ],
     invoices: makeInvoices(new Date('2025-11-01'), 4),
     documents: docsWithReports([
       'Monthly Report — December 2025',
@@ -396,7 +436,7 @@ const DEMO_PROFILES = [
     ]),
   },
 
-  // ── 6. Whitfield & Associates — 60d, $14/day (outlier low: ~4 calls/mo) ──
+  // ── 6. Whitfield & Associates — 60d, $14/day ──
   {
     stableId: 'demo-whitfield-associates',
     email: 'lin@whitfieldassociates.com',
@@ -404,19 +444,19 @@ const DEMO_PROFILES = [
     companyName: 'Whitfield & Associates',
     industry: 'Tax Resolution & IRS Representation',
     onboardingStep: 6,
-    adAccountId: 'act_demo_whitfield' as string | null,
+    adAccountId: 'act_demo_whitfield',
     leadsChartEnabled: false,
     milestones: [
       ...completedSetupMilestones(new Date('2026-01-10')),
-      ...growthMilestones(2026, 2, 2, 7),
-    ] as MilestoneInput[],
+      ...growthMilestones(2026, 2, 2, 8),
+    ],
     invoices: makeInvoices(new Date('2026-01-10'), 2),
     documents: docsWithReports([
       'Monthly Report — February 2026',
     ]),
   },
 
-  // ── 7. Summit Ridge Accounting — 60d, $24/day (outlier high: ~12 calls/mo) ──
+  // ── 7. Summit Ridge Accounting — 60d, $24/day ──
   {
     stableId: 'demo-summit-ridge',
     email: 'priya@summitridgeaccounting.com',
@@ -424,11 +464,11 @@ const DEMO_PROFILES = [
     companyName: 'Summit Ridge Accounting',
     industry: 'Accounting & Bookkeeping',
     onboardingStep: 6,
-    adAccountId: 'act_demo_summit' as string | null,
+    adAccountId: 'act_demo_summit',
     leadsChartEnabled: false,
     milestones: [
       ...completedSetupMilestones(new Date('2026-01-10')),
-      ...growthMilestones(2026, 2, 2, 7).map((m, i) => ({
+      ...growthMilestones(2026, 2, 2, 8).map((m, i) => ({
         ...m,
         notes: i === 0 ? [{
           id: 'note-summit-feb',
@@ -437,14 +477,14 @@ const DEMO_PROFILES = [
           createdBy: 'BaseAim Team',
         }] : m.notes,
       })),
-    ] as MilestoneInput[],
+    ],
     invoices: makeInvoices(new Date('2026-01-10'), 2),
     documents: docsWithReports([
       'Monthly Report — February 2026',
     ]),
   },
 
-  // ── 8. Cys Accountants — In setup (step 5), MUST be LAST for createdAt ordering ──
+  // ── 8. Cys Accountants — In setup (step 5), website redesign in progress ──
   {
     stableId: 'demo-cys-accountants',
     email: 'rachel@cysaccountants.com',
@@ -452,31 +492,47 @@ const DEMO_PROFILES = [
     companyName: 'Cys Accountants',
     industry: 'Small Business Accounting',
     onboardingStep: 5,
-    adAccountId: null as string | null,
+    adAccountId: null,
     leadsChartEnabled: false,
     milestones: [
       {
-        title: 'Client Onboarding',
-        status: 'COMPLETED' as const,
-        milestoneType: 'SETUP' as const,
+        title: 'Complete intake',
+        status: 'COMPLETED',
+        milestoneType: 'SETUP',
         progress: 100,
         order: 1,
         startDate: new Date('2026-03-10'),
-        dueDate: new Date('2026-03-14'),
+        dueDate: new Date('2026-03-11'),
+        completedAt: new Date('2026-03-10'),
+        notes: [{
+          id: 'note-cys-intake',
+          content: 'Intake form completed. Rachel wants to focus on small business bookkeeping clients.',
+          createdAt: '2026-03-10T10:00:00Z',
+          createdBy: 'BaseAim Team',
+        }],
+      },
+      {
+        title: 'Kickoff call',
+        status: 'COMPLETED',
+        milestoneType: 'SETUP',
+        progress: 100,
+        order: 2,
+        startDate: new Date('2026-03-12'),
+        dueDate: new Date('2026-03-13'),
         completedAt: new Date('2026-03-13'),
         notes: [{
-          id: 'note-cys-onboarding',
-          content: 'Kickoff call completed. Rachel wants to focus on small business bookkeeping clients.',
+          id: 'note-cys-kickoff',
+          content: 'Kickoff call completed. Strategy confirmed — targeting sole traders and micro-businesses in Melbourne.',
           createdAt: '2026-03-13T10:00:00Z',
           createdBy: 'BaseAim Team',
         }],
       },
       {
         title: 'Ad Account Setup',
-        status: 'COMPLETED' as const,
-        milestoneType: 'SETUP' as const,
+        status: 'COMPLETED',
+        milestoneType: 'SETUP',
         progress: 100,
-        order: 2,
+        order: 3,
         startDate: new Date('2026-03-15'),
         dueDate: new Date('2026-03-19'),
         completedAt: new Date('2026-03-18'),
@@ -489,10 +545,10 @@ const DEMO_PROFILES = [
       },
       {
         title: 'Landing Page Development',
-        status: 'COMPLETED' as const,
-        milestoneType: 'SETUP' as const,
+        status: 'COMPLETED',
+        milestoneType: 'SETUP',
         progress: 100,
-        order: 3,
+        order: 4,
         startDate: new Date('2026-03-19'),
         dueDate: new Date('2026-03-23'),
         completedAt: new Date('2026-03-22'),
@@ -500,10 +556,10 @@ const DEMO_PROFILES = [
       },
       {
         title: 'Campaign Build',
-        status: 'COMPLETED' as const,
-        milestoneType: 'SETUP' as const,
+        status: 'COMPLETED',
+        milestoneType: 'SETUP',
         progress: 100,
-        order: 4,
+        order: 5,
         startDate: new Date('2026-03-23'),
         dueDate: new Date('2026-03-26'),
         completedAt: new Date('2026-03-25'),
@@ -512,10 +568,10 @@ const DEMO_PROFILES = [
       {
         title: 'Website Redesign',
         description: 'Custom phase — full website redesign before campaign launch.',
-        status: 'IN_PROGRESS' as const,
-        milestoneType: 'SETUP' as const,
+        status: 'IN_PROGRESS',
+        milestoneType: 'SETUP',
         progress: 40,
-        order: 5,
+        order: 6,
         startDate: new Date('2026-03-26'),
         dueDate: new Date('2026-04-10'),
         completedAt: null,
@@ -528,19 +584,8 @@ const DEMO_PROFILES = [
       },
       {
         title: 'Launch',
-        status: 'NOT_STARTED' as const,
-        milestoneType: 'SETUP' as const,
-        progress: 0,
-        order: 6,
-        startDate: null,
-        dueDate: null,
-        completedAt: null,
-        notes: undefined,
-      },
-      {
-        title: 'Ongoing Optimization',
-        status: 'NOT_STARTED' as const,
-        milestoneType: 'SETUP' as const,
+        status: 'NOT_STARTED',
+        milestoneType: 'SETUP',
         progress: 0,
         order: 7,
         startDate: null,
@@ -548,7 +593,18 @@ const DEMO_PROFILES = [
         completedAt: null,
         notes: undefined,
       },
-    ] as MilestoneInput[],
+      {
+        title: 'Ongoing Optimisation',
+        status: 'NOT_STARTED',
+        milestoneType: 'SETUP',
+        progress: 0,
+        order: 8,
+        startDate: null,
+        dueDate: null,
+        completedAt: null,
+        notes: undefined,
+      },
+    ],
     invoices: (() => {
       invoiceCounter++
       return [{
@@ -561,7 +617,239 @@ const DEMO_PROFILES = [
         items: [{ description: 'Campaign Setup & Strategy', quantity: 1, unitPrice: 4200 }],
       }]
     })(),
-    documents: [] as DocumentInput[],
+    documents: [],
+  },
+
+  // ── 9. Thornton Advisory Group — Survey client, kickoff call booked ──
+  {
+    stableId: 'demo-thornton-advisory',
+    email: 'sarah@thorntonadvisory.com.au',
+    name: 'Sarah Thornton',
+    companyName: 'Thornton Advisory Group',
+    industry: 'Tax & Business Advisory',
+    onboardingStep: 1,
+    adAccountId: null,
+    leadsChartEnabled: false,
+    milestones: [
+      {
+        title: 'Complete intake',
+        status: 'COMPLETED',
+        milestoneType: 'SETUP',
+        progress: 100,
+        order: 1,
+        startDate: new Date('2026-04-18'),
+        dueDate: new Date('2026-04-18'),
+        completedAt: new Date('2026-04-18'),
+        notes: [{
+          id: 'note-thornton-intake',
+          content: 'Survey completed via website. All intake data received.',
+          createdAt: '2026-04-18T14:22:00Z',
+          createdBy: 'BaseAim Team',
+        }],
+      },
+      {
+        title: 'Kickoff call',
+        status: 'IN_PROGRESS',
+        milestoneType: 'SETUP',
+        progress: 0,
+        order: 2,
+        startDate: null,
+        dueDate: new Date('2026-04-28'),
+        completedAt: null,
+        notes: undefined,
+      },
+      {
+        title: 'Ad Account Setup',
+        status: 'NOT_STARTED',
+        milestoneType: 'SETUP',
+        progress: 0,
+        order: 3,
+        startDate: null,
+        dueDate: null,
+        completedAt: null,
+        notes: undefined,
+      },
+      {
+        title: 'Landing Page Development',
+        status: 'NOT_STARTED',
+        milestoneType: 'SETUP',
+        progress: 0,
+        order: 4,
+        startDate: null,
+        dueDate: null,
+        completedAt: null,
+        notes: undefined,
+      },
+      {
+        title: 'Campaign Build',
+        status: 'NOT_STARTED',
+        milestoneType: 'SETUP',
+        progress: 0,
+        order: 5,
+        startDate: null,
+        dueDate: null,
+        completedAt: null,
+        notes: undefined,
+      },
+      {
+        title: 'Launch',
+        status: 'NOT_STARTED',
+        milestoneType: 'SETUP',
+        progress: 0,
+        order: 6,
+        startDate: null,
+        dueDate: null,
+        completedAt: null,
+        notes: undefined,
+      },
+      {
+        title: 'Ongoing Optimisation',
+        status: 'NOT_STARTED',
+        milestoneType: 'SETUP',
+        progress: 0,
+        order: 7,
+        startDate: null,
+        dueDate: null,
+        completedAt: null,
+        notes: undefined,
+      },
+    ],
+    invoices: [],
+    documents: [],
+    intake: {
+      decisionMaker: 'just_me',
+      state: 'NSW',
+      servicesOffered: ['Individual tax returns', 'Business tax returns', 'BAS lodgement', 'SMSF accounting'],
+      hasRunPaidAds: false,
+      hasSocialPage: true,
+      targetServices: ['Individual tax returns', 'Business tax returns'],
+      idealClients: ['Sole traders & contractors', 'Small business owners (1–10 staff)'],
+      excludedClientTypes: undefined,
+      monthlyCapacity: '4-6',
+      goals90Day: ['Consistent, predictable new client flow', 'Reduce reliance on referrals'],
+      currentSituation: ['Lead flow is inconsistent and unpredictable', 'Most clients come from word of mouth only'],
+      mainConcern: 'Not sure if paid ads will work for an accounting firm in my area.',
+      targetGeography: ['📍 My home state only'],
+      geographyExclusions: undefined,
+      kickoffCallBooked: true,
+      kickoffCallDate: new Date('2026-04-28T10:00:00Z'),
+    },
+  },
+
+  // ── 10. Parkside Tax Solutions — Survey client, kickoff call scheduling ──
+  {
+    stableId: 'demo-parkside-tax',
+    email: 'david@parksidetax.com.au',
+    name: 'David Park',
+    companyName: 'Parkside Tax Solutions',
+    industry: 'Tax Advisory & Compliance',
+    onboardingStep: 1,
+    adAccountId: null,
+    leadsChartEnabled: false,
+    milestones: [
+      {
+        title: 'Complete intake',
+        status: 'COMPLETED',
+        milestoneType: 'SETUP',
+        progress: 100,
+        order: 1,
+        startDate: new Date('2026-04-20'),
+        dueDate: new Date('2026-04-20'),
+        completedAt: new Date('2026-04-20'),
+        notes: [{
+          id: 'note-parkside-intake',
+          content: 'Survey completed via website. Intake data received.',
+          createdAt: '2026-04-20T09:45:00Z',
+          createdBy: 'BaseAim Team',
+        }],
+      },
+      {
+        title: 'Kickoff call',
+        status: 'IN_PROGRESS',
+        milestoneType: 'SETUP',
+        progress: 0,
+        order: 2,
+        startDate: null,
+        dueDate: null,
+        completedAt: null,
+        notes: undefined,
+      },
+      {
+        title: 'Ad Account Setup',
+        status: 'NOT_STARTED',
+        milestoneType: 'SETUP',
+        progress: 0,
+        order: 3,
+        startDate: null,
+        dueDate: null,
+        completedAt: null,
+        notes: undefined,
+      },
+      {
+        title: 'Landing Page Development',
+        status: 'NOT_STARTED',
+        milestoneType: 'SETUP',
+        progress: 0,
+        order: 4,
+        startDate: null,
+        dueDate: null,
+        completedAt: null,
+        notes: undefined,
+      },
+      {
+        title: 'Campaign Build',
+        status: 'NOT_STARTED',
+        milestoneType: 'SETUP',
+        progress: 0,
+        order: 5,
+        startDate: null,
+        dueDate: null,
+        completedAt: null,
+        notes: undefined,
+      },
+      {
+        title: 'Launch',
+        status: 'NOT_STARTED',
+        milestoneType: 'SETUP',
+        progress: 0,
+        order: 6,
+        startDate: null,
+        dueDate: null,
+        completedAt: null,
+        notes: undefined,
+      },
+      {
+        title: 'Ongoing Optimisation',
+        status: 'NOT_STARTED',
+        milestoneType: 'SETUP',
+        progress: 0,
+        order: 7,
+        startDate: null,
+        dueDate: null,
+        completedAt: null,
+        notes: undefined,
+      },
+    ],
+    invoices: [],
+    documents: [],
+    intake: {
+      decisionMaker: 'partner_involved',
+      state: 'VIC',
+      servicesOffered: ['Individual tax returns', 'Business tax returns', 'Bookkeeping', 'Payroll'],
+      hasRunPaidAds: false,
+      hasSocialPage: false,
+      targetServices: ['Individual tax returns', 'Bookkeeping'],
+      idealClients: ['Sole traders & contractors', 'Investors (property / shares)'],
+      excludedClientTypes: 'Large corporates — too complex for our current team size.',
+      monthlyCapacity: '1-3',
+      goals90Day: ['Get our first paid lead within 30 days', 'Understand what makes a good ad for our niche'],
+      currentSituation: ['We\'ve never done paid advertising before', 'Not sure where to start or what budget makes sense'],
+      mainConcern: 'Budget risk — we\'re a small firm and can\'t afford to waste money on ads that don\'t convert.',
+      targetGeography: ['🏙️ Only my local city / metro area'],
+      geographyExclusions: 'Regional Victoria — too far for face-to-face meetings which our clients prefer.',
+      kickoffCallBooked: false,
+      kickoffCallDate: undefined,
+    },
   },
 ]
 
@@ -619,7 +907,7 @@ async function seed() {
       },
     })
 
-    // 3. Replace milestones (delete then createMany — safe because we control all demo data)
+    // 3. Replace milestones
     await prisma.milestone.deleteMany({ where: { clientId: client.id } })
     if (profile.milestones.length > 0) {
       await prisma.milestone.createMany({
@@ -673,27 +961,76 @@ async function seed() {
         })),
       })
     }
+
+    // 6. Upsert intake data (survey-created clients only)
+    if (profile.intake) {
+      const intake = profile.intake
+      await prisma.clientIntake.upsert({
+        where: { clientId: client.id },
+        update: {
+          decisionMaker: intake.decisionMaker,
+          state: intake.state,
+          servicesOffered: intake.servicesOffered,
+          hasRunPaidAds: intake.hasRunPaidAds,
+          hasSocialPage: intake.hasSocialPage,
+          targetServices: intake.targetServices,
+          idealClients: intake.idealClients,
+          excludedClientTypes: intake.excludedClientTypes ?? null,
+          monthlyCapacity: intake.monthlyCapacity,
+          goals90Day: intake.goals90Day,
+          currentSituation: intake.currentSituation,
+          mainConcern: intake.mainConcern ?? null,
+          targetGeography: intake.targetGeography,
+          targetRegions: intake.targetRegions ?? null,
+          geographyExclusions: intake.geographyExclusions ?? null,
+          kickoffCallBooked: intake.kickoffCallBooked,
+          kickoffCallDate: intake.kickoffCallDate ?? null,
+        },
+        create: {
+          clientId: client.id,
+          decisionMaker: intake.decisionMaker,
+          state: intake.state,
+          servicesOffered: intake.servicesOffered,
+          hasRunPaidAds: intake.hasRunPaidAds,
+          hasSocialPage: intake.hasSocialPage,
+          targetServices: intake.targetServices,
+          idealClients: intake.idealClients,
+          excludedClientTypes: intake.excludedClientTypes ?? null,
+          monthlyCapacity: intake.monthlyCapacity,
+          goals90Day: intake.goals90Day,
+          currentSituation: intake.currentSituation,
+          mainConcern: intake.mainConcern ?? null,
+          targetGeography: intake.targetGeography,
+          targetRegions: intake.targetRegions ?? null,
+          geographyExclusions: intake.geographyExclusions ?? null,
+          kickoffCallBooked: intake.kickoffCallBooked,
+          kickoffCallDate: intake.kickoffCallDate ?? null,
+        },
+      })
+    }
   }
 
   console.log('')
   console.log('--- Demo Seed Complete ---')
   console.log('Created/updated:')
   console.log('  1 demo admin (Zara Khan)')
-  console.log('  8 demo clients:')
-  console.log('    - Hargrove & Associates (365d, $25/day)')
-  console.log('    - Apex Tax & Advisory (365d, $22/day)')
-  console.log('    - Calloway & Klein CPAs (365d, $18/day)')
-  console.log('    - Meridian Financial Group (180d, $20/day)')
-  console.log('    - Prestige Ledger Group (120d, $16/day)')
-  console.log('    - Whitfield & Associates (60d, $14/day)')
-  console.log('    - Summit Ridge Accounting (60d, $24/day)')
-  console.log('    - Cys Accountants (in-setup, step 5)')
+  console.log('  10 demo clients:')
+  console.log('    - Hargrove & Associates (365d, fully active)')
+  console.log('    - Apex Tax & Advisory (365d, fully active)')
+  console.log('    - Calloway & Klein CPAs (365d, fully active)')
+  console.log('    - Meridian Financial Group (180d, fully active)')
+  console.log('    - Prestige Ledger Group (120d, fully active)')
+  console.log('    - Whitfield & Associates (60d, fully active)')
+  console.log('    - Summit Ridge Accounting (60d, fully active)')
+  console.log('    - Cys Accountants (in-setup, website redesign)')
+  console.log('    - Thornton Advisory Group (survey intake, kickoff booked Apr 28)')
+  console.log('    - Parkside Tax Solutions (survey intake, kickoff scheduling)')
   console.log('')
   console.log('Demo admin credentials:')
   console.log('  Email:    khan@baseaim.co')
   console.log('  Password: BaseAim2026!')
   console.log('')
-  console.log('Demo client password (all 8): client123')
+  console.log('Demo client password (all 10): client123')
 }
 
 // ---------------------------------------------------------------------------
@@ -703,7 +1040,7 @@ async function seed() {
 async function clean() {
   console.log('Removing all demo data...')
 
-  // Cascade on Client handles milestones, invoices, documents
+  // Cascade on Client handles milestones, invoices, documents, intake
   await prisma.client.deleteMany({ where: { isDemo: true } })
 
   // Remove demo client user accounts
@@ -714,7 +1051,7 @@ async function clean() {
   // Remove demo admin
   await prisma.user.deleteMany({ where: { email: DEMO_ADMIN_EMAIL } })
 
-  console.log('Demo data removed. (1 admin + 8 clients and all associated records)')
+  console.log('Demo data removed. (1 admin + 10 clients and all associated records)')
 }
 
 // ---------------------------------------------------------------------------
