@@ -459,7 +459,7 @@ export async function sendClientActionLink(
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const redirectMap: Record<ClientActionType, string> = {
     dashboard: '/dashboard',
-    documents: '/dashboard',
+    documents: '/dashboard/documents',
     password: '/dashboard',
   }
   const magicLinkUrl = `${appUrl}/auth/magic-link/${token}?then=${redirectMap[action]}`
