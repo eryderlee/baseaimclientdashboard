@@ -460,7 +460,7 @@ export async function sendClientActionLink(
   const redirectMap: Record<ClientActionType, string> = {
     dashboard: '/dashboard',
     documents: '/dashboard/documents',
-    password: '/dashboard',
+    password: '/dashboard/set-password',
   }
   const magicLinkUrl = `${appUrl}/auth/magic-link/${token}?then=${redirectMap[action]}`
 

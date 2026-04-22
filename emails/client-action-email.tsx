@@ -80,9 +80,10 @@ function getContent(
         preview: 'Set your BaseAim dashboard password',
         heading: `Hi ${clientName},`,
         body: [
-          'Click the button below to log in to your dashboard. Once you\'re in, go to Account Settings to set a permanent password so you can log in any time.',
+          'Click the button below to be taken straight to your password setup page.',
+          'Choose a password and you\'ll be able to log in to your BaseAim dashboard any time — no magic link needed.',
         ],
-        cta: 'Log in and set password →',
+        cta: 'Set my password →',
       }
   }
 }

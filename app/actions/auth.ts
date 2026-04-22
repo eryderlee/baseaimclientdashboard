@@ -87,6 +87,55 @@ export async function changePassword(
   }
 }
 
+const setPasswordSchema = z.object({
+  newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+  confirmPassword: z.string(),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ['confirmPassword'],
+})
+
+/**
+ * Set a new password for the currently logged-in user — no current password required.
+ * Used when the client arrives via a magic link sent by the admin.
+ */
+export async function setPassword(
+  prevState: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  try {
+    const session = await auth()
+    if (!session?.user?.id) {
+      return { error: 'Not authenticated' }
+    }
+
+    const result = setPasswordSchema.safeParse({
+      newPassword: formData.get('newPassword'),
+      confirmPassword: formData.get('confirmPassword'),
+    })
+
+    if (!result.success) {
+      return { error: result.error.issues[0].message }
+    }
+
+    const hashedPassword = await bcrypt.hash(result.data.newPassword, 10)
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { password: hashedPassword },
+    })
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { email: true },
+    })
+
+    return { success: true, message: user?.email ?? '' }
+  } catch (error) {
+    console.error('Set password error:', error)
+    return { error: 'Failed to set password. Please try again.' }
+  }
+}
+
 /**
  * Request password reset
  * Sends email with secure reset link

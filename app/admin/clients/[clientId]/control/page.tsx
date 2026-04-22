@@ -126,9 +126,9 @@ export default function ControlCentrePage() {
               <KeyRound className="h-4 w-4 text-neutral-600" />
             </div>
             <div>
-              <CardTitle className="text-base">Password Setup</CardTitle>
+              <CardTitle className="text-base">Password Setup / Reset</CardTitle>
               <CardDescription className="mt-0.5">
-                Send the client a magic link with instructions to set a permanent password so they can log in without a link.
+                Send the client a magic link that takes them straight to a password setup page. Works for first-time setup or resetting a forgotten password.
               </CardDescription>
             </div>
           </CardHeader>
