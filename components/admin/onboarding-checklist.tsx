@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Progress } from '@/components/ui/progress'
-import { updateOnboardingChecklist, updateChecklistNote } from '@/app/admin/actions'
+import { updateOnboardingChecklist, updateChecklistNote, sendClientActionLink } from '@/app/admin/actions'
 import { KickoffFormSection } from '@/components/admin/kickoff-form-section'
 import {
   CHECKLIST_SECTIONS,
@@ -34,6 +34,25 @@ export function OnboardingClient({
 }: OnboardingClientProps) {
   const [checklist, setChecklist] = useState<OnboardingChecklist>(initialChecklist)
   const [notes, setNotes] = useState<ChecklistNotes>(initialNotes)
+  const [showDocRequest, setShowDocRequest] = useState(false)
+  const [docRequestText, setDocRequestText] = useState('')
+  const [docRequestState, setDocRequestState] = useState<'idle' | 'sending' | 'sent'>('idle')
+
+  async function handleSendDocRequest() {
+    if (!docRequestText.trim()) {
+      toast.error('Describe what you need the client to upload.')
+      return
+    }
+    setDocRequestState('sending')
+    const result = await sendClientActionLink(clientId, 'documents', docRequestText.trim())
+    if (result.success) {
+      setDocRequestState('sent')
+      toast.success('Document request sent')
+    } else {
+      setDocRequestState('idle')
+      toast.error(result.error ?? 'Failed to send')
+    }
+  }
   const checkedCount = countChecked(checklist)
   const pct = Math.round((checkedCount / CHECKLIST_TOTAL) * 100)
   const complete = pct === 100
@@ -125,10 +144,44 @@ export function OnboardingClient({
                 <p className="text-xs font-bold uppercase tracking-widest text-neutral-500">
                   {section.title}
                 </p>
-                <span className="text-xs text-neutral-400 tabular-nums">
-                  {sectionChecked}/{sectionTotal}
-                </span>
+                <div className="flex items-center gap-3">
+                  {section.key === 'collect' && (
+                    <button
+                      type="button"
+                      onClick={() => { setShowDocRequest((v) => !v); setDocRequestState('idle') }}
+                      className="text-xs font-medium text-neutral-500 hover:text-neutral-900 border border-neutral-200 hover:border-neutral-400 rounded-md px-2.5 py-1 transition-colors"
+                    >
+                      {showDocRequest ? 'Cancel' : '+ Request docs'}
+                    </button>
+                  )}
+                  <span className="text-xs text-neutral-400 tabular-nums">
+                    {sectionChecked}/{sectionTotal}
+                  </span>
+                </div>
               </div>
+
+              {/* Inline doc request form — only for Section 3 */}
+              {section.key === 'collect' && showDocRequest && (
+                <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 space-y-2">
+                  <p className="text-xs font-medium text-neutral-600">What do you need the client to upload?</p>
+                  <textarea
+                    rows={2}
+                    className="w-full resize-none rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm placeholder:text-neutral-400 focus:outline-none focus:border-neutral-400"
+                    placeholder="e.g. Logo file (SVG or PNG), brand colour hex codes"
+                    value={docRequestText}
+                    onChange={(e) => setDocRequestText(e.target.value)}
+                    disabled={docRequestState === 'sent'}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSendDocRequest}
+                    disabled={docRequestState !== 'idle'}
+                    className="text-sm font-medium px-4 py-1.5 rounded-lg bg-neutral-900 text-white hover:bg-neutral-700 disabled:opacity-50 transition-colors"
+                  >
+                    {docRequestState === 'sending' ? 'Sending…' : docRequestState === 'sent' ? 'Sent ✓' : 'Send magic link'}
+                  </button>
+                </div>
+              )}
 
               {/* Items */}
               <ul className="space-y-2">
