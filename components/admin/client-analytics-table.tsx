@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Pencil, ListChecks, Eye, FolderOpen, Receipt } from 'lucide-react'
+import { Pencil, ListChecks, Eye, FolderOpen, Receipt, ClipboardList } from 'lucide-react'
 import { RiskBadge } from '@/components/admin/at-risk-indicator'
 import { StatusToggleButton } from '@/components/admin/status-toggle-button'
 
@@ -218,6 +218,12 @@ export function ClientAnalyticsTable({ clients }: ClientAnalyticsTableProps) {
                   <Link href={`/admin/clients/${client.id}/invoices`}>
                     <Receipt className="h-3 w-3 mr-1" />
                     Invoices
+                  </Link>
+                </Button>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={`/admin/clients/${client.id}/intake`}>
+                    <ClipboardList className="h-3 w-3 mr-1" />
+                    Intake
                   </Link>
                 </Button>
                 <StatusToggleButton clientId={client.id} isActive={client.isActive} />
