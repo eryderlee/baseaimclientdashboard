@@ -100,22 +100,23 @@ export function OnboardingClient({
       {/* ─── Fixed bottom pill progress bar ────────────────────────────────── */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[560px] max-w-[calc(100vw-2rem)] pointer-events-none">
         <div
-          className={`flex items-center gap-4 rounded-full border shadow-2xl px-6 py-3.5 backdrop-blur-md pointer-events-auto transition-colors duration-300 ${
-            complete
-              ? 'bg-emerald-950/90 border-emerald-700'
-              : 'bg-neutral-900/90 border-neutral-700'
-          }`}
+          className="flex items-center gap-4 rounded-full px-6 py-3.5 pointer-events-auto shadow-2xl backdrop-blur-xl border border-white/25"
+          style={{
+            background: complete
+              ? 'linear-gradient(135deg, rgba(5,150,105,0.85) 0%, rgba(16,185,129,0.85) 100%)'
+              : 'linear-gradient(135deg, rgba(37,99,235,0.82) 0%, rgba(79,195,247,0.82) 55%, rgba(34,211,238,0.82) 100%)',
+          }}
         >
-          <span className={`text-sm font-semibold shrink-0 ${complete ? 'text-emerald-300' : 'text-white'}`}>
+          <span className="text-sm font-semibold shrink-0 text-white drop-shadow-sm">
             {complete ? '✓ Done' : 'Onboarding'}
           </span>
           <div className="flex-1">
             <Progress
               value={pct}
-              className={`h-2 bg-white/20 ${complete ? '[&>div]:bg-emerald-400' : '[&>div]:bg-white'}`}
+              className="h-2 bg-white/25 [&>div]:bg-white"
             />
           </div>
-          <span className={`text-sm tabular-nums font-medium shrink-0 ${complete ? 'text-emerald-300' : 'text-white/80'}`}>
+          <span className="text-sm tabular-nums font-medium shrink-0 text-white/90">
             {checkedCount}/{CHECKLIST_TOTAL}
           </span>
         </div>
