@@ -25,6 +25,9 @@ const surveyPayloadSchema = z.object({
   goals90Day: z.array(z.string()),
   currentSituation: z.array(z.string()),
   mainConcern: z.string().optional(),
+  targetGeography: z.array(z.string()).min(1),
+  targetRegions: z.string().optional(),
+  geographyExclusions: z.string().optional(),
   kickoffCallBooked: z.boolean(),
   kickoffCallDate: z.string().datetime().optional(),
 })
@@ -120,6 +123,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           goals90Day: body.goals90Day,
           currentSituation: body.currentSituation,
           mainConcern: body.mainConcern,
+          targetGeography: body.targetGeography,
+          targetRegions: body.targetRegions,
+          geographyExclusions: body.geographyExclusions,
           kickoffCallBooked: body.kickoffCallBooked,
           kickoffCallDate: body.kickoffCallDate
             ? new Date(body.kickoffCallDate)

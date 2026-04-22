@@ -95,6 +95,27 @@ export default async function ClientIntakePage({
 
           <Card>
             <CardHeader>
+              <CardTitle className="text-base">Geography</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 text-sm">
+              <Field
+                label="Target geography"
+                value={toList(intake.targetGeography)}
+              />
+              {intake.targetRegions && (
+                <Field label="Specific regions" value={intake.targetRegions} />
+              )}
+              {intake.geographyExclusions && (
+                <Field
+                  label="Geography exclusions"
+                  value={intake.geographyExclusions}
+                />
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
               <CardTitle className="text-base">Goals &amp; Situation</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 text-sm">

@@ -283,6 +283,9 @@ model ClientIntake {
   goals90Day          Json
   currentSituation    Json
   mainConcern         String?
+  targetGeography     Json
+  targetRegions       String?
+  geographyExclusions String?
   kickoffCallBooked   Boolean   @default(false)
   kickoffCallDate     DateTime?
   createdAt           DateTime  @default(now())
