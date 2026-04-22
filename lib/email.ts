@@ -8,6 +8,7 @@ import { PaymentConfirmationEmail } from '@/emails/payment-confirmation'
 import { DocumentUploadedEmail } from '@/emails/document-uploaded'
 import { CardSetupEmail } from '@/emails/card-setup-email'
 import { MagicLinkEmail } from '@/emails/magic-link-email'
+import { ClientActionEmail, type ClientActionType } from '@/emails/client-action-email'
 
 interface SendEmailParams {
   to: string | string[]
@@ -264,6 +265,33 @@ export async function sendMagicLinkEmail({
     to: email,
     subject: "You're in — access your BaseAim dashboard",
     react: MagicLinkEmail({ clientName, magicLinkUrl }),
+  })
+}
+
+interface ClientActionEmailParams {
+  clientName: string
+  email: string
+  magicLinkUrl: string
+  action: ClientActionType
+  documentRequest?: string
+}
+
+export async function sendClientActionEmail({
+  clientName,
+  email,
+  magicLinkUrl,
+  action,
+  documentRequest,
+}: ClientActionEmailParams): Promise<SendEmailResult> {
+  const subjects: Record<ClientActionType, string> = {
+    dashboard: 'Your BaseAim dashboard link',
+    documents: 'Action required — document upload',
+    password: 'Set your BaseAim dashboard password',
+  }
+  return sendEmail({
+    to: email,
+    subject: subjects[action],
+    react: ClientActionEmail({ clientName, magicLinkUrl, action, documentRequest }),
   })
 }
 

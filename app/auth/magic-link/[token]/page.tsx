@@ -4,10 +4,12 @@ import { MagicLinkConsumer } from './magic-link-consumer'
 
 interface PageProps {
   params: Promise<{ token: string }>
+  searchParams: Promise<{ then?: string }>
 }
 
-export default async function MagicLinkPage({ params }: PageProps) {
+export default async function MagicLinkPage({ params, searchParams }: PageProps) {
   const { token } = await params
+  const { then: redirectTo } = await searchParams
 
   // Look up token — expired tokens still exist in DB until consumed or replaced
   const tokenRecord = await prisma.passwordResetToken.findUnique({
@@ -27,5 +29,5 @@ export default async function MagicLinkPage({ params }: PageProps) {
   }
 
   // Token is valid — client component handles the actual sign-in
-  return <MagicLinkConsumer token={token} />
+  return <MagicLinkConsumer token={token} redirectTo={redirectTo ?? '/dashboard'} />
 }

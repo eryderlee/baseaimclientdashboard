@@ -7,7 +7,8 @@ import bcrypt from 'bcryptjs'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { STANDARD_MILESTONES } from '@/prisma/seed-milestones'
-import { sendWelcomeEmail, sendTestLeadEmail } from '@/lib/email'
+import { sendWelcomeEmail, sendTestLeadEmail, sendClientActionEmail } from '@/lib/email'
+import type { ClientActionType } from '@/emails/client-action-email'
 import { createClientDriveFolder } from '@/lib/google-drive'
 import { z } from 'zod'
 
@@ -425,5 +426,55 @@ export async function sendTestLead(
   })
 
   revalidatePath(`/admin/clients/${clientId}/edit`)
+  return { success: true }
+}
+
+/**
+ * Send a magic link email to a client for a specific action.
+ * action: 'dashboard' | 'documents' | 'password'
+ * documentRequest: optional message describing what to upload (documents action only)
+ */
+export async function sendClientActionLink(
+  clientId: string,
+  action: ClientActionType,
+  documentRequest?: string
+): Promise<{ success: boolean; error?: string }> {
+  const { userRole } = await verifySession()
+  if (userRole !== 'ADMIN') return { success: false, error: 'Unauthorized' }
+
+  const client = await prisma.client.findUnique({
+    where: { id: clientId },
+    include: { user: { select: { email: true, name: true } } },
+  })
+
+  if (!client) return { success: false, error: 'Client not found' }
+
+  const token = crypto.randomUUID()
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+
+  await prisma.passwordResetToken.create({
+    data: { email: client.user.email, token, expiresAt },
+  })
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const redirectMap: Record<ClientActionType, string> = {
+    dashboard: '/dashboard',
+    documents: '/dashboard',
+    password: '/dashboard',
+  }
+  const magicLinkUrl = `${appUrl}/auth/magic-link/${token}?then=${redirectMap[action]}`
+
+  const result = await sendClientActionEmail({
+    clientName: client.user.name || client.companyName,
+    email: client.user.email,
+    magicLinkUrl,
+    action,
+    documentRequest,
+  })
+
+  if (!result.success) {
+    return { success: false, error: 'Failed to send email' }
+  }
+
   return { success: true }
 }

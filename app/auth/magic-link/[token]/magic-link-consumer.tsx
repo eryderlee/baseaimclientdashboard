@@ -5,6 +5,7 @@ import { signIn } from 'next-auth/react'
 
 interface MagicLinkConsumerProps {
   token: string
+  redirectTo?: string
 }
 
 /**
@@ -12,22 +13,22 @@ interface MagicLinkConsumerProps {
  * NextAuth contacts authorize(), which atomically validates + deletes the token,
  * then redirects to /dashboard on success.
  */
-export function MagicLinkConsumer({ token }: MagicLinkConsumerProps) {
+export function MagicLinkConsumer({ token, redirectTo = '/dashboard' }: MagicLinkConsumerProps) {
   const [error, setError] = useState(false)
 
   useEffect(() => {
     signIn('credentials', {
       magicToken: token,
-      callbackUrl: '/dashboard',
+      callbackUrl: redirectTo,
       redirect: false,
     }).then((result) => {
       if (result?.error) {
         setError(true)
       } else {
-        window.location.href = '/dashboard'
+        window.location.href = redirectTo
       }
     })
-  }, [token])
+  }, [token, redirectTo])
 
   if (error) {
     window.location.href = '/auth/magic-link/expired'
