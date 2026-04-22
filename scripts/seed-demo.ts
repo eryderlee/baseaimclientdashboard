@@ -135,7 +135,7 @@ function completedSetupMilestones(setupStart: Date): MilestoneInput[] {
 // ---------------------------------------------------------------------------
 
 function growthMilestones(startYear: number, startMonth: number, count: number, startOrder: number): MilestoneInput[] {
-  const now = new Date('2026-03-28')
+  const now = new Date()
   return Array.from({ length: count }, (_, i) => {
     const month = startMonth + i
     const y = startYear + Math.floor((month - 1) / 12)
@@ -188,8 +188,7 @@ function makeInvoices(setupDate: Date, monthsActive: number): InvoiceInput[] {
     const d = new Date(setupDate)
     d.setMonth(d.getMonth() + 2 + i)
     const dueDate = new Date(d.getFullYear(), d.getMonth(), 1)
-    const now = new Date('2026-03-28')
-    const isPaid = dueDate < now
+    const isPaid = dueDate < new Date()
     invoiceCounter++
 
     invoices.push({
