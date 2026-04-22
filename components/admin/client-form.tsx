@@ -50,8 +50,8 @@ export function ClientForm({ mode, defaultValues, clientId }: ClientFormProps) {
     const formData = new FormData()
 
     Object.entries(data).forEach(([key, value]) => {
-      if (key === 'leadsChartEnabled') {
-        // Boolean must be explicitly serialized — skip the truthy-only guard
+      if (key === 'leadsChartEnabled' || key === 'baseaimDomainEnabled') {
+        // Booleans must be explicitly serialized — skip the truthy-only guard
         formData.append(key, String(value ?? false))
       } else if (value !== undefined && value !== null && value !== '') {
         formData.append(key, value.toString())
@@ -303,6 +303,14 @@ export function ClientForm({ mode, defaultValues, clientId }: ClientFormProps) {
                 onCheckedChange={(checked) => setValue('leadsChartEnabled' as any, checked)}
               />
               <Label htmlFor="leadsChartEnabled">Show Leads Chart on Home Page</Label>
+            </div>
+            <div className="flex items-center gap-3">
+              <Switch
+                id="baseaimDomainEnabled"
+                checked={watch('baseaimDomainEnabled' as any) ?? false}
+                onCheckedChange={(checked) => setValue('baseaimDomainEnabled' as any, checked)}
+              />
+              <Label htmlFor="baseaimDomainEnabled">Use baseaim.co domain</Label>
             </div>
           </CardContent>
         </Card>

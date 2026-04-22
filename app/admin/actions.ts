@@ -7,7 +7,7 @@ import bcrypt from 'bcryptjs'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { STANDARD_MILESTONES } from '@/prisma/seed-milestones'
-import { sendWelcomeEmail } from '@/lib/email'
+import { sendWelcomeEmail, sendTestLeadEmail } from '@/lib/email'
 import { createClientDriveFolder } from '@/lib/google-drive'
 import { z } from 'zod'
 
@@ -179,6 +179,7 @@ export async function updateClient(clientId: string, formData: FormData) {
     address: formData.get('address') || undefined,
     adAccountId: formData.get('adAccountId') || undefined,
     leadsChartEnabled: formData.get('leadsChartEnabled') === 'true',
+    baseaimDomainEnabled: formData.get('baseaimDomainEnabled') === 'true',
   }
 
   const validatedFields = updateClientSchema.safeParse(rawData)
@@ -190,7 +191,7 @@ export async function updateClient(clientId: string, formData: FormData) {
     }
   }
 
-  const { name, companyName, industry, website, phone, address, adAccountId, leadsChartEnabled } = validatedFields.data
+  const { name, companyName, industry, website, phone, address, adAccountId, leadsChartEnabled, baseaimDomainEnabled } = validatedFields.data
 
   try {
     // Update client and user in transaction
@@ -206,6 +207,7 @@ export async function updateClient(clientId: string, formData: FormData) {
           address,
           adAccountId: adAccountId || null,
           leadsChartEnabled: leadsChartEnabled ?? false,
+          baseaimDomainEnabled: baseaimDomainEnabled ?? false,
         },
       })
 
@@ -329,4 +331,99 @@ export async function resetClientPassword(clientId: string, newPassword: string)
     console.error('Failed to reset password:', error)
     return { error: 'Failed to reset password. Please try again.' }
   }
+}
+
+export interface LeadDestinations {
+  email?: {
+    enabled: boolean
+    address: string
+    cc?: string
+    tested?: boolean
+    testedAt?: string
+  }
+  sms?: {
+    enabled: boolean
+    phone?: string
+  }
+  crmWebhook?: {
+    enabled: boolean
+    url?: string
+  }
+  custom?: Array<{
+    id: string
+    name: string
+    enabled: boolean
+    url?: string
+  }>
+}
+
+/**
+ * Save lead destination configuration for a client
+ */
+export async function updateLeadDestinations(
+  clientId: string,
+  destinations: LeadDestinations
+): Promise<{ success: boolean; error?: string }> {
+  const { userRole } = await verifySession()
+  if (userRole !== 'ADMIN') return { success: false, error: 'Unauthorized' }
+
+  try {
+    await prisma.client.update({
+      where: { id: clientId },
+      data: { leadDestinations: destinations as object },
+    })
+    revalidatePath(`/admin/clients/${clientId}/edit`)
+    return { success: true }
+  } catch (error) {
+    console.error('updateLeadDestinations failed:', error)
+    return { success: false, error: 'Failed to save. Please try again.' }
+  }
+}
+
+/**
+ * Send a test lead email to the configured email destination
+ */
+export async function sendTestLead(
+  clientId: string
+): Promise<{ success: boolean; error?: string }> {
+  const { userRole } = await verifySession()
+  if (userRole !== 'ADMIN') return { success: false, error: 'Unauthorized' }
+
+  const client = await prisma.client.findUnique({
+    where: { id: clientId },
+    select: { companyName: true, leadDestinations: true },
+  })
+
+  if (!client) return { success: false, error: 'Client not found' }
+
+  const destinations = client.leadDestinations as LeadDestinations | null
+  const emailDest = destinations?.email
+
+  if (!emailDest?.enabled || !emailDest.address) {
+    return { success: false, error: 'Email destination is not configured or disabled' }
+  }
+
+  const to = emailDest.cc
+    ? [emailDest.address, emailDest.cc]
+    : emailDest.address
+
+  const result = await sendTestLeadEmail({ to, companyName: client.companyName })
+
+  if (!result.success) {
+    return { success: false, error: 'Failed to send test email' }
+  }
+
+  // Mark as tested
+  const updated: LeadDestinations = {
+    ...destinations,
+    email: { ...emailDest, tested: true, testedAt: new Date().toISOString() },
+  }
+
+  await prisma.client.update({
+    where: { id: clientId },
+    data: { leadDestinations: updated as object },
+  })
+
+  revalidatePath(`/admin/clients/${clientId}/edit`)
+  return { success: true }
 }

@@ -71,8 +71,10 @@ model Client {
   phone           String?
   address         String?
   driveFolderId   String?   // Google Drive folder ID for this client's documents
-  adAccountId        String?   // Facebook Ad Account ID, e.g. "act_123456789"
-  leadsChartEnabled  Boolean   @default(false)
+  adAccountId           String?   // Facebook Ad Account ID, e.g. "act_123456789"
+  leadsChartEnabled     Boolean   @default(false)
+  baseaimDomainEnabled  Boolean   @default(false)
+  leadDestinations      Json?     // { email?, sms?, crmWebhook?, custom? }
   onboardingStep  Int       @default(0)
   isActive        Boolean   @default(true)
   isDemo          Boolean   @default(false)

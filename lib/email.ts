@@ -10,7 +10,7 @@ import { CardSetupEmail } from '@/emails/card-setup-email'
 import { MagicLinkEmail } from '@/emails/magic-link-email'
 
 interface SendEmailParams {
-  to: string
+  to: string | string[]
   subject: string
   react: ReactElement
   from?: string
@@ -264,5 +264,25 @@ export async function sendMagicLinkEmail({
     to: email,
     subject: "You're in — access your BaseAim dashboard",
     react: MagicLinkEmail({ clientName, magicLinkUrl }),
+  })
+}
+
+interface TestLeadEmailParams {
+  to: string | string[]
+  companyName: string
+}
+
+/**
+ * Send a test lead notification to verify email destination is working
+ */
+export async function sendTestLeadEmail({
+  to,
+  companyName,
+}: TestLeadEmailParams): Promise<SendEmailResult> {
+  const { TestLeadEmail } = await import('@/emails/test-lead-email')
+  return sendEmail({
+    to,
+    subject: `[TEST] New lead for ${companyName}`,
+    react: TestLeadEmail({ companyName }),
   })
 }

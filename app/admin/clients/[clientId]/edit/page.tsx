@@ -5,6 +5,8 @@ import { verifySession, getClientForEdit } from "@/lib/dal"
 import { ClientForm } from "@/components/admin/client-form"
 import { PasswordResetSection } from "@/components/admin/password-reset-section"
 import { DeleteClientSection } from "@/components/admin/delete-client-section"
+import { LeadDestinationSection } from "@/components/admin/lead-destination-section"
+import type { LeadDestinations } from "@/app/admin/actions"
 import { Button } from "@/components/ui/button"
 
 export default async function ClientEditPage({
@@ -56,7 +58,13 @@ export default async function ClientEditPage({
           address: client.address || undefined,
           adAccountId: client.adAccountId || undefined,
           leadsChartEnabled: client.leadsChartEnabled,
+          baseaimDomainEnabled: client.baseaimDomainEnabled,
         }}
+      />
+
+      <LeadDestinationSection
+        clientId={clientId}
+        initialDestinations={client.leadDestinations as LeadDestinations | null}
       />
 
       <PasswordResetSection clientId={clientId} />

@@ -36,6 +36,7 @@ export const updateClientSchema = z.object({
     .optional()
     .or(z.literal('')),
   leadsChartEnabled: z.boolean().optional(),
+  baseaimDomainEnabled: z.boolean().optional(),
 });
 
 // Inferred TypeScript types from schemas
