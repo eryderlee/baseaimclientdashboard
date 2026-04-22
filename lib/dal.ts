@@ -298,6 +298,7 @@ export const getClientOnboarding = cache(async (clientId: string) => {
       id: true,
       companyName: true,
       onboardingChecklist: true,
+      checklistNotes: true,
       user: { select: { name: true, email: true } },
       intake: true,
     },

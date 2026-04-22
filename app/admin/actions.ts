@@ -564,6 +564,40 @@ export async function updateOnboardingChecklist(
   }
 }
 
+export async function updateChecklistNote(
+  clientId: string,
+  sectionKey: 'confirm' | 'decide' | 'collect' | 'align' | 'compliance' | 'book',
+  index: number,
+  value: string
+): Promise<{ success: boolean; error?: string }> {
+  const { userRole } = await verifySession()
+  if (userRole !== 'ADMIN') return { success: false, error: 'Unauthorized' }
+
+  try {
+    const client = await prisma.client.findUnique({
+      where: { id: clientId },
+      select: { checklistNotes: true },
+    })
+
+    if (!client) return { success: false, error: 'Client not found' }
+
+    const raw = (client.checklistNotes ?? {}) as Record<string, Record<string, string>>
+    const notes: Record<string, Record<string, string>> = { ...raw }
+    if (!notes[sectionKey]) notes[sectionKey] = {}
+    notes[sectionKey][String(index)] = value
+
+    await prisma.client.update({
+      where: { id: clientId },
+      data: { checklistNotes: notes },
+    })
+
+    return { success: true }
+  } catch (error) {
+    console.error('updateChecklistNote failed:', error)
+    return { success: false, error: 'Failed to save.' }
+  }
+}
+
 export interface BookingSystemConfig {
   system: string
   otherName?: string

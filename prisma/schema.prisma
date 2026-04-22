@@ -78,6 +78,7 @@ model Client {
   bookingSystemConfig   Json?     // { system, otherName?, bookingUrl? }
   onboardingStep       Int       @default(0)
   onboardingChecklist  Json?     // { confirm: bool[], decide: bool[], collect: bool[], align: bool[], compliance: bool[], book: bool[] }
+  checklistNotes       Json?     // { [sectionKey]: { [index]: string } }
   isActive        Boolean   @default(true)
   isDemo          Boolean   @default(false)
   demoStableId    String?   @unique

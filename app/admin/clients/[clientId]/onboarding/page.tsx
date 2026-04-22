@@ -3,10 +3,9 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { verifySession, getClientOnboarding } from '@/lib/dal'
 import { Button } from '@/components/ui/button'
-import { OnboardingProgressBar } from '@/components/admin/onboarding-progress-bar'
-import { KickoffFormSection } from '@/components/admin/kickoff-form-section'
-import { OnboardingChecklistSection } from '@/components/admin/onboarding-checklist'
-import { mergeChecklistWithDefaults, countChecked, CHECKLIST_TOTAL } from '@/types/onboarding'
+import { OnboardingClient } from '@/components/admin/onboarding-checklist'
+import { mergeChecklistWithDefaults } from '@/types/onboarding'
+import type { ChecklistNotes } from '@/types/onboarding'
 
 export default async function ClientOnboardingPage({
   params,
@@ -22,12 +21,12 @@ export default async function ClientOnboardingPage({
   const client = await getClientOnboarding(clientId)
 
   const checklist = mergeChecklistWithDefaults(client.onboardingChecklist)
-  const checkedCount = countChecked(checklist)
+  const notes = (client.checklistNotes ?? {}) as ChecklistNotes
 
   return (
-    <div className="space-y-0">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="space-y-4 mb-0">
+      <div>
         <Button variant="ghost" size="sm" asChild>
           <Link href="/admin">
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -35,26 +34,19 @@ export default async function ClientOnboardingPage({
           </Link>
         </Button>
 
-        <div>
+        <div className="mt-3">
           <h1 className="text-2xl font-bold tracking-tight">Onboarding — {client.companyName}</h1>
           <p className="text-neutral-500 text-sm mt-0.5">{client.user.email}</p>
         </div>
       </div>
 
-      {/* Sticky progress bar */}
-      <OnboardingProgressBar checked={checkedCount} total={CHECKLIST_TOTAL} />
-
-      {/* Page content */}
-      <div className="pt-8 space-y-10">
-        {/* Editable kickoff form */}
-        <KickoffFormSection clientId={clientId} intake={client.intake} />
-
-        {/* Divider */}
-        <div className="border-t border-neutral-200" />
-
-        {/* Onboarding checklist */}
-        <OnboardingChecklistSection clientId={clientId} checklist={checklist} />
-      </div>
+      {/* Client-side: sticky progress bar + kickoff form + checklist */}
+      <OnboardingClient
+        clientId={clientId}
+        intake={client.intake}
+        initialChecklist={checklist}
+        initialNotes={notes}
+      />
     </div>
   )
 }

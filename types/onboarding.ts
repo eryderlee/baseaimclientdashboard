@@ -143,3 +143,76 @@ export function mergeChecklistWithDefaults(raw: unknown): OnboardingChecklist {
 export function countChecked(checklist: OnboardingChecklist): number {
   return Object.values(checklist).flat().filter(Boolean).length
 }
+
+// ─── Per-item note types ─────────────────────────────────────────────────────
+
+export type ItemNoteConfig =
+  | { type: 'none' }
+  | { type: 'text'; placeholder: string }
+  | { type: 'choice'; options: string[] }
+
+export type ChecklistNotes = Partial<Record<OnboardingChecklistKey, Record<number, string>>>
+
+// ─── Note config per item (44 total) ─────────────────────────────────────────
+
+const N: ItemNoteConfig = { type: 'none' }
+const t = (placeholder: string): ItemNoteConfig => ({ type: 'text', placeholder })
+const c = (...options: string[]): ItemNoteConfig => ({ type: 'choice', options })
+
+export const CHECKLIST_ITEM_NOTES: Record<OnboardingChecklistKey, ItemNoteConfig[]> = {
+  // Section 1 — all none (data is in the editable kickoff form above)
+  confirm: [N, N, N, N, N, N, N, N, N, N, N],
+
+  // Section 2 — Decide
+  decide: [
+    c('BaseAim domain (default)', 'Client subdomain (+5–10 days)'),
+    c('Existing — link confirmed & tested', 'BaseAim-provisioned'),
+    c('Book into calendar (default)', 'Email leads only', 'CRM / other'),
+    c('Yes — auto-notifies', 'No — will check manually'),
+    c('None needed', 'SMS', 'Secondary email', 'CRM webhook'),
+    t('e.g. Jane handles all calls, confirms 24h prior'),
+    c('Auto-rebook email', 'Nurture sequence', 'Personal follow-up'),
+    t('e.g. "Get more tax clients — no upfront fees"'),
+  ],
+
+  // Section 3 — Collect
+  collect: [
+    c('Done — in Drive folder', 'Still waiting'),
+    t('e.g. #1A2B3C, #FFFFFF — or "use website colours"'),
+    t('Required or forbidden phrases...'),
+    c('Granted', 'Not needed', 'Still pending'),
+    c('Obtained', 'Not needed', 'Still pending'),
+    t('e.g. CPA Lic. 12345 — or N/A'),
+    c("Have assets", "None — that's fine"),
+  ],
+
+  // Section 4 — Align
+  align: [
+    N,
+    N,
+    t('e.g. Business owner, local, budget >$5k/yr'),
+    N,
+    N,
+    t('e.g. WhatsApp for urgent, email for general'),
+    t('e.g. Email Sora, she adjusts budget within 48h'),
+    t('e.g. Throttle July–Oct, resume Nov'),
+    N,
+  ],
+
+  // Section 5 — Compliance
+  compliance: [
+    c('CPA Australia', 'CA ANZ', 'IPA', 'Multiple', 'None / Other'),
+    t('e.g. "CPA Lic. 12345 must appear on all ads"'),
+    t('e.g. Cannot use "specialist", "best", or guarantees'),
+    c('Yes — can reference', 'No — confidential', 'Case by case'),
+    t('e.g. None — or describe any unusual requirement'),
+  ],
+
+  // Section 6 — Book
+  book: [
+    t('e.g. 15 May 2025, 2pm AEST'),
+    N,
+    N,
+    N,
+  ],
+}
