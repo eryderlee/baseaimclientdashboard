@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import { Progress } from '@/components/ui/progress'
 import { updateOnboardingChecklist, updateChecklistNote } from '@/app/admin/actions'
@@ -77,21 +77,29 @@ export function OnboardingClient({
   }
 
   return (
-    <div>
-      {/* ─── Sticky reactive progress bar ──────────────────────────────────── */}
-      <div className="sticky top-16 z-40 -mx-4 md:-mx-8 lg:-mx-12 bg-white border-b border-neutral-200 shadow-sm px-4 md:px-8 lg:px-12 py-3">
-        <div className="flex items-center justify-between text-sm mb-2">
-          <span className={`font-medium ${complete ? 'text-emerald-600' : 'text-neutral-700'}`}>
-            {complete ? 'Onboarding complete' : 'Onboarding progress'}
+    <div className="pb-24">
+      {/* ─── Fixed bottom pill progress bar ────────────────────────────────── */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[560px] max-w-[calc(100vw-2rem)] pointer-events-none">
+        <div
+          className={`flex items-center gap-4 rounded-full border shadow-2xl px-6 py-3.5 backdrop-blur-md pointer-events-auto transition-colors duration-300 ${
+            complete
+              ? 'bg-emerald-950/90 border-emerald-700'
+              : 'bg-neutral-900/90 border-neutral-700'
+          }`}
+        >
+          <span className={`text-sm font-semibold shrink-0 ${complete ? 'text-emerald-300' : 'text-white'}`}>
+            {complete ? '✓ Done' : 'Onboarding'}
           </span>
-          <span className={`tabular-nums text-xs ${complete ? 'text-emerald-600 font-semibold' : 'text-neutral-500'}`}>
-            {checkedCount} / {CHECKLIST_TOTAL} — {pct}%
+          <div className="flex-1">
+            <Progress
+              value={pct}
+              className={`h-2 bg-white/20 ${complete ? '[&>div]:bg-emerald-400' : '[&>div]:bg-white'}`}
+            />
+          </div>
+          <span className={`text-sm tabular-nums font-medium shrink-0 ${complete ? 'text-emerald-300' : 'text-white/80'}`}>
+            {checkedCount}/{CHECKLIST_TOTAL}
           </span>
         </div>
-        <Progress
-          value={pct}
-          className={`h-1.5 ${complete ? '[&>div]:bg-emerald-500' : ''}`}
-        />
       </div>
 
       {/* ─── Kickoff form ───────────────────────────────────────────────────── */}
