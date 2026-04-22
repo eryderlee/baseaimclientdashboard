@@ -35,7 +35,7 @@ export function OnboardingClient({
   const [checklist, setChecklist] = useState<OnboardingChecklist>(initialChecklist)
   const [notes, setNotes] = useState<ChecklistNotes>(initialNotes)
   const checkedCount = countChecked(checklist)
-  const pct = CHECKLIST_TOTAL === 0 ? 0 : Math.round((checkedCount / CHECKLIST_TOTAL) * 100)
+  const pct = Math.round((checkedCount / CHECKLIST_TOTAL) * 100)
   const complete = pct === 100
 
   // ─── Checkbox toggle ───────────────────────────────────────────────────────
