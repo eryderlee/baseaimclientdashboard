@@ -6,7 +6,8 @@ import { ClientForm } from "@/components/admin/client-form"
 import { PasswordResetSection } from "@/components/admin/password-reset-section"
 import { DeleteClientSection } from "@/components/admin/delete-client-section"
 import { LeadDestinationSection } from "@/components/admin/lead-destination-section"
-import type { LeadDestinations } from "@/app/admin/actions"
+import { BookingSystemSection } from "@/components/admin/booking-system-section"
+import type { LeadDestinations, BookingSystemConfig } from "@/app/admin/actions"
 import { Button } from "@/components/ui/button"
 
 export default async function ClientEditPage({
@@ -65,6 +66,11 @@ export default async function ClientEditPage({
       <LeadDestinationSection
         clientId={clientId}
         initialDestinations={client.leadDestinations as LeadDestinations | null}
+      />
+
+      <BookingSystemSection
+        clientId={clientId}
+        initialConfig={client.bookingSystemConfig as BookingSystemConfig | null}
       />
 
       <PasswordResetSection clientId={clientId} />

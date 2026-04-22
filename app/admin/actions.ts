@@ -429,6 +429,35 @@ export async function sendTestLead(
   return { success: true }
 }
 
+export interface BookingSystemConfig {
+  system: string
+  otherName?: string
+  bookingUrl?: string
+}
+
+/**
+ * Save booking system configuration for a client
+ */
+export async function updateBookingSystemConfig(
+  clientId: string,
+  config: BookingSystemConfig
+): Promise<{ success: boolean; error?: string }> {
+  const { userRole } = await verifySession()
+  if (userRole !== 'ADMIN') return { success: false, error: 'Unauthorized' }
+
+  try {
+    await prisma.client.update({
+      where: { id: clientId },
+      data: { bookingSystemConfig: config as object },
+    })
+    revalidatePath(`/admin/clients/${clientId}/edit`)
+    return { success: true }
+  } catch (error) {
+    console.error('updateBookingSystemConfig failed:', error)
+    return { success: false, error: 'Failed to save. Please try again.' }
+  }
+}
+
 /**
  * Send a magic link email to a client for a specific action.
  * action: 'dashboard' | 'documents' | 'password'

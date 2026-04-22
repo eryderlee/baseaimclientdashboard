@@ -75,6 +75,7 @@ model Client {
   leadsChartEnabled     Boolean   @default(false)
   baseaimDomainEnabled  Boolean   @default(false)
   leadDestinations      Json?     // { email?, sms?, crmWebhook?, custom? }
+  bookingSystemConfig   Json?     // { system, otherName?, bookingUrl? }
   onboardingStep  Int       @default(0)
   isActive        Boolean   @default(true)
   isDemo          Boolean   @default(false)
