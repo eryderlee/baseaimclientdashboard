@@ -28,6 +28,8 @@ const surveyPayloadSchema = z.object({
   targetGeography: z.array(z.string()).min(1),
   targetRegions: z.string().optional(),
   geographyExclusions: z.string().optional(),
+  bookingSystem: z.string().min(1),
+  bookingSystemOther: z.string().optional(),
   kickoffCallBooked: z.boolean(),
   kickoffCallDate: z.string().datetime().optional(),
 })
@@ -126,6 +128,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           targetGeography: body.targetGeography,
           targetRegions: body.targetRegions,
           geographyExclusions: body.geographyExclusions,
+          bookingSystem: body.bookingSystem,
+          bookingSystemOther: body.bookingSystemOther,
           kickoffCallBooked: body.kickoffCallBooked,
           kickoffCallDate: body.kickoffCallDate
             ? new Date(body.kickoffCallDate)

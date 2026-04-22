@@ -70,6 +70,8 @@ type IntakeInput = {
   targetGeography: string[]
   targetRegions?: string
   geographyExclusions?: string
+  bookingSystem?: string
+  bookingSystemOther?: string
   kickoffCallBooked: boolean
   kickoffCallDate?: Date
 }
@@ -730,6 +732,7 @@ const DEMO_PROFILES: Array<{
       mainConcern: 'Not sure if paid ads will work for an accounting firm in my area.',
       targetGeography: ['📍 My home state only'],
       geographyExclusions: undefined,
+      bookingSystem: 'Yes — Calendly',
       kickoffCallBooked: true,
       kickoffCallDate: new Date('2026-04-28T10:00:00Z'),
     },
@@ -846,6 +849,7 @@ const DEMO_PROFILES: Array<{
       mainConcern: 'Budget risk — we\'re a small firm and can\'t afford to waste money on ads that don\'t convert.',
       targetGeography: ['🏙️ Only my local city / metro area'],
       geographyExclusions: 'Regional Victoria — too far for face-to-face meetings which our clients prefer.',
+      bookingSystem: 'Not sure / I\'d like to discuss on the call',
       kickoffCallBooked: false,
       kickoffCallDate: undefined,
     },
@@ -982,6 +986,8 @@ async function seed() {
           targetGeography: intake.targetGeography,
           targetRegions: intake.targetRegions ?? null,
           geographyExclusions: intake.geographyExclusions ?? null,
+          bookingSystem: intake.bookingSystem ?? null,
+          bookingSystemOther: intake.bookingSystemOther ?? null,
           kickoffCallBooked: intake.kickoffCallBooked,
           kickoffCallDate: intake.kickoffCallDate ?? null,
         },
@@ -1002,6 +1008,8 @@ async function seed() {
           targetGeography: intake.targetGeography,
           targetRegions: intake.targetRegions ?? null,
           geographyExclusions: intake.geographyExclusions ?? null,
+          bookingSystem: intake.bookingSystem ?? null,
+          bookingSystemOther: intake.bookingSystemOther ?? null,
           kickoffCallBooked: intake.kickoffCallBooked,
           kickoffCallDate: intake.kickoffCallDate ?? null,
         },

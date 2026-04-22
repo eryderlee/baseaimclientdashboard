@@ -288,6 +288,8 @@ model ClientIntake {
   targetGeography     Json
   targetRegions       String?
   geographyExclusions String?
+  bookingSystem       String?
+  bookingSystemOther  String?
   kickoffCallBooked   Boolean   @default(false)
   kickoffCallDate     DateTime?
   createdAt           DateTime  @default(now())

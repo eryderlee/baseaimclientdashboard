@@ -64,6 +64,16 @@ export default async function ClientIntakePage({
                 label="Has social page"
                 value={intake.hasSocialPage ? 'Yes' : 'No'}
               />
+              {intake.bookingSystem && (
+                <Field
+                  label="Booking / calendar system"
+                  value={
+                    intake.bookingSystem === 'Yes — another tool (please specify)' && intake.bookingSystemOther
+                      ? `Yes — ${intake.bookingSystemOther}`
+                      : intake.bookingSystem
+                  }
+                />
+              )}
             </CardContent>
           </Card>
 
