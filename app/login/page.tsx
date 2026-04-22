@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import GradientBG from "@/components/GradientBG"
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const prefillEmail = searchParams.get("email") ?? ""
@@ -51,6 +51,75 @@ export default function LoginPage() {
     }
     router.refresh()
   }
+
+  return (
+    <form onSubmit={onSubmit} className="space-y-5">
+      <div className="space-y-2">
+        <Label htmlFor="email" className="text-sm font-semibold text-slate-700">
+          Work email
+        </Label>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          placeholder="cpa@firm.com"
+          defaultValue={prefillEmail}
+          required
+          disabled={isLoading}
+          className="h-12 rounded-2xl border border-slate-200 bg-white/80 text-base shadow-inner shadow-white/60 placeholder:text-slate-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/40"
+        />
+      </div>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-sm font-semibold text-slate-700">
+          <Label htmlFor="password">Password</Label>
+          <Link
+            href="/reset-password"
+            className="text-primary transition hover:text-primary/80"
+          >
+            Forgot password?
+          </Link>
+        </div>
+        <Input
+          id="password"
+          name="password"
+          type="password"
+          required
+          disabled={isLoading}
+          className="h-12 rounded-2xl border border-slate-200 bg-white/80 text-base shadow-inner shadow-white/60 placeholder:text-slate-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/40"
+        />
+      </div>
+
+      {error && (
+        <p className="rounded-2xl bg-red-50/90 px-4 py-3 text-sm font-medium text-red-600" role="status">
+          {error}
+        </p>
+      )}
+
+      <Button
+        type="submit"
+        className="h-12 w-full rounded-2xl bg-primary text-base font-semibold tracking-tight shadow-lg shadow-primary/30 transition hover:-translate-y-0.5 hover:bg-primary/90 focus-visible:ring-primary/40"
+        disabled={isLoading}
+      >
+        {isLoading ? "Signing in..." : "Secure sign in"}
+      </Button>
+
+      <div className="space-y-1 text-center text-sm text-slate-500">
+        <p>Need an account? Contact our BaseAim support team to provision access.</p>
+        <p>
+          though{" "}
+          <a
+            href="mailto:support@baseaim.co"
+            className="font-semibold text-primary hover:text-primary/80"
+          >
+            support@baseaim.co
+          </a>
+        </p>
+      </div>
+    </form>
+  )
+}
+
+export default function LoginPage() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#f8fcff]">
       <GradientBG />
@@ -77,69 +146,9 @@ export default function LoginPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-5 p-8 pt-0">
-                <form onSubmit={onSubmit} className="space-y-5">
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-semibold text-slate-700">
-                      Work email
-                    </Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      placeholder="cpa@firm.com"
-                      defaultValue={prefillEmail}
-                      required
-                      disabled={isLoading}
-                      className="h-12 rounded-2xl border border-slate-200 bg-white/80 text-base shadow-inner shadow-white/60 placeholder:text-slate-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/40"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm font-semibold text-slate-700">
-                      <Label htmlFor="password">Password</Label>
-                      <Link
-                        href="/reset-password"
-                        className="text-primary transition hover:text-primary/80"
-                      >
-                        Forgot password?
-                      </Link>
-                    </div>
-                    <Input
-                      id="password"
-                      name="password"
-                      type="password"
-                      required
-                      disabled={isLoading}
-                      className="h-12 rounded-2xl border border-slate-200 bg-white/80 text-base shadow-inner shadow-white/60 placeholder:text-slate-400 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/40"
-                    />
-                  </div>
-
-                  {error && (
-                    <p className="rounded-2xl bg-red-50/90 px-4 py-3 text-sm font-medium text-red-600" role="status">
-                      {error}
-                    </p>
-                  )}
-
-                  <Button
-                    type="submit"
-                    className="h-12 w-full rounded-2xl bg-primary text-base font-semibold tracking-tight shadow-lg shadow-primary/30 transition hover:-translate-y-0.5 hover:bg-primary/90 focus-visible:ring-primary/40"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Signing in..." : "Secure sign in"}
-                  </Button>
-
-                  <div className="space-y-1 text-center text-sm text-slate-500">
-                    <p>Need an account? Contact our BaseAim support team to provision access.</p>
-                    <p>
-                      though{" "}
-                      <a
-                        href="mailto:support@baseaim.co"
-                        className="font-semibold text-primary hover:text-primary/80"
-                      >
-                        support@baseaim.co
-                      </a>
-                    </p>
-                  </div>
-                </form>
+                <Suspense fallback={null}>
+                  <LoginForm />
+                </Suspense>
               </CardContent>
             </Card>
           </div>
