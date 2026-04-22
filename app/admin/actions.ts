@@ -429,6 +429,141 @@ export async function sendTestLead(
   return { success: true }
 }
 
+/**
+ * Upsert all intake/survey fields for a client (used by the editable kickoff form)
+ */
+export async function updateClientIntake(
+  clientId: string,
+  data: {
+    decisionMaker: string
+    state: string
+    servicesOffered: string[]
+    hasRunPaidAds: boolean
+    hasSocialPage: boolean
+    targetServices: string[]
+    idealClients: string[]
+    excludedClientTypes?: string
+    monthlyCapacity: string
+    goals90Day: string[]
+    currentSituation: string[]
+    mainConcern?: string
+    targetGeography: string[]
+    targetRegions?: string
+    geographyExclusions?: string
+    bookingSystem?: string
+    bookingSystemOther?: string
+    kickoffCallBooked: boolean
+    kickoffCallDate?: string // ISO date string or empty string
+  }
+): Promise<{ success: boolean; error?: string }> {
+  const { userRole } = await verifySession()
+  if (userRole !== 'ADMIN') return { success: false, error: 'Unauthorized' }
+
+  const kickoffCallDate =
+    data.kickoffCallDate ? new Date(data.kickoffCallDate) : null
+
+  try {
+    await prisma.clientIntake.upsert({
+      where: { clientId },
+      create: {
+        clientId,
+        decisionMaker: data.decisionMaker,
+        state: data.state,
+        servicesOffered: data.servicesOffered,
+        hasRunPaidAds: data.hasRunPaidAds,
+        hasSocialPage: data.hasSocialPage,
+        targetServices: data.targetServices,
+        idealClients: data.idealClients,
+        excludedClientTypes: data.excludedClientTypes ?? null,
+        monthlyCapacity: data.monthlyCapacity,
+        goals90Day: data.goals90Day,
+        currentSituation: data.currentSituation,
+        mainConcern: data.mainConcern ?? null,
+        targetGeography: data.targetGeography,
+        targetRegions: data.targetRegions ?? null,
+        geographyExclusions: data.geographyExclusions ?? null,
+        bookingSystem: data.bookingSystem ?? null,
+        bookingSystemOther: data.bookingSystemOther ?? null,
+        kickoffCallBooked: data.kickoffCallBooked,
+        kickoffCallDate,
+      },
+      update: {
+        decisionMaker: data.decisionMaker,
+        state: data.state,
+        servicesOffered: data.servicesOffered,
+        hasRunPaidAds: data.hasRunPaidAds,
+        hasSocialPage: data.hasSocialPage,
+        targetServices: data.targetServices,
+        idealClients: data.idealClients,
+        excludedClientTypes: data.excludedClientTypes ?? null,
+        monthlyCapacity: data.monthlyCapacity,
+        goals90Day: data.goals90Day,
+        currentSituation: data.currentSituation,
+        mainConcern: data.mainConcern ?? null,
+        targetGeography: data.targetGeography,
+        targetRegions: data.targetRegions ?? null,
+        geographyExclusions: data.geographyExclusions ?? null,
+        bookingSystem: data.bookingSystem ?? null,
+        bookingSystemOther: data.bookingSystemOther ?? null,
+        kickoffCallBooked: data.kickoffCallBooked,
+        kickoffCallDate,
+      },
+    })
+    revalidatePath(`/admin/clients/${clientId}/onboarding`)
+    return { success: true }
+  } catch (error) {
+    console.error('updateClientIntake failed:', error)
+    return { success: false, error: 'Failed to save. Please try again.' }
+  }
+}
+
+/**
+ * Toggle one checklist item and persist the full checklist JSON
+ */
+export async function updateOnboardingChecklist(
+  clientId: string,
+  sectionKey: 'confirm' | 'decide' | 'collect' | 'align' | 'compliance' | 'book',
+  index: number,
+  checked: boolean
+): Promise<{ success: boolean; error?: string }> {
+  const { userRole } = await verifySession()
+  if (userRole !== 'ADMIN') return { success: false, error: 'Unauthorized' }
+
+  const sectionLengths: Record<string, number> = {
+    confirm: 11, decide: 8, collect: 7, align: 9, compliance: 5, book: 4,
+  }
+
+  try {
+    const client = await prisma.client.findUnique({
+      where: { id: clientId },
+      select: { onboardingChecklist: true },
+    })
+
+    if (!client) return { success: false, error: 'Client not found' }
+
+    // Build full checklist, initialising missing sections from defaults
+    const raw = (client.onboardingChecklist ?? {}) as Record<string, unknown>
+    const checklist: Record<string, boolean[]> = {}
+    for (const [key, len] of Object.entries(sectionLengths)) {
+      const existing = Array.isArray(raw[key]) ? (raw[key] as unknown[]) : []
+      checklist[key] = Array.from({ length: len }, (_, i) => Boolean(existing[i] ?? false))
+    }
+
+    checklist[sectionKey][index] = checked
+
+    await prisma.client.update({
+      where: { id: clientId },
+      data: { onboardingChecklist: checklist },
+    })
+
+    revalidatePath(`/admin/clients/${clientId}/onboarding`)
+    return { success: true }
+  } catch (error) {
+    console.error('updateOnboardingChecklist failed:', error)
+    return { success: false, error: 'Failed to save.' }
+  }
+}
+
 export interface BookingSystemConfig {
   system: string
   otherName?: string

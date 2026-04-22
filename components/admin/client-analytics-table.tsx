@@ -221,9 +221,9 @@ export function ClientAnalyticsTable({ clients }: ClientAnalyticsTableProps) {
                   </Link>
                 </Button>
                 <Button variant="outline" size="sm" asChild>
-                  <Link href={`/admin/clients/${client.id}/intake`}>
+                  <Link href={`/admin/clients/${client.id}/onboarding`}>
                     <ClipboardList className="h-3 w-3 mr-1" />
-                    Intake
+                    Onboarding
                   </Link>
                 </Button>
                 <Button variant="outline" size="sm" asChild>

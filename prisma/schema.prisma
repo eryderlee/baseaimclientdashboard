@@ -76,7 +76,8 @@ model Client {
   baseaimDomainEnabled  Boolean   @default(false)
   leadDestinations      Json?     // { email?, sms?, crmWebhook?, custom? }
   bookingSystemConfig   Json?     // { system, otherName?, bookingUrl? }
-  onboardingStep  Int       @default(0)
+  onboardingStep       Int       @default(0)
+  onboardingChecklist  Json?     // { confirm: bool[], decide: bool[], collect: bool[], align: bool[], compliance: bool[], book: bool[] }
   isActive        Boolean   @default(true)
   isDemo          Boolean   @default(false)
   demoStableId    String?   @unique
