@@ -522,7 +522,7 @@ export async function updateClientIntake(
  */
 export async function updateOnboardingChecklist(
   clientId: string,
-  sectionKey: 'confirm' | 'decide' | 'collect' | 'align' | 'compliance' | 'book',
+  sectionKey: 'confirm' | 'align' | 'setup' | 'compliance' | 'preview' | 'book' | 'postcall',
   index: number,
   checked: boolean
 ): Promise<{ success: boolean; error?: string }> {
@@ -530,7 +530,7 @@ export async function updateOnboardingChecklist(
   if (userRole !== 'ADMIN') return { success: false, error: 'Unauthorized' }
 
   const sectionLengths: Record<string, number> = {
-    confirm: 11, decide: 8, collect: 7, align: 9, compliance: 5, book: 4,
+    confirm: 11, align: 8, setup: 11, compliance: 5, preview: 1, book: 4, postcall: 5,
   }
 
   try {
@@ -566,8 +566,8 @@ export async function updateOnboardingChecklist(
 
 export async function updateChecklistNote(
   clientId: string,
-  sectionKey: 'confirm' | 'decide' | 'collect' | 'align' | 'compliance' | 'book',
-  index: number,
+  sectionKey: 'confirm' | 'align' | 'setup' | 'compliance' | 'preview' | 'book' | 'postcall',
+  key: string,
   value: string
 ): Promise<{ success: boolean; error?: string }> {
   const { userRole } = await verifySession()
@@ -584,7 +584,7 @@ export async function updateChecklistNote(
     const raw = (client.checklistNotes ?? {}) as Record<string, Record<string, string>>
     const notes: Record<string, Record<string, string>> = { ...raw }
     if (!notes[sectionKey]) notes[sectionKey] = {}
-    notes[sectionKey][String(index)] = value
+    notes[sectionKey][key] = value
 
     await prisma.client.update({
       where: { id: clientId },

@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Pencil, ListChecks, Eye, FolderOpen, Receipt, ClipboardList, Zap } from 'lucide-react'
+import { Pencil, ListChecks, Eye, FolderOpen, Receipt, ClipboardList, Zap, CheckCircle2 } from 'lucide-react'
 import { RiskBadge } from '@/components/admin/at-risk-indicator'
 import { StatusToggleButton } from '@/components/admin/status-toggle-button'
 
@@ -28,6 +28,7 @@ interface ClientData {
   riskReasons: string[]
   nextDueDate: string | null
   setupComplete: boolean
+  onboardingComplete: boolean
   fbSpend?: number | null
   fbBookedCalls?: number | null
   user: {
@@ -220,9 +221,17 @@ export function ClientAnalyticsTable({ clients }: ClientAnalyticsTableProps) {
                     Invoices
                   </Link>
                 </Button>
-                <Button variant="outline" size="sm" asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className={client.onboardingComplete ? 'border-emerald-400 text-emerald-700 hover:bg-emerald-50' : ''}
+                >
                   <Link href={`/admin/clients/${client.id}/onboarding`}>
-                    <ClipboardList className="h-3 w-3 mr-1" />
+                    {client.onboardingComplete
+                      ? <CheckCircle2 className="h-3 w-3 mr-1 text-emerald-600" />
+                      : <ClipboardList className="h-3 w-3 mr-1" />
+                    }
                     Onboarding
                   </Link>
                 </Button>

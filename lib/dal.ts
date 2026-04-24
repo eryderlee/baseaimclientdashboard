@@ -197,6 +197,8 @@ export const getAllClientsWithMilestones = cache(async () => {
           order: true,
         },
       },
+      onboardingChecklist: true,
+      checklistNotes: true,
     },
     orderBy: { createdAt: 'desc' },
   })

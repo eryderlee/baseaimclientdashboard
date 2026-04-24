@@ -7,6 +7,8 @@ import { UserPlus, Calendar } from 'lucide-react'
 import { verifySession, getAllClientsWithMilestones, getAdminAnalytics, getAdminFbPerClient } from '@/lib/dal'
 import { calculateOverallProgress } from '@/lib/utils/progress'
 import { detectClientRisk } from '@/lib/utils/risk-detection'
+import { mergeChecklistWithDefaults, countChecked, computeActiveTotal } from '@/types/onboarding'
+import type { ChecklistNotes } from '@/types/onboarding'
 import { ClientFilters } from '@/components/admin/client-filters'
 import { ClientAnalyticsTable } from '@/components/admin/client-analytics-table'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -37,6 +39,13 @@ async function getAdminData() {
     const setupComplete =
       setupMilestones.length >= 6 &&
       setupMilestones.every((m) => m.status === 'COMPLETED')
+
+    const notes = (client.checklistNotes ?? {}) as ChecklistNotes
+    const checklist = mergeChecklistWithDefaults(client.onboardingChecklist)
+    const activeTotal = computeActiveTotal(notes)
+    const checkedCount = countChecked(checklist, notes)
+    const onboardingComplete = activeTotal > 0 && checkedCount >= activeTotal
+
     return {
       id: client.id,
       companyName: client.companyName,
@@ -48,6 +57,7 @@ async function getAdminData() {
       riskReasons: risk.reasons,
       nextDueDate: nextDueDate ? nextDueDate.toISOString() : null,
       setupComplete,
+      onboardingComplete,
       fbSpend: fbData?.spend ?? null,
       fbBookedCalls: fbData?.bookedCalls ?? null,
       user: {

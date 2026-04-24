@@ -2,14 +2,17 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { Copy, Check, ExternalLink } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
 import { updateOnboardingChecklist, updateChecklistNote, sendClientActionLink } from '@/app/admin/actions'
 import { KickoffFormSection } from '@/components/admin/kickoff-form-section'
 import {
   CHECKLIST_SECTIONS,
   CHECKLIST_ITEM_NOTES,
-  CHECKLIST_TOTAL,
+  CHECKLIST_ITEM_CHASE_TEMPLATES,
+  computeActiveTotal,
   countChecked,
+  isItemActive,
 } from '@/types/onboarding'
 import type {
   OnboardingChecklist,
@@ -38,6 +41,11 @@ export function OnboardingClient({
   const [docRequestText, setDocRequestText] = useState('')
   const [docRequestState, setDocRequestState] = useState<'idle' | 'sending' | 'sent'>('idle')
 
+  const activeTotal = computeActiveTotal(notes)
+  const checkedCount = countChecked(checklist, notes)
+  const pct = activeTotal > 0 ? Math.round((checkedCount / activeTotal) * 100) : 0
+  const complete = activeTotal > 0 && checkedCount >= activeTotal
+
   async function handleSendDocRequest() {
     if (!docRequestText.trim()) {
       toast.error('Describe what you need the client to upload.')
@@ -53,9 +61,6 @@ export function OnboardingClient({
       toast.error(result.error ?? 'Failed to send')
     }
   }
-  const checkedCount = countChecked(checklist)
-  const pct = Math.round((checkedCount / CHECKLIST_TOTAL) * 100)
-  const complete = pct === 100
 
   // ─── Checkbox toggle ───────────────────────────────────────────────────────
   async function handleToggle(sectionKey: OnboardingChecklistKey, index: number, checked: boolean) {
@@ -74,24 +79,24 @@ export function OnboardingClient({
   }
 
   // ─── Note: choice (immediate save) ────────────────────────────────────────
-  async function handleNoteChoice(sectionKey: OnboardingChecklistKey, index: number, value: string) {
+  async function handleNoteChoice(sectionKey: OnboardingChecklistKey, key: string, value: string) {
     setNotes((prev) => ({
       ...prev,
-      [sectionKey]: { ...(prev[sectionKey] ?? {}), [index]: value },
+      [sectionKey]: { ...(prev[sectionKey] ?? {}), [key]: value },
     }))
-    const result = await updateChecklistNote(clientId, sectionKey, index, value)
+    const result = await updateChecklistNote(clientId, sectionKey, key, value)
     if (!result.success) toast.error(result.error ?? 'Failed to save')
   }
 
   // ─── Note: text (save on blur) ─────────────────────────────────────────────
-  async function handleNoteBlur(sectionKey: OnboardingChecklistKey, index: number, value: string) {
-    const current = notes[sectionKey]?.[index] ?? ''
-    if (value === current) return // no change
+  async function handleNoteBlur(sectionKey: OnboardingChecklistKey, key: string, value: string) {
+    const current = notes[sectionKey]?.[key] ?? ''
+    if (value === current) return
     setNotes((prev) => ({
       ...prev,
-      [sectionKey]: { ...(prev[sectionKey] ?? {}), [index]: value },
+      [sectionKey]: { ...(prev[sectionKey] ?? {}), [key]: value },
     }))
-    const result = await updateChecklistNote(clientId, sectionKey, index, value)
+    const result = await updateChecklistNote(clientId, sectionKey, key, value)
     if (!result.success) toast.error(result.error ?? 'Failed to save')
   }
 
@@ -116,7 +121,7 @@ export function OnboardingClient({
             />
           </div>
           <span className={`text-sm tabular-nums font-medium shrink-0 ${complete ? 'text-emerald-300' : 'text-white/80'}`}>
-            {checkedCount}/{CHECKLIST_TOTAL}
+            {checkedCount}/{activeTotal}
           </span>
         </div>
       </div>
@@ -134,18 +139,26 @@ export function OnboardingClient({
         <h2 className="text-lg font-semibold text-neutral-900">Onboarding Checklist</h2>
 
         {CHECKLIST_SECTIONS.map((section) => {
-          const sectionChecked = checklist[section.key].filter(Boolean).length
-          const sectionTotal = section.items.length
+          const sectionActiveItems = section.items.filter((_, i) => isItemActive(section.key, i, notes))
+          const sectionChecked = checklist[section.key].filter((checked, i) => checked && isItemActive(section.key, i, notes)).length
+          const sectionTotal = sectionActiveItems.length
+          const isSetupSection = section.key === 'setup'
+          const isPostcallSection = section.key === 'postcall'
 
           return (
             <div key={section.key} className="space-y-3">
               {/* Section header */}
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-bold uppercase tracking-widest text-neutral-500">
-                  {section.title}
-                </p>
-                <div className="flex items-center gap-3">
-                  {section.key === 'collect' && (
+              <div className={`flex items-center justify-between ${isPostcallSection ? 'mt-4' : ''}`}>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-widest text-neutral-500">
+                    {section.title}
+                  </p>
+                  {section.subtitle && (
+                    <p className="text-xs text-neutral-400 mt-0.5 max-w-xl">{section.subtitle}</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-3 shrink-0 ml-4">
+                  {isSetupSection && (
                     <button
                       type="button"
                       onClick={() => { setShowDocRequest((v) => !v); setDocRequestState('idle') }}
@@ -160,8 +173,17 @@ export function OnboardingClient({
                 </div>
               </div>
 
+              {/* Section 7 — Post-call visual distinction */}
+              {isPostcallSection && (
+                <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50/60 px-4 pt-2 pb-1 -mx-1">
+                  <p className="text-xs text-neutral-400 mb-3">
+                    Client self-serve actions — items grey out if not triggered by Section 3 choices
+                  </p>
+                </div>
+              )}
+
               {/* Inline doc request form — only for Section 3 */}
-              {section.key === 'collect' && showDocRequest && (
+              {isSetupSection && showDocRequest && (
                 <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 space-y-2">
                   <p className="text-xs font-medium text-neutral-600">What do you need the client to upload?</p>
                   <textarea
@@ -184,21 +206,28 @@ export function OnboardingClient({
               )}
 
               {/* Items */}
-              <ul className="space-y-2">
+              <ul className={`space-y-2 ${isPostcallSection ? '-mt-1' : ''}`}>
                 {section.items.map((item, index) => {
+                  const active = isItemActive(section.key, index, notes)
                   const isChecked = checklist[section.key][index] ?? false
                   const noteConfig = CHECKLIST_ITEM_NOTES[section.key][index]
-                  const noteValue = notes[section.key]?.[index] ?? ''
+                  const noteValue = notes[section.key]?.[String(index)] ?? ''
+                  const chaseTemplate = CHECKLIST_ITEM_CHASE_TEMPLATES[section.key]?.[index]
+                  const showChase = active && !isChecked && chaseTemplate
 
                   return (
                     <ChecklistItem
                       key={index}
+                      clientId={clientId}
                       sectionKey={section.key}
                       index={index}
                       label={item}
                       isChecked={isChecked}
+                      isActive={active}
                       noteConfig={noteConfig}
                       noteValue={noteValue}
+                      notes={notes}
+                      chaseTemplate={showChase ? chaseTemplate : undefined}
                       onToggle={handleToggle}
                       onNoteChoice={handleNoteChoice}
                       onNoteBlur={handleNoteBlur}
@@ -217,30 +246,80 @@ export function OnboardingClient({
 // ─── ChecklistItem ────────────────────────────────────────────────────────────
 
 interface ChecklistItemProps {
+  clientId: string
   sectionKey: OnboardingChecklistKey
   index: number
   label: string
   isChecked: boolean
+  isActive: boolean
   noteConfig: ItemNoteConfig
   noteValue: string
+  notes: ChecklistNotes
+  chaseTemplate?: string
   onToggle: (key: OnboardingChecklistKey, index: number, checked: boolean) => void
-  onNoteChoice: (key: OnboardingChecklistKey, index: number, value: string) => void
-  onNoteBlur: (key: OnboardingChecklistKey, index: number, value: string) => void
+  onNoteChoice: (key: OnboardingChecklistKey, noteKey: string, value: string) => void
+  onNoteBlur: (key: OnboardingChecklistKey, noteKey: string, value: string) => void
 }
 
 function ChecklistItem({
+  clientId,
   sectionKey,
   index,
   label,
   isChecked,
+  isActive,
   noteConfig,
   noteValue,
+  notes,
+  chaseTemplate,
   onToggle,
   onNoteChoice,
   onNoteBlur,
 }: ChecklistItemProps) {
+  const [copied, setCopied] = useState(false)
+  const [magicLinkState, setMagicLinkState] = useState<'idle' | 'sending' | 'sent'>('idle')
   const id = `${sectionKey}-${index}`
   const hasNote = noteConfig.type !== 'none'
+
+  // Determine if this item has an inline magic link button
+  // setup[7] = brand assets magic link (documents action)
+  // book[3] = dashboard magic link (password action)
+  const hasMagicLink = (sectionKey === 'setup' && index === 7) || (sectionKey === 'book' && index === 3)
+  const magicLinkAction = sectionKey === 'setup' ? 'documents' : 'password'
+
+  async function handleMagicLink() {
+    setMagicLinkState('sending')
+    const result = await sendClientActionLink(clientId, magicLinkAction as 'documents' | 'password')
+    if (result.success) {
+      setMagicLinkState('sent')
+      toast.success('Magic link sent')
+    } else {
+      setMagicLinkState('idle')
+      toast.error(result.error ?? 'Failed to send')
+    }
+  }
+
+  async function handleCopyChase() {
+    if (!chaseTemplate) return
+    await navigator.clipboard.writeText(chaseTemplate)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  if (!isActive) {
+    return (
+      <li className="flex items-start gap-3 rounded-xl border border-dashed border-neutral-200 px-4 py-3 opacity-40">
+        <input
+          type="checkbox"
+          disabled
+          checked={false}
+          className="mt-0.5 h-5 w-5 shrink-0 rounded border-neutral-300 cursor-not-allowed"
+          readOnly
+        />
+        <span className="text-base text-neutral-400 select-none">{label}</span>
+      </li>
+    )
+  }
 
   return (
     <li
@@ -259,35 +338,64 @@ function ChecklistItem({
           onChange={(e) => onToggle(sectionKey, index, e.target.checked)}
           className="mt-0.5 h-5 w-5 shrink-0 rounded border-neutral-300 accent-black cursor-pointer"
         />
-        <label
-          htmlFor={id}
-          className={`text-base leading-relaxed cursor-pointer select-none ${
-            isChecked ? 'line-through text-neutral-400' : 'text-neutral-800 font-medium'
-          }`}
-        >
-          {label}
-        </label>
+        <div className="flex-1 min-w-0">
+          <label
+            htmlFor={id}
+            className={`text-base leading-relaxed cursor-pointer select-none ${
+              isChecked ? 'line-through text-neutral-400' : 'text-neutral-800 font-medium'
+            }`}
+          >
+            {label}
+          </label>
+        </div>
+        {/* Magic link button */}
+        {hasMagicLink && (
+          <button
+            type="button"
+            onClick={handleMagicLink}
+            disabled={magicLinkState !== 'idle'}
+            className="shrink-0 flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-neutral-300 bg-white text-neutral-600 hover:border-neutral-500 hover:text-neutral-900 disabled:opacity-50 transition-colors"
+          >
+            <ExternalLink className="h-3 w-3" />
+            {magicLinkState === 'sending' ? 'Sending…' : magicLinkState === 'sent' ? 'Sent ✓' : 'Send magic link'}
+          </button>
+        )}
       </div>
 
       {/* Note field */}
       {hasNote && (
         <div className="ml-8">
-          {noteConfig.type === 'choice' && (
-            <div className="flex flex-wrap gap-2">
-              {noteConfig.options.map((opt) => (
-                <button
-                  key={opt}
-                  type="button"
-                  onClick={() => onNoteChoice(sectionKey, index, opt)}
-                  className={`text-sm px-3 py-1 rounded-full border transition-all ${
-                    noteValue === opt
-                      ? 'bg-neutral-900 text-white border-neutral-900'
-                      : 'bg-white text-neutral-600 border-neutral-300 hover:border-neutral-500 hover:text-neutral-900'
-                  }`}
-                >
-                  {opt}
-                </button>
-              ))}
+          {(noteConfig.type === 'choice' || noteConfig.type === 'choice-with-conditional') && (
+            <div className="space-y-2">
+              <div className="flex flex-wrap gap-2">
+                {noteConfig.options.map((opt) => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => onNoteChoice(sectionKey, String(index), opt)}
+                    className={`text-sm px-3 py-1 rounded-full border transition-all ${
+                      noteValue === opt
+                        ? 'bg-neutral-900 text-white border-neutral-900'
+                        : 'bg-white text-neutral-600 border-neutral-300 hover:border-neutral-500 hover:text-neutral-900'
+                    }`}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+              {/* Conditional text field for choice-with-conditional */}
+              {noteConfig.type === 'choice-with-conditional' &&
+                noteValue &&
+                noteConfig.conditionalNotes[noteValue] && (
+                  <input
+                    type="text"
+                    key={`${sectionKey}-${index}-${noteValue}`}
+                    defaultValue={notes[sectionKey]?.[`${index}_note`] ?? ''}
+                    placeholder={noteConfig.conditionalNotes[noteValue]}
+                    onBlur={(e) => onNoteBlur(sectionKey, `${index}_note`, e.target.value)}
+                    className="w-full text-sm border-0 border-b border-neutral-200 bg-transparent px-0 py-1 focus:outline-none focus:border-neutral-500 placeholder:text-neutral-400"
+                  />
+                )}
             </div>
           )}
 
@@ -296,10 +404,26 @@ function ChecklistItem({
               type="text"
               defaultValue={noteValue}
               placeholder={noteConfig.placeholder}
-              onBlur={(e) => onNoteBlur(sectionKey, index, e.target.value)}
+              onBlur={(e) => onNoteBlur(sectionKey, String(index), e.target.value)}
               className="w-full text-sm border-0 border-b border-neutral-200 bg-transparent px-0 py-1 focus:outline-none focus:border-neutral-500 placeholder:text-neutral-400"
             />
           )}
+        </div>
+      )}
+
+      {/* Chase template — shown when item is active but unchecked */}
+      {chaseTemplate && (
+        <div className="ml-8 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 space-y-1.5">
+          <p className="text-xs font-medium text-amber-700">Chase template</p>
+          <p className="text-xs text-amber-800 leading-relaxed whitespace-pre-wrap">{chaseTemplate}</p>
+          <button
+            type="button"
+            onClick={handleCopyChase}
+            className="flex items-center gap-1.5 text-xs font-medium text-amber-700 hover:text-amber-900 transition-colors"
+          >
+            {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+            {copied ? 'Copied' : 'Copy'}
+          </button>
         </div>
       )}
     </li>
