@@ -2,7 +2,7 @@ export type OnboardingChecklistKey = 'confirm' | 'align' | 'setup' | 'compliance
 
 export interface OnboardingChecklist {
   confirm:    boolean[]  // 11
-  align:      boolean[]  // 8
+  align:      boolean[]  // 9
   setup:      boolean[]  // 11
   compliance: boolean[]  // 5
   preview:    boolean[]  // 1
@@ -12,7 +12,7 @@ export interface OnboardingChecklist {
 
 export const CHECKLIST_SECTION_LENGTHS: Record<OnboardingChecklistKey, number> = {
   confirm:    11,
-  align:      8,
+  align:      9,
   setup:      11,
   compliance: 5,
   preview:    1,
@@ -21,11 +21,11 @@ export const CHECKLIST_SECTION_LENGTHS: Record<OnboardingChecklistKey, number> =
 }
 
 /** Maximum possible total — some items may be inactive (conditional) */
-export const CHECKLIST_MAX_TOTAL = 45
+export const CHECKLIST_MAX_TOTAL = 46
 
 export const CHECKLIST_DEFAULTS: OnboardingChecklist = {
   confirm:    Array(11).fill(false),
-  align:      Array(8).fill(false),
+  align:      Array(9).fill(false),
   setup:      Array(11).fill(false),
   compliance: Array(5).fill(false),
   preview:    Array(1).fill(false),
@@ -71,6 +71,7 @@ export const CHECKLIST_SECTIONS: ChecklistSection[] = [
       'Communication rhythm confirmed: weekly email updates during build, Loom on first lead + major milestones, monthly review call, Day 90 quarterly',
       'What we need from client understood: answer booked calls, flag off leads within 48h, signal capacity changes',
       'Tax season throttling plan flagged',
+      'Monthly retainer timing flagged',
     ],
   },
   {
@@ -167,6 +168,7 @@ export const CHECKLIST_ITEM_NOTES: Record<OnboardingChecklistKey, ItemNoteConfig
     N,
     N,
     t('e.g. July–September blackout — or "defer to Day 60"'),
+    t('e.g. Invoice to accounts@firm.com, PO# not required, 1st of month — or "no preferences"'),
   ],
 
   // Section 3 — Set up

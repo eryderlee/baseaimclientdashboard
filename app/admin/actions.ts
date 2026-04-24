@@ -530,7 +530,7 @@ export async function updateOnboardingChecklist(
   if (userRole !== 'ADMIN') return { success: false, error: 'Unauthorized' }
 
   const sectionLengths: Record<string, number> = {
-    confirm: 11, align: 8, setup: 11, compliance: 5, preview: 1, book: 4, postcall: 5,
+    confirm: 11, align: 9, setup: 11, compliance: 5, preview: 1, book: 4, postcall: 5,
   }
 
   try {
