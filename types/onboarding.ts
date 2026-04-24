@@ -84,7 +84,7 @@ export const CHECKLIST_SECTIONS: ChecklistSection[] = [
     key: 'align',
     title: 'Section 4 — Align',
     items: [
-      'First lead timeline set: Day 7–10',
+      'First lead timeline set: 4–6 weeks',
       'Learning phase reality acknowledged: weeks 2–4 CPL will be high, that\'s normal',
       '"Good lead" definition agreed: what counts as qualified, what doesn\'t',
       'Dispute policy understood: flag within 48h via dashboard, auto-review in ≤48h',
